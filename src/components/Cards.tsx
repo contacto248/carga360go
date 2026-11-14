@@ -8,7 +8,8 @@ import { MATCH_DISCLAIMER, MATCH_NAME } from "@/lib/match-copy";
 import { formatClp, formatDateCL, waLink } from "@/lib/format";
 import { roadKm } from "@/lib/geo";
 import { TruckArt } from "./TruckArt";
-import { PRICE_DISCLAIMER, estimatePrice } from "@/lib/pricing";
+import { REFERENCE_NOTICE } from "@/lib/costos/notice";
+import type { CostHint } from "@/lib/costos/hint";
 import type { LoadListItem, TruckListItem } from "@/lib/types";
 
 function WhatsApp({ number, text, label = "WhatsApp" }: { number: string; text: string; label?: string }) {
@@ -55,14 +56,24 @@ function Distance({ origin, destination }: { origin: string; destination: string
   return <span title="Distancia vial estimada">≈ {formatClp(km)} km</span>;
 }
 
-function PriceHint({ origin, destination, equipment }: { origin: string; destination: string; equipment: string }) {
-  const estimate = estimatePrice(origin, destination, equipment);
-  if (!estimate) return null;
-  return (
-    <div className="price-hint" title={PRICE_DISCLAIMER}>
-      💡 Precio referencial: ${formatClp(estimate.min)} – ${formatClp(estimate.max)} <Link className="ref" href="/herramientas/calculadora">referencial · cómo se calcula</Link>
-    </div>
-  );
+function PriceHint({ hint }: { hint: CostHint }) {
+  if (hint.method === "motor" && hint.total) {
+    return (
+      <div className="price-hint" title={REFERENCE_NOTICE}>
+        💡 Costo referencial del flete: ${formatClp(hint.total)}
+        {hint.complete ? "" : " (incompleto)"} <Link className="ref" href="/herramientas/calculadora">sujeto a revisión · cómo se calcula</Link>
+      </div>
+    );
+  }
+  if (hint.min && hint.max) {
+    return (
+      <div className="price-hint" title={REFERENCE_NOTICE}>
+        💡 Rango de respaldo (cálculo antiguo, sin ruta real): ${formatClp(hint.min)} – ${formatClp(hint.max)}{" "}
+        <Link className="ref" href="/herramientas/calculadora">sujeto a revisión · cómo se calcula</Link>
+      </div>
+    );
+  }
+  return null;
 }
 
 function deadlineText(until: string | null): string {
@@ -100,12 +111,13 @@ export function LoadStatusLine({ load }: { load: LoadListItem }) {
 export function LoadCard({
   load,
   canManage = false,
-  priceHint = false,
+  priceHint = null,
   showOfferButton = true,
 }: {
   load: LoadListItem;
   canManage?: boolean;
-  priceHint?: boolean;
+  /** Costo calculado en el servidor (null = no mostrar). */
+  priceHint?: CostHint | null;
   showOfferButton?: boolean;
 }) {
   const router = useRouter();
@@ -160,7 +172,7 @@ export function LoadCard({
         </div>
       ) : null}
       {load.budgetClp ? <div className="meta">Precio ofrecido por el mandante: <strong>${formatClp(load.budgetClp)} CLP</strong></div> : null}
-      {priceHint ? <PriceHint origin={load.origin} destination={load.destination} equipment={load.equipment} /> : null}
+      {priceHint ? <PriceHint hint={priceHint} /> : null}
       {load.notes ? <div className="meta">{load.notes}</div> : null}
       <div className="row" style={{ marginTop: 10 }}>
         {showOfferButton && !load.isDemo ? (

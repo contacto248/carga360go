@@ -4,6 +4,8 @@ import { guard, readJson } from "@/lib/api";
 import { assertCanPublish, assertMarketplaceAccess, redactLoad } from "@/lib/access";
 import { auditStrict } from "@/lib/audit";
 import { getCurrentUser } from "@/lib/current-user";
+import { quoteFromCache } from "@/lib/costos/engine";
+import { saveQuote } from "@/lib/costos/quotes";
 import { getDb } from "@/lib/db";
 import { AppError } from "@/lib/errors";
 import { createLoad, listLoads } from "@/lib/listings";
@@ -44,5 +46,14 @@ export const POST = guard(async (request) => {
     return created;
   })();
   queueAlert("carga", load.id);
+  // Motor de costos: deja un borrador de costo para revisión del administrador (sin red: usa la ruta que el
+  // asistente de publicación ya calculó). Nunca bloquea la publicación.
+  try {
+    const costInput = { origin: load.origin, destination: load.destination, equipment: load.equipment, weightT: load.weightT };
+    const cost = quoteFromCache(costInput);
+    if (cost && cost.method === "motor") saveQuote({ ...costInput, loadId: load.id } as typeof costInput, cost, "web_publicacion", user.id);
+  } catch (error) {
+    console.error("[costos] no se pudo guardar el costo de la carga", error);
+  }
   return NextResponse.json({ load }, { status: 201 });
 });

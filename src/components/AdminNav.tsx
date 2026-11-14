@@ -10,6 +10,7 @@ const ITEMS = [
   { href: "/admin/whatsapp", label: "WhatsApp" },
   { href: "/admin/chat", label: "Chat web" },
   { href: "/admin/agente", label: "Agente comercial" },
+  { href: "/admin/costos", label: "Costos" },
 ];
 
 /** Pagos solo aparece con PAYMENTS_FEATURE_ENABLED=true. */

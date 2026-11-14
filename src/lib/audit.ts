@@ -56,6 +56,10 @@ export const AUDIT_LABELS: Record<string, string> = {
   "agente.lead_creado": "Agente comercial: solicitud registrada",
   "agente.lead_estado": "Agente comercial: estado de solicitud cambiado",
   "agente.ajustes": "Agente comercial: ajustes",
+  "costos.parametro": "Parámetro de costos modificado",
+  "costos.cotizacion_estado": "Revisión de cotización",
+  "costos.refresco_manual": "Actualización manual de fuentes de costos",
+  "costos.cotizacion_publicacion": "Cotización guardada al publicar carga",
 };
 
 function writeAudit(
@@ -145,6 +149,8 @@ const TARGETS: Record<string, string> = {
   ajustes: "Ajustes",
   agente: "Conversación del agente",
   agente_lead: "Solicitud del agente",
+  costos: "Motor de costos",
+  cotizacion: "Cotización",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */

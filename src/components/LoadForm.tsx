@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { equipmentById } from "@/lib/catalog";
 import { formatClp, formatDateCL } from "@/lib/format";
-import { PRICE_DISCLAIMER } from "@/lib/pricing";
+import { REFERENCE_NOTICE } from "@/lib/costos/notice";
 import { canPublishLoad, roleLabel } from "@/lib/roles";
 import type { PublicUser, Specs } from "@/lib/types";
 import { PlacePicker } from "./PlacePicker";
@@ -55,7 +55,7 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [step, setStep] = useState(1);
-  const [preview, setPreview] = useState<{ km: number | null; estimate: { min: number; max: number } | null; compatibles: number | null } | null>(null);
+  const [preview, setPreview] = useState<{ km: number | null; costo: { costoTotal: number | null; complete: boolean; method: string } | null; compatibles: number | null } | null>(null);
   const def = equipmentById(equipment);
   const allowed = Boolean(user && canPublishLoad(user.role));
 
@@ -240,15 +240,18 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
                 </div>
                 {defaults.showSuggestedPrice ? (
                   <div>
-                    <strong>{preview?.estimate ? `$${formatClp(preview.estimate.min)} – $${formatClp(preview.estimate.max)}` : "—"}</strong>
-                    <span>precio referencial</span>
+                    <strong>{preview?.costo?.costoTotal ? `$${formatClp(preview.costo.costoTotal)}` : "—"}</strong>
+                    <span>
+                      costo referencial del flete{preview?.costo && !preview.costo.complete ? " (incompleto)" : ""}
+                      {preview?.costo?.method === "respaldo_linea_recta" ? " · cálculo de respaldo" : ""}
+                    </span>
                   </div>
                 ) : null}
               </div>
             </div>
             <p className="meta">
-              {defaults.showSuggestedPrice ? `${PRICE_DISCLAIMER} ` : ""}Al publicar, avisamos por correo a los transportistas con camiones compatibles y los
-              transportistas aprobados pueden enviarte ofertas. Tú eliges la que prefieras. Sin comisión por el flete.
+              {defaults.showSuggestedPrice ? `Costo calculado con ruta real, peajes, diésel, conductor y desgaste. ${REFERENCE_NOTICE} ` : ""}Al publicar, avisamos por correo a los
+              transportistas con camiones compatibles y los transportistas aprobados pueden enviarte ofertas. Tú eliges la que prefieras.
             </p>
             <div className="form-grid">
               <label className="f">
@@ -274,11 +277,11 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
                   <option value="no">No, una sola oferta por transportista</option>
                 </select>
               </label>
-              {defaults.showSuggestedPrice && preview?.estimate && !budgetClp ? (
+              {defaults.showSuggestedPrice && preview?.costo?.costoTotal && preview.costo.complete && !budgetClp ? (
                 <div className="f">
                   &nbsp;
-                  <button className="btn sec sm" type="button" onClick={() => setBudgetClp(String(Math.round((preview.estimate!.min + preview.estimate!.max) / 2 / 10000) * 10000))}>
-                    Usar el punto medio del rango
+                  <button className="btn sec sm" type="button" onClick={() => setBudgetClp(String(Math.round(preview.costo!.costoTotal! / 1000) * 1000))}>
+                    Usar el costo referencial
                   </button>
                 </div>
               ) : null}
