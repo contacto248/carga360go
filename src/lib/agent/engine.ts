@@ -455,8 +455,9 @@ async function trackingTurn(conv: AgentConversation, state: AgentState, text: st
   }
   const code = parseTrackingCode(text);
   if (!code) {
+    const attempted = /seg|\d/i.test(text);
     return {
-      text: "Indíqueme el código de seguimiento de la carga. Tiene la forma SEG seguido de 6 letras y números, por ejemplo SEG-7KQ2MX. Lo ve el dueño de la carga en el detalle de la carga.",
+      text: `${attempted ? "No reconocí un código válido. " : ""}Indíqueme el código de seguimiento de la carga. Tiene la forma SEG seguido de 6 letras y números, por ejemplo SEG-7KQ2MX (no usa 0, 1, O ni I). Lo ve el dueño de la carga en el detalle de la carga. Si prefiere, diga «cancelar».`,
       state: { ...EMPTY_STATE, step: "seguimiento_codigo" },
       intent: "estado",
       mode: "flujo",
