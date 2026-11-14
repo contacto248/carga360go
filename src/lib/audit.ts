@@ -50,6 +50,10 @@ export const AUDIT_LABELS: Record<string, string> = {
   "usuario.solo_lectura_revocada": "Verificación manual revocada",
   "usuario.solo_lectura_vencida": "Solo lectura vencida: cuenta vuelve a pendiente",
   "ajustes.editados": "Ajustes de la plataforma",
+  "agente.derivacion": "Agente comercial: derivación a una persona",
+  "agente.lead_creado": "Agente comercial: solicitud registrada",
+  "agente.lead_estado": "Agente comercial: estado de solicitud cambiado",
+  "agente.ajustes": "Agente comercial: ajustes",
 };
 
 function writeAudit(
@@ -137,6 +141,8 @@ const TARGETS: Record<string, string> = {
   documento: "Documento",
   oferta: "Oferta",
   ajustes: "Ajustes",
+  agente: "Conversación del agente",
+  agente_lead: "Solicitud del agente",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */
