@@ -10,6 +10,7 @@ import { appUrl } from "./mail";
 import { sendEmail } from "./notify";
 import { cleanClp } from "./security";
 import { getSettings } from "./settings";
+import { assertNotManualReadonly } from "./manual-readonly";
 import type { PublicUser } from "./types";
 
 /**
@@ -158,6 +159,8 @@ export function canOffer(user: PublicUser | null | undefined): boolean {
 export function assertCanOffer(user: PublicUser | null | undefined): asserts user is PublicUser {
   if (!user) throw new AppError("Ingresa con tu cuenta de transportista para ofertar.", 401);
   if (user.role !== "transportista") throw new AppError("Solo los transportistas pueden ofertar.", 403);
+  // Verificación manual (solo lectura 30 días): puede ver la carga, pero no ofertar ni tomarla.
+  assertNotManualReadonly(user, "ofertar o tomar cargas");
   if (user.verificationStatus !== "verificado") {
     throw new AppError("Tu cuenta debe estar aprobada (documentos y cédula) para ofertar.", 403, "no_aprobado");
   }
@@ -335,6 +338,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
   if (!offer) throw new AppError("Oferta no encontrada.", 404);
   const load = loadState(offer.loadId);
   if (load.owner_id !== user.id && user.role !== "admin") throw new AppError("Solo quien publicó la carga puede elegir una oferta.", 403);
+  if (user.role !== "admin") assertNotManualReadonly(user, "adjudicar cargas");
   if ((load.status ?? "abierta") !== "abierta") throw new AppError("Esta carga ya fue adjudicada o cerrada.", 409);
   if (offer.status !== "activa") throw new AppError("Esa oferta ya no está activa.", 409);
   const db = getDb();

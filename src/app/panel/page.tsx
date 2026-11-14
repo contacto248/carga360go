@@ -18,6 +18,9 @@ import { listOffersByCarrier } from "@/lib/offers";
 import { canPublishLoad, canPublishTruck, roleLabel } from "@/lib/roles";
 import { kycEnabled } from "@/lib/kyc/config";
 import { registrationPdfEnabled } from "@/lib/registration-pdf";
+import { BackupContactForm } from "@/components/BackupContactForm";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
+import { backupContactOf, needsBackupContact } from "@/lib/backup-contact";
 
 export const metadata: Metadata = { title: "Mi panel", robots: { index: false, follow: false } };
 
@@ -68,9 +71,11 @@ export default async function PanelPage({
           {ok === "carga" || ok === "camion" ? " Ya aparece en el listado público y avisamos por correo a quienes calzan." : ""}
         </div>
       ) : null}
+      <ManualReadonlyBanner user={user} />
       <FreeBanner user={user} />
       <KycGraceBanner grace={acc.grace} />
       <AccreditationPanel acc={acc} role={user.role} compact />
+      {needsBackupContact(user.id) ? <BackupContactForm current={backupContactOf(user.id)?.display ?? null} required /> : null}
       {user.emailVerifiedAt || user.role === "admin" ? null : (
         <div className="notice" style={{ marginBottom: 12 }}>
           Confirma tu correo {user.email} para poder publicar cargas y camiones. Abre el enlace que te enviamos o pide otro.{" "}

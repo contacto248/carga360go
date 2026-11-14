@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import { notFound } from "next/navigation";
 import { TruckCard } from "@/components/Cards";
 import { marketplaceViewer, redactTruck } from "@/lib/access";
@@ -18,6 +19,7 @@ export default async function CamionDetailPage({ params }: { params: Promise<{ i
           <Link href="/camiones">← Volver a camiones</Link>
         </p>
       </div>
+      <ManualReadonlyBanner user={user} />
       <TruckCard truck={truck} canManage={user?.id === truck.ownerId} />
     </div>
   );

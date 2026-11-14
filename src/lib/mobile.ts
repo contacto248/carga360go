@@ -20,6 +20,8 @@ import {
   sessionExpiresAt,
 } from "./auth";
 import { carrierChecklist, isCarrierLocked, reopenAfterUpload, REQUIRED_CARRIER_DOCS } from "./carrier";
+import { needsBackupContact } from "./backup-contact";
+import { accountStateOf, manualReadonlyOf } from "./manual-readonly";
 import { BRAND, CITIES, DOC_TYPES, EQUIPMENT, REGIONS, docTypeById, docTypeLabel } from "./catalog";
 import { getDb } from "./db";
 import {
@@ -117,6 +119,12 @@ export function gateOf(user: PublicUser) {
     canOffer: acc.accredited && user.role === "transportista",
     reviewUrl: `${SITE}/cuenta-en-revision`,
     checklist,
+    /** Estado efectivo: "verificado" | "manual_readonly" (solo lectura por verificación manual) | "pendiente" | "rechazado". */
+    accountState: accountStateOf(user),
+    /** Fecha ISO hasta la que dura la solo lectura manual; null si no aplica. Mientras dure no puede publicar ni ofertar. */
+    readonlyUntil: manualReadonlyOf(user.id).active ? manualReadonlyOf(user.id).until : null,
+    /** true si la verificación está pendiente y aún no deja un teléfono o correo de respaldo (se guarda en PATCH /api/cuenta). */
+    backupContactRequired: needsBackupContact(user.id),
   };
 }
 
@@ -174,6 +182,8 @@ export const register = mobile(async (request) => {
     city: String(data.city ?? ""),
     privacyVersion,
     termsVersion,
+    // Opcional en la app (compatibilidad con versiones ya publicadas); si falta, gate.backupContactRequired lo pide después.
+    backupContact: data.backupContact == null ? null : String(data.backupContact),
   });
   audit(result.user, "usuario.registro", { type: "usuario", id: result.user.id }, { role: result.user.role, canal: "app" }, clientIp(request.headers));
   audit(result.user, "usuario.privacidad_aceptada", { type: "usuario", id: result.user.id }, { version: privacyVersion, terminos: termsVersion, canal: "app" }, clientIp(request.headers));

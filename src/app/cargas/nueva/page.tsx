@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FreeBanner } from "@/components/FreeBanner";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import { LoadForm } from "@/components/LoadForm";
 import { OFFER_HOUR_CHOICES, getSettings } from "@/lib/settings";
 import { AccreditationPanel } from "@/components/AccreditationPanel";
@@ -20,6 +21,7 @@ export default async function NuevaCargaPage() {
           <h1>Publicar carga</h1>
           <p>Para publicar, tu cuenta debe estar verificada. Completa lo que falta y te avisaremos cuando un administrador la apruebe.</p>
         </div>
+        <ManualReadonlyBanner user={user} />
         <FreeBanner user={user} />
         <AccreditationPanel acc={acc} role={user!.role} />
       </div>

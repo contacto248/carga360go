@@ -10,6 +10,8 @@ import { listDocuments } from "@/lib/documents";
 import { firstParam, formatWhatsappDisplay, todayChile } from "@/lib/format";
 import { channelStatus } from "@/lib/notify";
 import { lastCodeInfo } from "@/lib/verification";
+import { backupContactOf, verificationPending } from "@/lib/backup-contact";
+import { manualReadonlyOf } from "@/lib/manual-readonly";
 
 export const metadata: Metadata = { title: "Acreditación de cuentas", robots: { index: false, follow: false } };
 
@@ -20,6 +22,7 @@ const ROLES = [
 
 const FILTERS = [
   { id: "pendiente", label: "Pendientes" },
+  { id: "solo_lectura", label: "Solo lectura (verificación manual)" },
   { id: "rechazado", label: "Rechazados" },
   { id: "verificado", label: "Aprobados" },
   { id: "todos", label: "Todos" },
@@ -68,7 +71,9 @@ export default async function AdminTransportistasPage({
   const estado = FILTERS.some((item) => item.id === firstParam(sp.estado)) ? firstParam(sp.estado) : "pendiente";
   const rol = firstParam(sp.rol) === "mandante" ? "mandante" : "transportista";
   const carriers = listUsers().filter((item) => item.role === rol);
-  const visible = carriers.filter((item) => estado === "todos" || item.verificationStatus === estado);
+  const matches = (item: (typeof carriers)[number], id: string) =>
+    id === "todos" || (id === "solo_lectura" ? Boolean(item.manualReadonlyUntil) : item.verificationStatus === id);
+  const visible = carriers.filter((item) => matches(item, estado));
   const items: CarrierItem[] = visible.map((item) => {
     const email = lastCodeInfo(item.id, "email");
     const phone = lastCodeInfo(item.id, "phone");
@@ -80,10 +85,13 @@ export default async function AdminTransportistasPage({
       docs: listDocuments(item.id),
       lastEmailDelivery: email ? deliveryText(email.delivery, email.createdAt) : null,
       lastPhoneDelivery: phone ? deliveryText(phone.delivery, phone.createdAt) : null,
+      backup: backupContactOf(item.id),
+      backupPending: verificationPending(item.id),
+      readonly: manualReadonlyOf(item.id),
     };
   });
   const channels = channelStatus();
-  const count = (id: string) => carriers.filter((item) => id === "todos" || item.verificationStatus === id).length;
+  const count = (id: string) => carriers.filter((item) => matches(item, id)).length;
   return (
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <div className="page-title">

@@ -19,6 +19,7 @@ export function RegisterForm() {
   const [password2, setPassword2] = useState("");
   const [whatsapp, setWhatsapp] = useState("+56 9 ");
   const [city, setCity] = useState("Santiago");
+  const [backupContact, setBackupContact] = useState("");
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [pending, setPending] = useState(false);
@@ -35,13 +36,14 @@ export function RegisterForm() {
     if (password.length < 10) return setError("La contraseña debe tener al menos 10 caracteres.");
     if (!acceptPrivacy) return setError("Para crear tu cuenta debes leer y aceptar la Política de Privacidad.");
     if (!acceptTerms) return setError("Para crear tu cuenta debes leer y aceptar los Términos de uso.");
+    if (!backupContact.trim()) return setError("Indica un teléfono o correo de respaldo.");
     setPending(true);
     setError("");
     setErrorCode("");
     const response = await fetch("/api/auth/registro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role, razonSocial, rut, contactName, email, password, whatsapp, city, website, formStartedAt: startedAt.current, acceptPrivacy, acceptTerms }),
+      body: JSON.stringify({ role, razonSocial, rut, contactName, email, password, whatsapp, city, backupContact, website, formStartedAt: startedAt.current, acceptPrivacy, acceptTerms }),
     });
     setPending(false);
     if (!response.ok) {
@@ -113,6 +115,17 @@ export function RegisterForm() {
         <label className="f">
           WhatsApp *
           <input value={whatsapp} onChange={(event) => setWhatsapp(event.target.value)} inputMode="tel" required />
+        </label>
+        <label className="f">
+          Teléfono o correo de respaldo *
+          <input
+            name="backupContact"
+            value={backupContact}
+            onChange={(event) => setBackupContact(event.target.value)}
+            placeholder="+56 9 XXXX XXXX o correo@ejemplo.cl"
+            required
+          />
+          <span className="meta">Distinto de tu correo y WhatsApp. Lo usamos solo si no alcanzas a terminar tu verificación.</span>
         </label>
         <PlacePicker label="tu base" value={city} onChange={setCity} />
         <div className="full privacy-accept">

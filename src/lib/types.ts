@@ -79,6 +79,11 @@ export type PublicUser = {
   createdAt: string;
   /** Último día del periodo gratis de 30 días desde la inscripción (YYYY-MM-DD); null para administradores. */
   freeUntil: string | null;
+  /**
+   * Verificación manual del administrador: fecha ISO (UTC) hasta la que la cuenta tiene acceso de solo lectura
+   * (estado efectivo "manual_readonly"); null si no está vigente. Ver src/lib/manual-readonly.ts.
+   */
+  manualReadonlyUntil?: string | null;
 };
 
 export type SessionUser = PublicUser;

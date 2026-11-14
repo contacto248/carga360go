@@ -6,6 +6,7 @@ import { stripContacts } from "./contact-filter";
 export { stripContacts };
 import { getCurrentUser } from "./current-user";
 import { AppError } from "./errors";
+import { assertNotManualReadonly } from "./manual-readonly";
 import type { LoadListItem, PublicUser, TruckListItem } from "./types";
 
 export const REVIEW_PATH = "/cuenta-en-revision";
@@ -28,6 +29,8 @@ export function assertMarketplaceAccess(user: PublicUser | null) {
 export function assertCanPublish(user: PublicUser | null) {
   assertMarketplaceAccess(user);
   if (!user) throw new AppError("Ingresa con tu cuenta para publicar.", 401);
+  // Verificación manual (solo lectura 30 días): ve la plataforma, pero no publica.
+  if (user.role !== "admin") assertNotManualReadonly(user, "publicar");
   if (user.role !== "admin" && !user.emailVerifiedAt) {
     throw new AppError(
       "Confirma tu correo antes de publicar. Abre el enlace que te enviamos o pide otro en \"Mi cuenta\".",

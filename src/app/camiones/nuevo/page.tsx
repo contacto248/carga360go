@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FreeBanner } from "@/components/FreeBanner";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import { TruckForm } from "@/components/TruckForm";
 import { AccreditationPanel } from "@/components/AccreditationPanel";
 import { accreditationOf } from "@/lib/accreditation";
@@ -19,6 +20,7 @@ export default async function NuevoCamionPage() {
           <h1>Publicar camión disponible</h1>
           <p>Para publicar, tu cuenta debe estar verificada. Completa lo que falta y te avisaremos cuando un administrador la apruebe.</p>
         </div>
+        <ManualReadonlyBanner user={user} />
         <FreeBanner user={user} />
         <AccreditationPanel acc={acc} role={user!.role} />
       </div>

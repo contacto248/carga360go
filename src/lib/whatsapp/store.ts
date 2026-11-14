@@ -126,6 +126,21 @@ export function getConversation(id: string): WaConversation | null {
   return row ? toConv(row) : null;
 }
 
+/** Último mensaje entrante conocido para un número (wa_id) o una cuenta vinculada. */
+export function lastInboundAtFor(phoneDigits: string | null | undefined, userId?: string | null): string | null {
+  const waId = (phoneDigits || "").replace(/\D/g, "") || null;
+  const uid = userId || null;
+  if (!waId && !uid) return null;
+  const row = getDb()
+    .prepare(
+      `SELECT last_inbound_at FROM wa_conversations
+       WHERE last_inbound_at IS NOT NULL AND ((? IS NOT NULL AND wa_id = ?) OR (? IS NOT NULL AND user_id = ?))
+       ORDER BY last_inbound_at DESC LIMIT 1`,
+    )
+    .get(waId, waId, uid, uid) as { last_inbound_at: string } | undefined;
+  return row?.last_inbound_at ?? null;
+}
+
 export function listConversations(limit = 200): (WaConversation & { lastBody: string | null; count: number })[] {
   const rows = getDb()
     .prepare(

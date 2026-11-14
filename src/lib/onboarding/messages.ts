@@ -1,5 +1,5 @@
 import { BRAND, docTypeLabel } from "../catalog";
-import { formatDateCL, formatWhatsappDisplay } from "../format";
+import { formatDateCL, formatWhatsappDisplay, todayChile } from "../format";
 import { appUrl } from "../mail";
 import type { OnboardingStage } from "./config";
 import type { OnboardingStatus } from "./status";
@@ -42,7 +42,11 @@ function statusLines(status: OnboardingStatus): { text: string[]; html: string[]
   return { text, html };
 }
 
-function pendingList(status: OnboardingStatus): string[] {
+/** Texto para pedir el contacto de respaldo mientras la verificación siga pendiente. */
+export const BACKUP_CONTACT_LINE =
+  "dejar un teléfono o correo de respaldo (distinto del principal) en tu panel, sección «Contacto de respaldo», por si no alcanzas a terminar la inscripción";
+
+export function pendingList(status: OnboardingStatus): string[] {
   const items: string[] = [];
   if (status.pending.includes("email")) items.push("confirmar tu correo");
   if (status.pending.includes("phone")) items.push("confirmar tu WhatsApp");
@@ -56,13 +60,14 @@ function pendingList(status: OnboardingStatus): string[] {
         : `subir los documentos que faltan (${status.docs.uploaded} de ${status.docs.total})`,
     );
   }
+  if (status.backupContactMissing) items.push(BACKUP_CONTACT_LINE);
   return items;
 }
 
 const NAVY = "#0f2947";
 const ORANGE = "#f57317";
 
-function wrapHtml(title: string, body: string): string {
+function wrapHtml(title: string, body: string, buttonLabel = "Completar mi registro"): string {
   const btn = panelUrl();
   return `<!DOCTYPE html>
 <html lang="es">
@@ -87,7 +92,7 @@ function wrapHtml(title: string, body: string): string {
               <table role="presentation" cellspacing="0" cellpadding="0" style="margin:24px 0 8px;">
                 <tr>
                   <td style="background:${ORANGE};border-radius:6px;">
-                    <a href="${esc(btn)}" style="display:inline-block;padding:12px 22px;color:#ffffff;text-decoration:none;font-weight:bold;font-size:16px;">Completar mi registro</a>
+                    <a href="${esc(btn)}" style="display:inline-block;padding:12px 22px;color:#ffffff;text-decoration:none;font-weight:bold;font-size:16px;">${esc(buttonLabel)}</a>
                   </td>
                 </tr>
               </table>
@@ -130,6 +135,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
       : "Para terminar, entra a tu panel:",
     panelUrl(),
     "",
+    status.backupContactMissing ? `Mientras terminas, te pedimos ${BACKUP_CONTACT_LINE}.` : "",
     pdfLine,
     "",
     "Equipo Carga360go",
@@ -150,6 +156,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
         ? "<p>En lo que te corresponde, tu registro ya está completo. Revisa tu panel cuando quieras.</p>"
         : "<p>Para terminar, entra a tu panel con el botón de abajo.</p>"
     }
+    ${status.backupContactMissing ? `<p>Mientras terminas, te pedimos ${esc(BACKUP_CONTACT_LINE)}.</p>` : ""}
     ${opts.withPdf ? "<p>Adjuntamos el PDF con la copia de tu inscripción.</p>" : ""}
   `;
   return { subject, text, html: wrapHtml(subject, htmlBody) };
@@ -196,6 +203,7 @@ export function whatsappWelcomeChecklist(status: OnboardingStatus): string {
     "Estado de tu registro:",
     ...lines.map((line) => `• ${line}`),
     "",
+    ...(status.backupContactMissing ? [`Mientras terminas, te pedimos ${BACKUP_CONTACT_LINE}.`, ""] : []),
     `Completa tu registro aquí: ${panelUrl()}`,
   ].join("\n");
 }
@@ -217,3 +225,129 @@ export function whatsappPendingDocuments(status: OnboardingStatus): string {
 export function whatsappAllComplete(nombre: string): string {
   return `¡Listo, ${nombre}! ✅ Tu cuenta quedó verificada. Revisaremos tus documentos y te avisaremos cuando estés acreditado para publicar u ofertar cargas.`;
 }
+
+
+/** Fecha de vencimiento en calendario de Chile, dd-mm-aaaa. */
+export function formatUntilDateCL(untilIso: string): string {
+  return formatDateCL(todayChile(new Date(untilIso)));
+}
+
+export function accreditationMissingItems(status: OnboardingStatus | null, verificationStatus?: string | null): string[] {
+  const items = status ? pendingList(status) : [];
+  if (items.length === 0 && verificationStatus && verificationStatus !== "verificado") {
+    items.push("completar la acreditación: el equipo revisará tu cuenta");
+  }
+  if (items.length === 0) items.push("completar tu acreditación en el panel");
+  return items;
+}
+
+/** Versión corta para variables de plantilla de WhatsApp (máx. 200 caracteres). */
+export function accreditationMissingShort(items: string[]): string {
+  const text = items
+    .map((item) => (item.startsWith("dejar un teléfono") || item.startsWith("dejar un")) ? "dejar un contacto de respaldo en tu panel" : item)
+    .join("; ");
+  return text.length <= 200 ? text : `${text.slice(0, 197).trim()}...`;
+}
+
+export type ManualReadonlyNoticeInput = {
+  contactName: string;
+  untilIso: string;
+  missing: string[];
+};
+
+export const MANUAL_READONLY_GRANT_SUBJECT_PREFIX = "Acceso de solo lectura en Carga360go";
+export const MANUAL_READONLY_REVOKE_SUBJECT = "Se revocó el acceso de solo lectura en Carga360go";
+
+export function buildManualReadonlyGrantedEmail(input: ManualReadonlyNoticeInput): BuiltEmail {
+  const until = formatUntilDateCL(input.untilIso);
+  const subject = `${MANUAL_READONLY_GRANT_SUBJECT_PREFIX} — hasta el ${until}`;
+  const missing = input.missing.map((item) => `• ${item}`);
+  const missingHtml = input.missing.map((item) => `<li>${esc(item)}</li>`).join("");
+  const text = [
+    `Hola ${input.contactName}:`,
+    "",
+    `Un administrador habilitó tu cuenta en Carga360go con acceso de solo lectura hasta el ${until}.`,
+    "",
+    "Importante: tu cuenta quedó habilitada solamente para ver la plataforma. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación.",
+    "",
+    "Para acreditarse te falta:",
+    ...missing,
+    "",
+    "Entra a tu panel para continuar:",
+    panelUrl(),
+    "",
+    "Equipo Carga360go",
+    "www.carga360go.cl",
+  ].join("\n");
+  const htmlBody = `
+    <p>Hola ${esc(input.contactName)}:</p>
+    <p>Un administrador habilitó tu cuenta en Carga360go con acceso de solo lectura hasta el ${esc(until)}.</p>
+    <p><strong>Importante:</strong> tu cuenta quedó habilitada solamente para ver la plataforma. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación.</p>
+    <p><strong>Para acreditarse te falta:</strong></p>
+    <ul style="padding-left:20px;margin:0 0 16px;">${missingHtml}</ul>
+    <p>Entra a tu panel para continuar.</p>
+  `;
+  return { subject, text, html: wrapHtml(subject, htmlBody, "Ir a mi panel") };
+}
+
+export function manualReadonlyGrantedWhatsapp(input: ManualReadonlyNoticeInput): string {
+  const until = formatUntilDateCL(input.untilIso);
+  return [
+    `Hola ${input.contactName}: un administrador habilitó tu cuenta en Carga360go con acceso de solo lectura hasta el ${until}.`,
+    "",
+    "Tu cuenta quedó habilitada solamente para ver la plataforma. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación.",
+    "",
+    "Para acreditarse te falta:",
+    ...input.missing.map((item) => `• ${item}`),
+    "",
+    `Entra a tu panel: ${panelUrl()}`,
+  ].join("\n");
+}
+
+export function buildManualReadonlyRevokedEmail(contactName: string): BuiltEmail {
+  const subject = MANUAL_READONLY_REVOKE_SUBJECT;
+  const text = [
+    `Hola ${contactName}:`,
+    "",
+    "El acceso de solo lectura a Carga360go fue revocado. Ya no puedes ver los movimientos de la plataforma hasta completar tu acreditación.",
+    "",
+    "Entra a tu panel para continuar:",
+    panelUrl(),
+    "",
+    "Equipo Carga360go",
+    "www.carga360go.cl",
+  ].join("\n");
+  const htmlBody = `
+    <p>Hola ${esc(contactName)}:</p>
+    <p>El acceso de solo lectura a Carga360go fue revocado. Ya no puedes ver los movimientos de la plataforma hasta completar tu acreditación.</p>
+    <p>Entra a tu panel para continuar.</p>
+  `;
+  return { subject, text, html: wrapHtml(subject, htmlBody, "Ir a mi panel") };
+}
+
+export function manualReadonlyRevokedWhatsapp(contactName: string): string {
+  return `Hola ${contactName}: el acceso de solo lectura a Carga360go fue revocado. Ya no puedes ver los movimientos de la plataforma hasta completar tu acreditación. Entra a tu panel: ${panelUrl()}`;
+}
+
+/**
+ * Plantillas de WhatsApp propuestas (categoría Utility, idioma es).
+ * Estado: pendiente de aprobación de Meta. No se envían hasta que existan en la cuenta
+ * de WhatsApp Business y se configure WA_READONLY_TEMPLATE / WA_READONLY_REVOKE_TEMPLATE.
+ */
+export const WA_TEMPLATE_READONLY_GRANTED = {
+  name: "verificacion_manual_solo_lectura",
+  language: "es",
+  category: "UTILITY",
+  status: "pendiente_aprobacion_meta",
+  body: "Hola {{1}}: tu cuenta en Carga360go quedó habilitada solo para ver la plataforma hasta el {{2}}. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación. Para acreditarse te falta: {{3}}.",
+  button: { type: "URL", text: "Ir al panel", url: "https://www.carga360go.cl/panel" },
+} as const;
+
+export const WA_TEMPLATE_READONLY_REVOKED = {
+  name: "verificacion_manual_revocada",
+  language: "es",
+  category: "UTILITY",
+  status: "pendiente_aprobacion_meta",
+  body: "Hola {{1}}: el acceso de solo lectura a Carga360go fue revocado. Ya no puedes ver los movimientos de la plataforma hasta completar tu acreditación.",
+  button: { type: "URL", text: "Ir al panel", url: "https://www.carga360go.cl/panel" },
+} as const;

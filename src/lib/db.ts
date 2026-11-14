@@ -97,6 +97,17 @@ CREATE INDEX idx_trucks_equipment ON trucks(equipment);
 CREATE INDEX idx_documents_user ON documents(user_id);
 `;
 
+/** Migración 14: columnas nuevas de users (todas TEXT y nulas). */
+export const MIGRATION_14_USER_COLUMNS = [
+  "backup_contact",
+  "backup_contact_type",
+  "backup_contact_at",
+  "manual_readonly_until",
+  "manual_readonly_at",
+  "manual_readonly_by",
+  "manual_readonly_by_email",
+] as const;
+
 let database: Database.Database | null = null;
 
 export function databasePath(): string {
@@ -467,6 +478,19 @@ function migrate(db: Database.Database) {
         CREATE INDEX IF NOT EXISTS idx_ai_call_day ON ai_call_log(day, status);
       `);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (13, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (schemaVersion(db) < 14) {
+    const apply = db.transaction(() => {
+      // Contacto de respaldo (teléfono o correo) para cuentas con verificación pendiente, y verificación manual
+      // del administrador: acceso de solo lectura por 30 días (estado efectivo "manual_readonly", ver manual-readonly.ts).
+      // Solo agrega columnas nulas: no cambia datos existentes. Copia legible en docs/migrations/014-verificacion-respaldo.sql.
+      for (const column of MIGRATION_14_USER_COLUMNS) {
+        if (!hasColumn(db, "users", column)) db.exec(`ALTER TABLE users ADD COLUMN ${column} TEXT`);
+      }
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_users_manual_readonly ON users(manual_readonly_until)`);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
     });
     apply();
   }
