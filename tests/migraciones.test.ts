@@ -1,0 +1,131 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { test } from "node:test";
+import Database from "better-sqlite3";
+
+if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
+  throw new Error("DATABASE_PATH de prueba no está configurada. Ejecuta npm test.");
+}
+
+import { closeDb, getDb } from "../src/lib/db";
+
+const FIX = path.join(__dirname, "fixtures", "db");
+const ORIGINAL_PATH = process.env.DATABASE_PATH;
+const TABLES_15 = ["agent_conversations", "agent_messages", "agent_leads", "load_tracking_codes", "agent_otp_challenges"];
+const TABLES_16 = ["cost_params", "cost_geocode_cache", "cost_route_cache", "cost_sources", "cost_toll_plazas", "cost_toll_rates", "cost_diesel_prices", "cost_job_runs", "cost_quotes"];
+
+/** Abre una copia de la base indicada con el código de esta versión (aplica las migraciones pendientes). */
+function openCopy(fixture: string | null) {
+  closeDb();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "c360-mig-"));
+  const file = path.join(dir, "copia.sqlite");
+  if (fixture) fs.copyFileSync(path.join(FIX, fixture), file);
+  process.env.DATABASE_PATH = file;
+  return getDb();
+}
+
+function snapshot(file: string) {
+  const db = new Database(file, { readonly: true });
+  const count = (t: string) => (db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get() as { n: number }).n;
+  const out = {
+    version: (db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number }).v,
+    users: db.prepare(`SELECT * FROM users ORDER BY id`).all(),
+    loads: db.prepare(`SELECT * FROM loads ORDER BY id`).all(),
+    trucks: db.prepare(`SELECT * FROM trucks ORDER BY id`).all(),
+    counts: { users: count("users"), loads: count("loads"), trucks: count("trucks") },
+  };
+  db.close();
+  return out;
+}
+
+function versions(db: Database.Database) {
+  return (db.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all() as { version: number }[]).map((r) => r.version);
+}
+
+function hasTable(db: Database.Database, name: string) {
+  return Boolean(db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?`).get(name));
+}
+
+function assertFinalSchema(db: Database.Database) {
+  const v = versions(db);
+  for (const n of [14, 15, 16]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  assert.equal(Math.max(...v), 16);
+  for (const t of [...TABLES_15, ...TABLES_16]) assert.ok(hasTable(db, t), t);
+  const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
+  for (const c of ["backup_contact", "backup_contact_type", "manual_readonly_until", "manual_readonly_by"]) assert.ok(userCols.includes(c), c);
+  assert.ok((db.prepare(`SELECT COUNT(*) AS n FROM cost_toll_rates`).get() as { n: number }).n > 0, "peajes MOP sembrados");
+  assert.equal((db.prepare(`PRAGMA foreign_key_check`).all() as unknown[]).length, 0);
+  assert.equal((db.prepare(`PRAGMA integrity_check`).get() as { integrity_check: string }).integrity_check, "ok");
+}
+
+test("BD nueva: 14, 15 y 16 se aplican en orden", () => {
+  const db = openCopy(null);
+  assertFinalSchema(db);
+  const rows = db.prepare(`SELECT version, applied_at FROM schema_migrations WHERE version IN (14, 15, 16) ORDER BY version`).all() as { version: number; applied_at: string }[];
+  assert.deepEqual(rows.map((r) => r.version), [14, 15, 16]);
+  assert.ok(rows[0].applied_at <= rows[1].applied_at && rows[1].applied_at <= rows[2].applied_at);
+});
+
+test("copia del esquema de producción en versión 13 (base 2f82122) sube a 16 sin perder datos", () => {
+  const before = snapshot(path.join(FIX, "produccion-v13.sqlite"));
+  assert.equal(before.version, 13);
+  const db = openCopy("produccion-v13.sqlite");
+  assertFinalSchema(db);
+  const file = process.env.DATABASE_PATH!;
+  closeDb();
+  const after = snapshot(file);
+  assert.deepEqual(after.counts, before.counts);
+  assert.deepEqual(after.loads, before.loads);
+  assert.deepEqual(after.trucks, before.trucks);
+  // Usuarios: mismas filas y mismos valores en las columnas previas; las nuevas de la 14 quedan nulas.
+  assert.equal(after.users.length, before.users.length);
+  after.users.forEach((u, i) => {
+    const prev = before.users[i] as Record<string, unknown>;
+    for (const [k, val] of Object.entries(prev)) assert.deepEqual((u as Record<string, unknown>)[k], val, k);
+    assert.equal((u as Record<string, unknown>).manual_readonly_until, null);
+  });
+});
+
+test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni el contacto de respaldo", () => {
+  const before = snapshot(path.join(FIX, "produccion-v14.sqlite"));
+  assert.equal(before.version, 14);
+  const db = openCopy("produccion-v14.sqlite");
+  assertFinalSchema(db);
+  const file = process.env.DATABASE_PATH!;
+  closeDb();
+  const after = snapshot(file);
+  assert.deepEqual(after, { ...before, version: 16 });
+  const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
+  assert.equal(mandante.backup_contact, "respaldo@demo.local");
+  assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
+});
+
+test("una BD que ya tenía la 16 sin la 15 recibe la 15 (comprobación por número exacto)", () => {
+  // Simula una base que aplicó la rama del motor de costos antes que la del agente.
+  const db = openCopy("produccion-v14.sqlite");
+  const file = process.env.DATABASE_PATH!;
+  for (const t of TABLES_15) db.exec(`DROP TABLE ${t}`);
+  db.prepare(`DELETE FROM schema_migrations WHERE version = 15`).run();
+  assert.equal(hasTable(db, "agent_leads"), false);
+  closeDb();
+  process.env.DATABASE_PATH = file;
+  const again = getDb();
+  assertFinalSchema(again);
+  assert.ok(hasTable(again, "agent_leads"));
+});
+
+test("abrir dos veces no repite migraciones", () => {
+  const db = openCopy("produccion-v13.sqlite");
+  const file = process.env.DATABASE_PATH!;
+  const first = versions(db);
+  const tolls = (db.prepare(`SELECT COUNT(*) AS n FROM cost_toll_rates`).get() as { n: number }).n;
+  closeDb();
+  process.env.DATABASE_PATH = file;
+  const db2 = getDb();
+  assert.deepEqual(versions(db2), first);
+  assert.equal((db2.prepare(`SELECT COUNT(*) AS n FROM cost_toll_rates`).get() as { n: number }).n, tolls);
+  closeDb();
+  process.env.DATABASE_PATH = ORIGINAL_PATH;
+});

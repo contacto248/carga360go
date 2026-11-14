@@ -12,7 +12,7 @@ Módulo reutilizable en `src/lib/agent/` para la web (widget con chat y voz), Wh
 | Claves de IA existentes (`src/lib/assistant`) | Respuestas libres con IA; sin clave, respuestas por reglas (se rotula en el widget). |
 
 ## Reglas fijas
-- No da precios, comisiones, modelos de cobro ni estrategia de precios. Ante costos explica que el costo real se calcula con la ruta, peajes por ejes, diésel y costos operacionales; el motor de costos (`src/lib/agent/costs.ts`, `FreightCostProvider`) queda **PENDIENTE DE CONECTAR** desde otra rama.
+- No da precios, comisiones, modelos de cobro ni estrategia de precios. Ante costos explica que el costo real se calcula con la ruta, peajes por ejes, diésel y costos operacionales; el agente usa el motor de costos (`src/lib/agent/costs.ts` → `src/lib/costos/engine.ts`, función única `quote`) y solo dice el costo referencial con IVA cuando la cotización está completa y sin pendientes, aclarando que es referencial y que se calculó con la ruta, los peajes por ejes, el diésel y la fecha de la fuente. Nunca menciona el margen.
 - No entrega datos de cargas sin verificar a la persona (código de seguimiento + código de un solo uso al contacto registrado, o sesión iniciada).
 - Los mensajes se guardan con datos sensibles ocultos; los registros (logs) solo llevan identificadores.
 

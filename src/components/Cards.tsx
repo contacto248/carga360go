@@ -10,7 +10,7 @@ import { roadKm } from "@/lib/geo";
 import { TruckArt } from "./TruckArt";
 import { REFERENCE_NOTICE } from "@/lib/costos/notice";
 import type { CostHint } from "@/lib/costos/hint";
-import type { LoadListItem, TruckListItem } from "@/lib/types";
+import type { LoadListItem, MatchResult, TruckListItem } from "@/lib/types";
 
 function WhatsApp({ number, text, label = "WhatsApp" }: { number: string; text: string; label?: string }) {
   return (
@@ -225,6 +225,7 @@ export function LoadCard({
                   </li>
                 ))}
               </ul>
+              <TripCostLine cost={item.tripCost} />
               <div style={{ marginTop: 6 }}>
                 {!item.truck.whatsapp ? (
                   <span className="meta">🔒 Si le interesa, este transportista puede ofertar en la carga. El contacto se comparte al adjudicar.</span>
@@ -335,6 +336,7 @@ export function TruckCard({ truck, canManage = false }: { truck: TruckListItem; 
                   </li>
                 ))}
               </ul>
+              <TripCostLine cost={item.tripCost} />
               <div style={{ marginTop: 6 }}>
                 {!item.load.whatsapp ? (
                   <Link className="btn sm" href={`/cargas/${item.load.id}#ofertas`}>
@@ -352,5 +354,22 @@ export function TruckCard({ truck, canManage = false }: { truck: TruckListItem; 
         </div>
       ) : null}
     </article>
+  );
+}
+
+/** Costo real aproximado del viaje para el transportista (motor de costos). Sin cifra si el cálculo quedó incompleto. */
+function TripCostLine({ cost }: { cost?: MatchResult["tripCost"] }) {
+  if (!cost) return null;
+  if (cost.complete && cost.total !== null) {
+    return (
+      <p className="meta" style={{ margin: "6px 0 0" }}>
+        Costo real aproximado del viaje: <strong>${formatClp(cost.total)}</strong> con IVA{cost.km ? ` · ruta de ${Math.round(cost.km).toLocaleString("es-CL")} km` : ""}. {REFERENCE_NOTICE}
+      </p>
+    );
+  }
+  return (
+    <p className="meta" style={{ margin: "6px 0 0" }}>
+      Costo del viaje: cálculo con datos pendientes (ruta, peajes o diésel); no se muestra una cifra.
+    </p>
   );
 }

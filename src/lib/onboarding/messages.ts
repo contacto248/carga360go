@@ -125,7 +125,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
     `Hola ${status.contactName}:`,
     "",
     `Gracias por inscribirte en Carga360go como ${status.roleLabel}.`,
-    `Tus primeros ${status.freeDays} días son gratis, contados desde tu inscripción.`,
+    "En Carga360go el costo real del flete se calcula de forma automática, con trazabilidad de cada viaje.",
     "",
     "Estado de tu registro:",
     ...lines.text,
@@ -148,7 +148,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
   const htmlBody = `
     <p>Hola ${esc(status.contactName)}:</p>
     <p>Gracias por inscribirte en Carga360go como ${esc(status.roleLabel)}.
-    Tus primeros ${status.freeDays} días son gratis, contados desde tu inscripción.</p>
+    En Carga360go el costo real del flete se calcula de forma automática, con trazabilidad de cada viaje.</p>
     <p><strong>Estado de tu registro:</strong></p>
     <ul style="padding-left:20px;margin:0 0 16px;">${lines.html.join("")}</ul>
     ${
@@ -178,8 +178,6 @@ export function buildReminderEmail(status: OnboardingStatus, stage: OnboardingSt
     "Entra a tu panel para resolverlo:",
     panelUrl(),
     "",
-    `Recuerda: tus primeros ${status.freeDays} días son gratis, contados desde tu inscripción.`,
-    "",
     "Equipo Carga360go",
     "www.carga360go.cl",
   ].join("\n");
@@ -188,7 +186,6 @@ export function buildReminderEmail(status: OnboardingStatus, stage: OnboardingSt
     <p>${esc(when)} y todavía falta algo para completar tu registro en Carga360go:</p>
     <ul style="padding-left:20px;margin:0 0 16px;">${listedHtml}</ul>
     <p>Entra a tu panel para resolverlo.</p>
-    <p>Recuerda: tus primeros ${status.freeDays} días son gratis, contados desde tu inscripción.</p>
   `;
   return { subject, text, html: wrapHtml(subject, htmlBody) };
 }
@@ -198,7 +195,7 @@ export function whatsappWelcomeChecklist(status: OnboardingStatus): string {
   const lines = statusLines(status).text.map((line) => line.replace(/^• /, ""));
   return [
     `Hola ${status.contactName}, gracias por inscribirte en Carga360go como ${status.roleLabel}.`,
-    `Tus primeros ${status.freeDays} días son gratis, contados desde tu inscripción.`,
+    "En Carga360go el costo real del flete se calcula de forma automática, con trazabilidad de cada viaje.",
     "",
     "Estado de tu registro:",
     ...lines.map((line) => `• ${line}`),

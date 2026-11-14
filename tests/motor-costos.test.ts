@@ -33,6 +33,8 @@ import { AppError } from "../src/lib/errors";
 import { rutDv } from "../src/lib/format";
 import { resetRateLimits } from "../src/lib/rate-limit";
 import { saveSettings } from "../src/lib/settings";
+import { costForMatch } from "../src/lib/costos/match";
+import { matchLoadsForTruck, matchTrucksForLoad } from "../src/lib/match";
 
 const FIX = path.join(__dirname, "fixtures", "costos");
 const OSRM = fs.readFileSync(path.join(FIX, "osrm-antofagasta-santiago.json"), "utf8");
@@ -405,4 +407,25 @@ test("computeQuote es puro: mismos datos, mismo resultado", () => {
   const b = computeQuote({ origin: "Antofagasta", destination: "Santiago", vehicle: "tracto_semirremolque_5_ejes" }, a.origin, a.destination, null, params, NOW);
   assert.equal(b.method, "respaldo_linea_recta");
   assert.equal(a.method, "motor");
+});
+
+test("Match: cada par carga–camión trae el costo real aproximado del viaje (costForMatch), solo si la opción está activa", async () => {
+  await seedDiesel(new Date());
+  await quote({ origin: "Antofagasta", destination: "Santiago", equipment: "rampla_plana", weightT: 20 }); // deja la ruta en caché
+  const load = { equipment: "rampla_plana" as const, weightT: 20, origin: "Antofagasta", destination: "Santiago", pickupDate: "2026-11-20", specs: {} };
+  const truck = { equipment: "rampla_plana" as const, tonnage: 28, origin: "Antofagasta", destination: "Santiago", availableFrom: "2026-11-18", availableTo: "2026-11-25", specs: {} };
+  saveSettings({ showSuggestedPrice: false });
+  assert.equal(matchTrucksForLoad(load, [truck])[0].match.tripCost, undefined);
+  saveSettings({ showSuggestedPrice: true });
+  const view = costForMatch(load, truck)!;
+  assert.equal(view.complete, true, JSON.stringify(view.pending));
+  const [forLoad] = matchTrucksForLoad(load, [truck]);
+  const [forTruck] = matchLoadsForTruck(truck, [load]);
+  assert.equal(forLoad.match.tripCost?.total, view.costoTotal);
+  assert.equal(forTruck.match.tripCost?.total, view.costoTotal);
+  assert.equal(forLoad.match.tripCost?.complete, true);
+  // Sin ruta en caché (otro destino): respaldo marcado, sin cifra.
+  const [other] = matchTrucksForLoad({ ...load, destination: "Calama" }, [{ ...truck, destination: "Calama" }]);
+  assert.equal(other.match.tripCost?.total ?? null, null);
+  saveSettings({ showSuggestedPrice: false });
 });

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 
@@ -10,7 +11,10 @@ import { PATCH as ADMIN_PATCH } from "../src/app/api/admin/agente/route";
 import { GET, POST } from "../src/app/api/agente/route";
 import { POST as PHONE } from "../src/app/api/agente/telefono/route";
 import { setAgentEnabled } from "../src/lib/agent/config";
-import { COST_EXPLANATION, setFreightCostProvider } from "../src/lib/agent/costs";
+import { COST_EXPLANATION, costSentence, setFreightCostProvider } from "../src/lib/agent/costs";
+import { refreshDiesel } from "../src/lib/costos/diesel";
+import { publicView, quote } from "../src/lib/costos/engine";
+import { setCostosFetch } from "../src/lib/costos/http";
 import { handleAgentTurn, stripPricingTalk } from "../src/lib/agent/engine";
 import { detectAgentIntent } from "../src/lib/agent/intents";
 import { listAgentLeads, purgeOldAgentConversations } from "../src/lib/agent/store";
@@ -27,6 +31,17 @@ import { resetRateLimits } from "../src/lib/rate-limit";
 import { addDays, makeAdmin, person } from "./helpers-agente";
 
 const ctx = { params: Promise.resolve({}) };
+
+// Red del motor de costos simulada: por defecto sin conexión (la ruta falla y el motor queda incompleto, sin cifras).
+// La prueba de integración real activa las respuestas grabadas de OSRM y del diésel (CNE – Bencina en Línea).
+const FIX = path.join(__dirname, "fixtures", "costos");
+const net = { online: false };
+setCostosFetch(async (url: string) => {
+  if (!net.online) throw new Error("ECONNREFUSED (prueba sin red)");
+  if (url.includes("router.project-osrm.org")) return new Response(fs.readFileSync(path.join(FIX, "osrm-antofagasta-santiago.json"), "utf8"), { status: 200 });
+  if (url.includes("bencinaenlinea")) return new Response(fs.readFileSync(path.join(FIX, "bencina-export-zonal-2026-11-14.csv"), "utf8"), { status: 200 });
+  throw new Error(`URL no esperada en prueba: ${url}`);
+});
 const BASE = "http://127.0.0.1:4317";
 
 function clearAiEnv() {
@@ -162,7 +177,10 @@ test("cotización completa: lead en la base, resumen confirmado, sin precios ni 
   assert.equal(lead.backupContact, "ventas@andes.cl");
   assert.equal(lead.data.destino_ciudad, "Calama");
   assert.equal(lead.data.equipo, "refrigerado");
-  assert.equal(lead.data.costo_fuente, "pendiente_de_conectar");
+  // Motor conectado, pero sin red la ruta no se calcula: cotización incompleta, sin cifra.
+  assert.equal(lead.data.costo_fuente, "motor-costos-1.0 (incompleto)");
+  assert.equal(lead.data.costo_estimado_clp, "");
+  assert.match(reply, /datos pendientes/);
   assert.ok(listAudit(50).some((a) => a.action === "agente.lead_creado" && a.targetId === lead.id));
   // Respuesta con voz y sin secretos.
   assert.equal(/https?:/.test(String(done.data.speak)), false);
@@ -268,7 +286,7 @@ test("seguimiento sin sesión: código + verificación de un solo uso; sin enví
   setOtpSenderForTests(null);
 });
 
-test("costos: sin motor conectado no hay cifras; con motor (simulado) se muestra y se guarda", async () => {
+test("costos: el agente no da cifras sin cotización completa; con motor completo (simulado) da el costo referencial", async () => {
   enable();
   const ask = await post({ message: "¿cobran comisión?" });
   assert.match(String(ask.data.reply), new RegExp(COST_EXPLANATION.slice(0, 40)));
@@ -276,16 +294,51 @@ test("costos: sin motor conectado no hay cifras; con motor (simulado) se muestra
   assert.equal(stripPricingTalk("Cada cuenta tiene 30 días gratis.\nNo cobramos comisión.\nVea https://carga360go.cl/cargas para ver cargas publicadas."), "Vea https://carga360go.cl/cargas para ver cargas publicadas.");
   assert.match(stripPricingTalk("No cobramos comisión."), /peajes/);
 
+  // Incompleta o con pendientes: nunca hay cifra.
+  const base = { breakdown: {}, calculatedAt: new Date().toISOString(), source: "motor-prueba", method: "motor" as const };
+  assert.equal(/\$\s?\d/.test(costSentence({ ...base, totalClp: 900000, complete: false, pending: ["peajes"] })), false);
+  assert.equal(/\$\s?\d/.test(costSentence({ ...base, totalClp: 900000, complete: true, pending: ["diesel"] })), false);
+  assert.equal(/\$\s?\d/.test(costSentence(null)), false);
+
   setFreightCostProvider({
     status: () => ({ connected: true, state: "prueba" }),
-    estimate: async () => ({ totalClp: 1234567, breakdown: { peajes: 100000 }, calculatedAt: new Date().toISOString(), source: "motor-prueba" }),
+    estimate: async () => ({ ...base, totalClp: 1234567, complete: true, pending: [], km: 1612, dieselDate: "2026-11-14T12:00:00.000Z", breakdown: { peajes: 100000 } }),
   });
   const { last } = await talk(["cuánto cuesta un flete de Santiago a Calama", "Minera Norte", "a@b.cl", "omitir", "Santiago", "Calama", "mañana", "equipos", "10 t", "rampla", "no", "sí"]);
-  assert.match(String(last.data.reply), /Costo estimado calculado por el sistema.*\$1\.234\.567/);
+  const reply = String(last.data.reply);
+  assert.match(reply, /Costo referencial del flete.*\$1\.234\.567 con IVA/);
+  assert.match(reply, /ruta real \(1\.612 km\)/);
+  assert.match(reply, /peajes oficiales según los ejes/);
+  assert.match(reply, /diésel publicado por la CNE al 14-11-2026/);
+  assert.match(reply, /Es referencial/);
+  assert.equal(/margen|comisi|gratis/i.test(reply), false);
   const lead = listAgentLeads({ kind: "cotizacion" }).find((l) => l.code === last.data.leadCode)!;
   assert.equal(lead.data.costo_estimado_clp, "1234567");
   setFreightCostProvider(null);
-  assert.equal(AGENT_TOOLS.find((t) => t.name === "get_reference_freight_estimate")?.status, "no_conectada");
+  assert.equal(AGENT_TOOLS.find((t) => t.name === "get_reference_freight_estimate")?.status, "conectada");
+});
+
+test("costos: integración real con el motor (ruta y diésel grabados) — mismo monto que el motor, guardado para revisión", async () => {
+  enable();
+  net.online = true;
+  try {
+    await refreshDiesel();
+    const { last } = await talk(["quiero cotizar un flete", "Minera Pampa", "c@d.cl", "omitir", "Antofagasta", "Santiago", "mañana", "cobre", "20 t", "rampla", "no", "sí"]);
+    const reply = String(last.data.reply);
+    const expected = publicView(await quote({ origin: "Antofagasta", destination: "Santiago", equipment: "rampla_plana", weightT: 20 }), true);
+    assert.equal(expected.complete, true, JSON.stringify(expected.pending));
+    const amount = `$${Math.round(expected.costoTotal!).toLocaleString("es-CL")}`;
+    assert.ok(reply.includes(amount), `${reply} debe incluir ${amount}`);
+    assert.match(reply, /Es referencial/);
+    assert.equal(/margen|comisi/i.test(reply), false);
+    const lead = listAgentLeads({ kind: "cotizacion" }).find((l) => l.code === last.data.leadCode)!;
+    assert.equal(lead.data.costo_fuente, "motor-costos-1.0");
+    const row = getDb().prepare(`SELECT channel, complete FROM cost_quotes WHERE id = ?`).get(lead.data.costo_cotizacion_id) as { channel: string; complete: number };
+    assert.equal(row.channel, "api_agente_voz");
+    assert.equal(row.complete, 1);
+  } finally {
+    net.online = false;
+  }
 });
 
 test("seguridad: largo, canal inválido, límite por sesión e instrucciones que intentan saltar reglas", async () => {

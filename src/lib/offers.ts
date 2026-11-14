@@ -310,7 +310,7 @@ export async function submitOffer(user: PublicUser | null, loadId: string, input
         "",
         `Revisa y compara las ofertas, y elige la que prefieras: ${appUrl()}/cargas/${loadId}#ofertas`,
         "",
-        "Carga360go — 30 días gratis por cuenta desde la inscripción. Te avisaremos antes de cualquier cobro.",
+        "Carga360go — el costo real del flete, calculado de forma automática, con trazabilidad de cada viaje.",
       ]
         .filter((line) => line !== "")
         .join("\n"),
@@ -369,7 +369,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
           `Contacto del mandante: ${owner.contact_name} · WhatsApp +${owner.whatsapp} · ${owner.email}`,
           `Detalle: ${appUrl()}/cargas/${load.id}`,
           "",
-          "Coordinen el retiro directamente. Carga360go no cobra comisión por el flete.",
+          "Coordinen el retiro directamente.",
         ].join("\n"),
       );
       await sendEmail(

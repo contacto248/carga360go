@@ -26,7 +26,7 @@ import { parseTrackingCode, startTrackingChallenge, verifiedLoadStatus, verifyTr
 import { EMPTY_STATE, type AgentChannel, type AgentIntent, type AgentMode, type AgentReply, type AgentState, type ContactType } from "./types";
 import { cleanText, isNo, isYes, redactSensitive, toSpeech } from "./validate";
 import { AGENT_MAX_MESSAGE } from "./config";
-import { COST_EXPLANATION, COST_PENDING_NOTE, formatClp, freightCostProvider } from "./costs";
+import { COST_EXPLANATION, COST_PENDING_NOTE, costSentence, freightCostProvider } from "./costs";
 
 /** Saludo del agente (módulo 1), ajustado a las reglas de hoy: no entrega precios y dice que es automático. */
 export const AGENT_GREETING =
@@ -250,8 +250,9 @@ async function finishQuote(conv: AgentConversation, state: AgentState, user: Pub
       camion: d.camion ?? "",
       equipo: d.equipo ?? "",
       detalles: d.detalles ?? "",
-      costo_estimado_clp: estimate ? String(Math.round(estimate.totalClp)) : "",
-      costo_fuente: estimate ? estimate.source : "pendiente_de_conectar",
+      costo_estimado_clp: estimate?.complete && estimate.totalClp !== null ? String(Math.round(estimate.totalClp)) : "",
+      costo_fuente: estimate ? `${estimate.source}${estimate.complete ? "" : " (incompleto)"}` : costs.status().connected ? "motor_sin_resultado" : "pendiente_de_conectar",
+      costo_cotizacion_id: estimate?.quoteId ?? "",
     },
     summary: summaryOf("cotizar", { ...d, contacto: d.contacto ? "(registrado)" : "", respaldo: d.respaldo ? "(registrado)" : "" }),
     at,
@@ -259,9 +260,7 @@ async function finishQuote(conv: AgentConversation, state: AgentState, user: Pub
   audit(null, "agente.lead_creado", { type: "agente_lead", id: lead.id }, { canal: conv.channel, tipo: "cotizacion", solicitud: lead.code });
   const parts = [
     `Listo. Registré su solicitud con el número ${lead.code}. Un ejecutivo de Carga 360 Go le responderá a ${d.contacto}.`,
-    estimate
-      ? `Costo estimado calculado por el sistema con la ruta, los peajes según ejes, el diésel y los costos operacionales: ${formatClp(estimate.totalClp)}. Es una estimación automática; el ejecutivo le confirmará el detalle.`
-      : `${COST_EXPLANATION} ${COST_PENDING_NOTE}`,
+    costSentence(estimate),
   ];
   const match = countMatchingTrucks({
     origin: origin || d.origen || "",

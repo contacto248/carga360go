@@ -13,7 +13,7 @@ export default function CalculadoraPage() {
     <div className="wrap" style={{ paddingBottom: 40 }}>
       <div className="page-title">
         <h1>Calculadora de flete</h1>
-        <p>Gratis y sin registro. Ruta real entre más de 100 ciudades, peajes según los ejes del camión, diésel publicado por la CNE, conductor con descansos legales y desgaste, cada uno con su fuente.</p>
+        <p>Sin registro. Ruta real entre más de 100 ciudades, peajes según los ejes del camión, diésel publicado por la CNE, conductor con descansos legales y desgaste, cada uno con su fuente.</p>
       </div>
       <Calculator />
       <div className="row" style={{ marginTop: 16 }}>
