@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
+import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 
@@ -7,6 +8,8 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
   throw new Error("DATABASE_PATH de prueba no está configurada. Ejecuta npm test.");
 }
 import { GET, POST } from "../src/app/api/whatsapp/webhook/route";
+import { setAgentWhatsappEnabled } from "../src/lib/agent/config";
+import { mailOutboxDir } from "../src/lib/mail";
 import { isSafeReply } from "../src/lib/whatsapp/ai";
 import { processWebhookPayload, setSender } from "../src/lib/whatsapp/bot";
 import { buildMessageRequest, canSend, WA_360_MESSAGES_URL, WA_360_WEBHOOK_HEADER } from "../src/lib/whatsapp/config";
@@ -19,6 +22,7 @@ const sent: { to: string | null; text: string }[] = [];
 let outSeq = 0;
 
 function setEnv() {
+  setAgentWhatsappEnabled(false);
   delete process.env.WA_PROVIDER;
   delete process.env.WA_360_API_KEY;
   delete process.env.WA_360_WEBHOOK_SECRET;
@@ -175,6 +179,32 @@ test("Derivación a humano: responde, pausa el chat y no vuelve a hablar", async
   assert.ok(getConversation(conv.id)?.handoffAt);
   assert.match(sent[0].text, /persona del equipo/);
   assert.deepEqual(await processWebhookPayload(inbound("56955555555", "hola?")), ["sin_respuesta:pausado"]);
+});
+
+test("Con el flujo del agente en WhatsApp, una derivación avisa al equipo una sola vez", async () => {
+  setEnv();
+  setAgentWhatsappEnabled(true);
+  sent.length = 0;
+  try {
+    const dir = mailOutboxDir();
+    fs.mkdirSync(dir, { recursive: true });
+    const before = new Set(fs.readdirSync(dir).filter((name) => name.endsWith(".txt")));
+    const from = "56988881111";
+    assert.deepEqual(await processWebhookPayload(inbound(from, "quiero hablar con una persona")), ["respondido"]);
+    const conv = listConversations().find((c) => c.waId === from)!;
+    assert.ok(getConversation(conv.id)?.handoffAt);
+    assert.match(sent[0].text, /Registré su solicitud de atención|C360-/);
+    const fresh = fs
+      .readdirSync(dir)
+      .filter((name) => name.endsWith(".txt") && !before.has(name))
+      .map((name) => fs.readFileSync(path.join(dir, name), "utf8"));
+    const notices = fresh.filter((body) => body.includes("To: contacto@carga360go.cl") && /derivaci[oó]n|necesita atenci[oó]n/i.test(body));
+    assert.equal(notices.length, 1, `se esperaba un solo aviso, llegaron ${notices.length}: ${notices.map((b) => b.split("\n").find((l) => l.startsWith("Subject:"))).join(" | ")}`);
+    assert.match(notices[0], /Agente comercial: derivación C360-/);
+    assert.equal(fresh.some((body) => /Subject: WhatsApp:/.test(body)), false);
+  } finally {
+    setAgentWhatsappEnabled(false);
+  }
 });
 
 test("Límite por número y mensajes viejos fuera de la ventana de 24 h", async () => {

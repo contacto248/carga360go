@@ -200,7 +200,10 @@ async function handleInbound(value: WaValue, msg: WaInbound, now: Date) {
   if (decision.handoff) {
     markHandoff(conv.id, now.toISOString());
     pauseConversation(conv.id, waConfig().pauseHours, "derivado a humano", now);
-    await notifyHandoff(conv, decision.engine);
+    // Con el flujo del agente, notifyTeam ya avisó al equipo: un solo correo.
+    if (!decision.engine.startsWith("agente:")) {
+      await notifyHandoff(conv, decision.engine);
+    }
   }
   return result.ok ? "respondido" : "error_envio";
 }
