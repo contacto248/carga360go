@@ -408,7 +408,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
       </form>
       <p className="chat-note">
         {voiceSupported ? "Voz del navegador (es-CL), sin costo. " : "Su navegador no permite dictar por voz: use el texto. "}
-        No da precios, no aprueba cuentas ni documentos. <a href={waHref} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        El costo que entrega es referencial y calculado por el sistema; no aprueba cuentas ni documentos. <a href={waHref} target="_blank" rel="noopener noreferrer">WhatsApp</a>
       </p>
     </section>
   );

@@ -215,18 +215,25 @@ export function computeQuote(input: QuoteInput, origin: Place, destination: Plac
   const tollPending = tolls.filter((t) => t.amountGross === null);
   const tollStatus = tolls.length ? statusOf(tolls.map((t) => t.status)) : "estimado";
   if (tollPending.length) warnings.push(`Peajes PENDIENTES (sin tarifa verificada): ${tollPending.map((t) => t.name).join(", ")}. El total de peajes es parcial.`);
-  if (!tolls.length) warnings.push("La ruta no cruza plazas de peaje registradas en la base (la base cubre la Ruta 5 Norte Caldera–Santiago y pórticos indicados).");
+  // Vías con peaje según el proveedor de rutas (OSRM marca la clase "toll"), pero sin plazas cargadas en la base:
+  // el peaje existe y no tenemos su tarifa oficial, así que queda PENDIENTE (no se asume $0).
+  const tollRoadKm = route.steps.filter((s) => s.toll).reduce((s, x) => s + x.distanceM, 0) / 1000;
+  const tollsUncovered = !tolls.length && tollRoadKm >= 5;
+  if (tollsUncovered) warnings.push(`La ruta usa ${r1(tollRoadKm)} km de vías con peaje que no están en la base oficial cargada (hoy cubre la Ruta 5 Norte Caldera–Santiago y pórticos indicados): peajes PENDIENTES.`);
+  else if (!tolls.length) warnings.push("La ruta no cruza plazas de peaje registradas en la base (la base cubre la Ruta 5 Norte Caldera–Santiago y pórticos indicados).");
   const urbanSteps = route.steps.filter((s) => s.toll && /autopista|costanera|vespucio|general velásquez/i.test(s.name));
   if (urbanSteps.length) warnings.push(`La ruta usa autopistas urbanas con cobro free flow (${[...new Set(urbanSteps.map((s) => s.name))].join(", ")}); solo se suman los pórticos cargados en la base.`);
   components.push({
     key: "peajes",
     label: `Peajes (${tolls.length} ${tolls.length === 1 ? "plaza" : "plazas/pórticos"})`,
     group: "obligatorio",
-    amount: r0(tollNet),
-    status: tollPending.length ? "pendiente" : tollStatus,
+    amount: tollsUncovered ? null : r0(tollNet),
+    status: tollPending.length || tollsUncovered ? "pendiente" : tollStatus,
     source: "MOP – Dirección General de Concesiones, tarifas 2026",
     date: tolls.map((t) => t.checkedAt).filter(Boolean).sort()[0] ?? null,
-    detail: `Tarifas publicadas suman $${r0(tollGross).toLocaleString("es-CL")} (con IVA); neto $${r0(tollNet).toLocaleString("es-CL")}.`,
+    detail: tollsUncovered
+      ? `${r1(tollRoadKm)} km de vías con peaje sin tarifa oficial cargada para esta ruta: PENDIENTE.`
+      : `Tarifas publicadas suman $${r0(tollGross).toLocaleString("es-CL")} (con IVA); neto $${r0(tollNet).toLocaleString("es-CL")}.`,
   });
 
   // Conductor y viáticos

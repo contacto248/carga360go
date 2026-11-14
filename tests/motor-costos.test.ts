@@ -429,3 +429,27 @@ test("Match: cada par carga–camión trae el costo real aproximado del viaje (c
   assert.equal(other.match.tripCost?.total ?? null, null);
   saveSettings({ showSuggestedPrice: false });
 });
+
+test("peajes: ruta con vías de peaje fuera de la base oficial queda PENDIENTE (no se asume $0) y el agente no da cifra", async () => {
+  await seedDiesel(new Date());
+  const a = { lat: -33.45, lon: -70.67, label: "Santiago", region: null, source: "prueba" };
+  const b = { lat: -36.82, lon: -73.05, label: "Concepción", region: null, source: "prueba" };
+  const route = {
+    provider: "osrm", profile: "driving", truckAware: false, distanceM: 500_000, durationS: 18_000,
+    geometry: [[-70.67, -33.45], [-71.5, -34.6], [-72.1, -35.4], [-73.05, -36.82]] as [number, number][],
+    steps: [{ name: "Ruta 5 Sur", ref: "5", distanceM: 480_000, toll: true, motorway: true }, { name: "Acceso", ref: "", distanceM: 20_000, toll: false, motorway: false }],
+    alternatives: [], via: [], viaLabel: null, fetchedAt: new Date().toISOString(), cached: false, attribution: "prueba",
+  };
+  const r = computeQuote({ origin: "Santiago", destination: "Concepción", vehicle: "tracto_semirremolque_5_ejes" }, a, b, route);
+  const peajes = r.components.find((c) => c.key === "peajes")!;
+  assert.equal(peajes.status, "pendiente");
+  assert.equal(peajes.amount, null);
+  assert.equal(r.totals.complete, false);
+  assert.ok(r.totals.pending.includes("peajes"));
+  const { estimateFromQuote, costSentence } = await import("../src/lib/agent/costs");
+  assert.equal(/\$\s?\d/.test(costSentence(estimateFromQuote(r))), false);
+  // Ruta sin vías de peaje: $0 legítimo (estimado), la cotización puede quedar completa.
+  const free = computeQuote({ origin: "Santiago", destination: "Concepción", vehicle: "tracto_semirremolque_5_ejes" }, a, b, { ...route, steps: route.steps.map((st) => ({ ...st, toll: false })) });
+  assert.equal(free.components.find((c) => c.key === "peajes")!.amount, 0);
+  assert.equal(free.components.find((c) => c.key === "peajes")!.status, "estimado");
+});

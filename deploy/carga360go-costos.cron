@@ -1,0 +1,5 @@
+# Motor de costos: refresco de diésel y revisión de peajes cada 6 horas (minuto 20; el servidor está en UTC).
+# Instalar: sudo install -m 644 /opt/carga360go/deploy/carga360go-costos.cron /etc/cron.d/carga360go-costos
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+20 */6 * * * carga360go /opt/carga360go/deploy/costos-jobs.sh >> /var/lib/carga360go/costos-jobs.log 2>&1
