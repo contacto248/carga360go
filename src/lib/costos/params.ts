@@ -29,6 +29,7 @@ export const GLOBAL_PARAMS: ParamDef[] = [
   { key: "horasEspera", label: "Tiempo de espera estimado", unit: "horas", kind: "number", min: 0, max: 72, default: 1, help: "Esperas en origen, destino o controles." },
   { key: "adicionalesClp", label: "Gastos adicionales", unit: "CLP por viaje", kind: "number", min: 0, max: 50_000_000, default: 0, help: "Permisos, escoltas, estacionamiento u otros gastos del viaje." },
   { key: "retornoVacioPct", label: "Retorno vacío asignado", unit: "% del trayecto", kind: "number", min: 0, max: 100, default: 0, help: "Porcentaje del viaje de vuelta sin carga que se asigna a este flete (0 = no se cobra retorno)." },
+  { key: "rangoPublicoPct", label: "Rango público alrededor del costo", unit: "± % (0 = desactivado)", kind: "number", min: 0, max: 50, default: 0, help: "Decisión comercial: con 0 se muestra un solo costo referencial. Con un valor mayor, la vista pública agrega un rango mínimo–máximo de ± ese porcentaje." },
   { key: "margenPct", label: "Margen interno", unit: "% sobre el costo base", kind: "number", min: 0, max: 100, default: 0, help: "Parámetro interno, solo para administración. Por defecto 0.", internal: true },
   { key: "ivaPct", label: "IVA", unit: "%", kind: "number", min: 0, max: 30, default: 19, help: "Tasa de IVA aplicada al precio referencial." },
   { key: "aplicaIva", label: "Aplicar IVA al precio referencial", unit: "", kind: "boolean", default: true, help: "Si el servicio es afecto a IVA." },
@@ -78,6 +79,7 @@ export type CostParams = {
   horasEspera: number;
   adicionalesClp: number;
   retornoVacioPct: number;
+  rangoPublicoPct: number;
   margenPct: number;
   ivaPct: number;
   aplicaIva: boolean;
@@ -142,6 +144,7 @@ export function getParams(): CostParams {
     horasEspera: Number(v("horasEspera")),
     adicionalesClp: Number(v("adicionalesClp")),
     retornoVacioPct: Number(v("retornoVacioPct")),
+    rangoPublicoPct: Number(v("rangoPublicoPct")),
     margenPct: Number(v("margenPct")),
     ivaPct: Number(v("ivaPct")),
     aplicaIva: Boolean(v("aplicaIva")),

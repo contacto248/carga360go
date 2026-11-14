@@ -425,6 +425,10 @@ export function publicView(result: QuoteResult, showAmount: boolean) {
     costoBase: showAmount ? costoBase : null,
     iva: showAmount ? iva : null,
     costoTotal: showAmount ? costoBase + iva : null,
+    // Rango opcional (parámetro rangoPublicoPct, 0 por defecto = desactivado).
+    rango: showAmount && p.rangoPublicoPct > 0 && result.method === "motor"
+      ? { pct: p.rangoPublicoPct, min: Math.round((costoBase + iva) * (1 - p.rangoPublicoPct / 100)), max: Math.round((costoBase + iva) * (1 + p.rangoPublicoPct / 100)) }
+      : null,
     fallback: showAmount && result.fallback ? result.fallback : result.fallback ? { ...result.fallback, min: null, max: null } : null,
     warnings: result.warnings,
     attribution: result.route?.attribution ?? null,

@@ -320,6 +320,21 @@ test("vista pública: con la opción apagada (por defecto) no se muestran montos
   assert.equal(body.costo.notice, "Precio referencial sujeto a revisión; el precio final lo acuerdan las partes.");
 });
 
+test("rango público: desactivado por defecto; se activa solo con el parámetro y queda auditado", async () => {
+  const admin = adminUser();
+  const result = await quote({ origin: "Antofagasta", destination: "Santiago", vehicle: "camion_2_ejes", weightT: null });
+  assert.equal(getParams().rangoPublicoPct, 0);
+  assert.equal(publicView(result, true).rango, null);
+  saveParams(admin, { rangoPublicoPct: 10 }, "127.0.0.1");
+  const view = publicView(result, true);
+  assert.ok(view.rango && view.costoTotal);
+  assert.equal(view.rango.min, Math.round(view.costoTotal * 0.9));
+  assert.equal(view.rango.max, Math.round(view.costoTotal * 1.1));
+  assert.equal(publicView(result, false).rango, null);
+  assert.ok(listAudit(50).some((e) => e.action === "costos.parametro" && JSON.stringify(e).includes("rangoPublicoPct")));
+  saveParams(admin, { rangoPublicoPct: 0 }, "127.0.0.1");
+});
+
 test("revisión: borrador → revisada → enviada, auditada; enviar exige cotización completa; solo administradores", async () => {
   resetRateLimits();
   const admin = adminUser();

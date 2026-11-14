@@ -22,6 +22,7 @@ type PublicCost = {
   costoBase: number | null;
   iva: number | null;
   costoTotal: number | null;
+  rango?: { pct: number; min: number; max: number } | null;
   fallback: { min: number | null; max: number | null; km: number; note: string } | null;
   warnings: string[];
   attribution: string | null;
@@ -173,6 +174,7 @@ export function Calculator() {
                     <div className="meta">
                       Costo neto {money(cost.costoBase)} + IVA {money(cost.iva)}
                       {cost.complete ? "" : " · incompleto: hay valores pendientes"}
+                      {cost.rango ? ` · rango ${money(cost.rango.min)} – ${money(cost.rango.max)}` : ""}
                     </div>
                   </div>
                 ) : (
