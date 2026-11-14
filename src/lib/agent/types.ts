@@ -6,7 +6,7 @@ export type AgentChannel = "web" | "whatsapp" | "telefono";
 export const AGENT_CHANNELS: AgentChannel[] = ["web", "whatsapp", "telefono"];
 
 /** Intenciones comerciales que maneja el flujo guiado. "otro" pasa al asistente existente (IA o reglas). */
-export type AgentIntent = "cotizar" | "registro" | "estado" | "humano" | "otro";
+export type AgentIntent = "cotizar" | "costos" | "registro" | "estado" | "humano" | "otro";
 
 export type AgentFlow = "cotizar" | "registro" | "humano";
 

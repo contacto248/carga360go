@@ -6,6 +6,13 @@ const COTIZAR =
 const REGISTRO = /\b(registr\w*|inscrib\w*|crear (una |mi )?cuenta|abrir (una )?cuenta|unirme|registrar mi camion|sumarme)\b/;
 const ESTADO =
   /\b(estado de (mi |la |una )?(cuenta|carga|solicitud|servicio|transporte|viaje|inscripcion|registro)|consultar (un |mi )?(servicio|transporte|carga|estado)|donde (esta|va|anda) (mi )?(carga|camion)|ya retiraron|cuando llega|incidencia|mi cuenta|en revision)\b/;
+const COSTOS =
+  /\b(comision\w*|cuanto (cuesta|sale|vale|cobran|cobra)|costos?|precios?|tarifas?|cobran|valor (del|de un) flete|membresia|planes?|suscripcion|mensualidad|gratis|gratuito)\b/;
+const PAYMENT_ISSUE = /\b(cobraron|factura\w*|boleta|reembolso|devolucion|no me pagaron|transferencia|deposito|cuenta bancaria)\b/;
+/** La pregunta de costo trae un flete concreto: se explica el cálculo y se empieza a tomar la solicitud. */
+export function costAboutShipment(text: string): boolean {
+  return /\b(flete|transporte|envio|traslado|camion|mover|llevar|desde|hasta)\b/.test(normalize(text));
+}
 /** Reemplaza las palabras que en este widget se refieren al propio agente ("agente de voz"). */
 const SELF_REFERENCE = /\bagente (de voz|virtual|inteligente|automatico)\b/g;
 
@@ -17,6 +24,9 @@ export function detectAgentIntent(text: string): AgentIntent {
   const t = normalize(text).replace(SELF_REFERENCE, "asistente");
   if (!t) return "otro";
   const base = detectIntent(t);
+  // Costos y cobros: el agente explica el cálculo automático; no habla de comisiones ni modelos de cobro.
+  // Los problemas de pago concretos (cobros, facturas, reembolsos) siguen yendo a una persona.
+  if (base !== "humano" && COSTOS.test(t) && !PAYMENT_ISSUE.test(t)) return "costos";
   if (HANDOFF_INTENTS.includes(base)) return "humano";
   if (/\bhablar con soporte\b/.test(t)) return "humano";
   if (/\b(crear|abrir) (una |mi )?cuenta\b/.test(t)) return "registro";

@@ -9,7 +9,7 @@ import type { EquipmentId, PublicUser } from "../types";
 import { BACKUP_CONTACT_ASK, LINKS, detectIntent, normalize } from "../whatsapp/intents";
 import { waConfig } from "../whatsapp/config";
 import { applySlot, clearSlot, nextSlot, previousSlot, slotByMention, slotsFor, summaryOf, type Slot } from "./flow";
-import { detectAgentIntent, isBack, isCancel } from "./intents";
+import { costAboutShipment, detectAgentIntent, isBack, isCancel } from "./intents";
 import {
   createAgentLead,
   insertAgentMessage,
@@ -26,6 +26,7 @@ import { parseTrackingCode, startTrackingChallenge, verifiedLoadStatus, verifyTr
 import { EMPTY_STATE, type AgentChannel, type AgentIntent, type AgentMode, type AgentReply, type AgentState, type ContactType } from "./types";
 import { cleanText, isNo, isYes, redactSensitive, toSpeech } from "./validate";
 import { AGENT_MAX_MESSAGE } from "./config";
+import { COST_EXPLANATION, COST_PENDING_NOTE, formatClp, freightCostProvider } from "./costs";
 
 /** Saludo del agente (módulo 1), ajustado a las reglas de hoy: no entrega precios y dice que es automático. */
 export const AGENT_GREETING =
@@ -35,8 +36,25 @@ export const AGENT_GREETING =
 
 export const DEFAULT_QUICK = ["Solicitar transporte", "Encontrar cargas", "Registrar mi camión", "Consultar un servicio", "Hablar con soporte"];
 
-const NO_PRICE_NOTE =
-  "Carga 360 Go no entrega precios ni tarifas por este medio: el valor del flete lo acuerdan la empresa y el transportista.";
+const NO_PRICE_NOTE = COST_EXPLANATION;
+
+const PRICING_TALK = /comisi|membres|gratis|gratuit|suscripci|mensualidad|planes? de pago|modelo de cobro/i;
+
+/** Quita de una respuesta las frases sobre comisiones, gratuidad o modelos de cobro (directriz del dueño). */
+export function stripPricingTalk(text: string): string {
+  if (!PRICING_TALK.test(text)) return text;
+  const kept = text
+    .split(/\n/)
+    .map((line) =>
+      line
+        .split(/(?<=[.!?])\s+/)
+        .filter((sentence) => !PRICING_TALK.test(sentence))
+        .join(" "),
+    )
+    .filter((line, index, all) => line.trim() || (index > 0 && all[index - 1].trim()));
+  const result = kept.join("\n").trim();
+  return result.replace(/\*/g, "").length > 20 ? result : `${COST_EXPLANATION} ${COST_PENDING_NOTE}`;
+}
 
 export function hashIp(ip: string): string {
   return createHash("sha256").update(ip).digest("hex").slice(0, 16);
@@ -189,10 +207,26 @@ async function handoff(conv: AgentConversation, input: TurnInput, reason: string
   };
 }
 
-function finishQuote(conv: AgentConversation, state: AgentState, user: PublicUser | null | undefined, at: string): Outcome {
+async function finishQuote(conv: AgentConversation, state: AgentState, user: PublicUser | null | undefined, at: string): Promise<Outcome> {
   const d = state.data;
   const origin = cityFromText(d.origen ?? "") ?? "";
   const destination = cityFromText(d.destino ?? "") ?? "";
+  const costs = freightCostProvider();
+  let estimate = null;
+  if (costs.status().connected) {
+    try {
+      estimate = await costs.estimate({
+        origin: origin || d.origen || "",
+        destination: destination || d.destino || "",
+        equipment: (d.equipo || null) as EquipmentId | null,
+        weightT: d.peso_t ? Number(d.peso_t) : null,
+        date: d.fecha || null,
+      });
+    } catch {
+      console.error("[carga360go] agente: el motor de costos falló");
+      estimate = null;
+    }
+  }
   const lead = createAgentLead({
     conversationId: conv.id,
     channel: conv.channel,
@@ -216,6 +250,8 @@ function finishQuote(conv: AgentConversation, state: AgentState, user: PublicUse
       camion: d.camion ?? "",
       equipo: d.equipo ?? "",
       detalles: d.detalles ?? "",
+      costo_estimado_clp: estimate ? String(Math.round(estimate.totalClp)) : "",
+      costo_fuente: estimate ? estimate.source : "pendiente_de_conectar",
     },
     summary: summaryOf("cotizar", { ...d, contacto: d.contacto ? "(registrado)" : "", respaldo: d.respaldo ? "(registrado)" : "" }),
     at,
@@ -223,7 +259,9 @@ function finishQuote(conv: AgentConversation, state: AgentState, user: PublicUse
   audit(null, "agente.lead_creado", { type: "agente_lead", id: lead.id }, { canal: conv.channel, tipo: "cotizacion", solicitud: lead.code });
   const parts = [
     `Listo. Registré su solicitud con el número ${lead.code}. Un ejecutivo de Carga 360 Go le responderá a ${d.contacto}.`,
-    NO_PRICE_NOTE,
+    estimate
+      ? `Costo estimado calculado por el sistema con la ruta, los peajes según ejes, el diésel y los costos operacionales: ${formatClp(estimate.totalClp)}. Es una estimación automática; el ejecutivo le confirmará el detalle.`
+      : `${COST_EXPLANATION} ${COST_PENDING_NOTE}`,
   ];
   const match = countMatchingTrucks({
     origin: origin || d.origen || "",
@@ -239,7 +277,7 @@ function finishQuote(conv: AgentConversation, state: AgentState, user: PublicUse
         ". Esto no confirma disponibilidad.",
     );
   }
-  parts.push(`Si quiere recibir ofertas de transportistas, también puede publicar la carga gratis en ${LINKS.publicar}.`);
+  parts.push(`Si quiere recibir ofertas de transportistas, también puede publicar la carga en ${LINKS.publicar}.`);
   if (!d.respaldo_valor) parts.push("Si más adelante tiene un teléfono o correo de respaldo, indíquelo al ejecutivo.");
   return {
     text: parts.join("\n"),
@@ -329,7 +367,7 @@ function finishFlow(conv: AgentConversation, state: AgentState, user: PublicUser
 function startFlow(conv: AgentConversation, flow: "cotizar" | "registro", user: PublicUser | null | undefined, at: string): Outcome {
   const intro =
     flow === "cotizar"
-      ? `Con gusto le ayudo a solicitar una cotización. Le haré algunas preguntas, una a la vez; puede decir «corregir» o «cancelar» cuando quiera. ${NO_PRICE_NOTE} Un ejecutivo le responderá con la información.`
+      ? `Con gusto le ayudo a solicitar una cotización. Le haré algunas preguntas, una a la vez; puede decir «corregir» o «cancelar» cuando quiera. ${NO_PRICE_NOTE}`
       : "Con gusto le ayudo con su inscripción. Le haré algunas preguntas cortas; puede decir «cancelar» cuando quiera.";
   const state = prefillFromUser({ flow, step: null, data: {}, leadId: null }, user);
   const next = askOrFinish(state, intro);
@@ -337,12 +375,12 @@ function startFlow(conv: AgentConversation, flow: "cotizar" | "registro", user: 
   return { text: next.text, state: next.state, intent: flow, mode: "flujo", engine: `flujo:${flow}:inicio` };
 }
 
-function continueFlow(conv: AgentConversation, state: AgentState, text: string, user: PublicUser | null | undefined, now: Date): Outcome {
+async function continueFlow(conv: AgentConversation, state: AgentState, text: string, user: PublicUser | null | undefined, now: Date): Promise<Outcome> {
   const flow = state.flow!;
   const intent: AgentIntent = flow === "humano" ? "humano" : flow;
   const at = now.toISOString();
   if (state.step === "confirmar") {
-    if (isYes(text)) return finishQuote(conv, state, user, at);
+    if (isYes(text)) return await finishQuote(conv, state, user, at);
     if (isNo(text) || isBack(text) || /corregir|cambiar/i.test(text)) {
       const slot = slotByMention(flow, text);
       if (slot) {
@@ -451,7 +489,7 @@ async function assistantTurn(conv: AgentConversation, text: string): Promise<Out
   const history = listAgentMessages(conv.id, 12).map((m) => ({ direction: m.role === "cliente" ? ("in" as const) : ("out" as const), body: m.body }));
   const decision = await decideTextReply(text, history, conv.channel === "whatsapp" ? "whatsapp" : "web");
   const mode: AgentMode = decision.engine.startsWith("ia:") ? "ia" : "reglas";
-  return { text: decision.text, state: { ...EMPTY_STATE }, intent: "otro", mode, engine: decision.engine, handoff: decision.handoff };
+  return { text: stripPricingTalk(decision.text), state: { ...EMPTY_STATE }, intent: "otro", mode, engine: decision.engine, handoff: decision.handoff };
 }
 
 /**
@@ -477,9 +515,22 @@ export async function handleAgentTurn(input: TurnInput): Promise<AgentReply> {
     } else if (intent === "humano" && state.flow !== "humano") {
       outcome = await handoff(conv, input, "pidió una persona", at);
     } else if (state.flow && state.step) {
-      outcome = continueFlow(conv, state, text, input.user, now);
+      outcome = await continueFlow(conv, state, text, input.user, now);
     } else if (state.step === "seguimiento_codigo" || state.step === "seguimiento_otp") {
       outcome = await trackingTurn(conv, state, text, now);
+    } else if (intent === "costos") {
+      if (costAboutShipment(text)) {
+        const flow = startFlow(conv, "cotizar", input.user, at);
+        outcome = { ...flow, intent: "costos" };
+      } else {
+        outcome = {
+          text: `${COST_EXPLANATION} ${COST_PENDING_NOTE}\nSi me da los datos del transporte, registro su solicitud para que un ejecutivo le responda: diga «solicitar transporte».`,
+          state: { ...EMPTY_STATE },
+          intent: "costos",
+          mode: "flujo",
+          engine: "flujo:costos",
+        };
+      }
     } else if (intent === "cotizar") {
       outcome = startFlow(conv, "cotizar", input.user, at);
     } else if (intent === "registro") {
