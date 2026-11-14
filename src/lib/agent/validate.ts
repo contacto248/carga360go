@@ -17,7 +17,7 @@ export function cleanText(raw: unknown, max: number): string {
  */
 export function redactSensitive(text: string): string {
   return text
-    .replace(/\b(?:\d[ -]?){13,19}\b/g, "[número oculto]")
+    .replace(/\b\d(?:[ -]?\d){12,18}\b/g, "[número oculto]")
     .replace(/\b(clave|contrase(?:ñ|n)a|password|pass|pin)\b(\s*(?:es|:|=)?\s*)\S+/gi, "$1$2[oculto]");
 }
 

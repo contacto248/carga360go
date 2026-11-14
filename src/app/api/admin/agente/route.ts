@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
-import { guard, readJson, requireRoles } from "@/lib/api";
+import { guard, readJson } from "@/lib/api";
 import { audit } from "@/lib/audit";
 import { setAgentEnabled, setAgentWhatsappEnabled } from "@/lib/agent/config";
 import { getAgentLead, setLeadStatus } from "@/lib/agent/store";
 import { LEAD_STATUSES, type LeadStatus } from "@/lib/agent/types";
 import { AppError } from "@/lib/errors";
-import { clientIp } from "@/lib/request-auth";
+import { clientIp, userFromHeaders } from "@/lib/request-auth";
 
 /** Administración del agente: encender o apagar el widget y el flujo en WhatsApp, y cambiar el estado de un lead. */
 export const PATCH = guard(async (request) => {
-  const admin = await requireRoles(["admin"]);
+  // Misma resolución de sesión (cookie o Bearer) que requireRoles, leída de la solicitud.
+  const admin = userFromHeaders(request.headers);
+  if (!admin) throw new AppError("Debes iniciar sesión.", 401);
+  if (admin.role !== "admin") throw new AppError("No tienes permiso para esta acción.", 403);
   const body = await readJson(request);
   const ip = clientIp(request.headers);
   if (typeof body.enabled === "boolean") {
