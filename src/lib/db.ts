@@ -108,6 +108,56 @@ export const MIGRATION_14_USER_COLUMNS = [
   "manual_readonly_by_email",
 ] as const;
 
+/** Migración 15: agente comercial. Tablas nuevas, sin tocar las existentes (ver docs/migrations/015-agente-comercial.sql). */
+export const MIGRATION_15_SQL = `
+  CREATE TABLE IF NOT EXISTS agent_conversations (
+    id TEXT PRIMARY KEY,
+    channel TEXT NOT NULL CHECK (channel IN ('web', 'whatsapp', 'telefono')),
+    session_key TEXT NOT NULL,
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    ip_hash TEXT,
+    state TEXT NOT NULL DEFAULT '{}',
+    last_intent TEXT,
+    handoff_at TEXT,
+    message_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_conv_session ON agent_conversations(channel, session_key);
+  CREATE INDEX IF NOT EXISTS idx_agent_conv_updated ON agent_conversations(updated_at);
+  CREATE TABLE IF NOT EXISTS agent_messages (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('cliente', 'agente', 'sistema')),
+    body TEXT NOT NULL,
+    via TEXT CHECK (via IN ('texto', 'voz')),
+    engine TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_msg_conv ON agent_messages(conversation_id, created_at);
+  CREATE TABLE IF NOT EXISTS agent_leads (
+    id TEXT PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    conversation_id TEXT REFERENCES agent_conversations(id) ON DELETE SET NULL,
+    channel TEXT NOT NULL CHECK (channel IN ('web', 'whatsapp', 'telefono')),
+    kind TEXT NOT NULL CHECK (kind IN ('cotizacion', 'registro', 'derivacion')),
+    status TEXT NOT NULL DEFAULT 'nuevo' CHECK (status IN ('nuevo', 'en_gestion', 'cerrado', 'descartado')),
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    name TEXT,
+    contact TEXT,
+    contact_type TEXT CHECK (contact_type IS NULL OR contact_type IN ('email', 'telefono')),
+    backup_contact TEXT,
+    backup_contact_type TEXT CHECK (backup_contact_type IS NULL OR backup_contact_type IN ('email', 'telefono')),
+    role TEXT,
+    data TEXT NOT NULL DEFAULT '{}',
+    summary TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_leads_created ON agent_leads(created_at);
+  CREATE INDEX IF NOT EXISTS idx_agent_leads_status ON agent_leads(status, kind);
+`;
+
 let database: Database.Database | null = null;
 
 export function databasePath(): string {
@@ -491,6 +541,15 @@ function migrate(db: Database.Database) {
       }
       db.exec(`CREATE INDEX IF NOT EXISTS idx_users_manual_readonly ON users(manual_readonly_until)`);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (schemaVersion(db) < 15) {
+    const apply = db.transaction(() => {
+      // Agente comercial (web, WhatsApp y teléfono): conversaciones, mensajes y leads. Solo crea tablas nuevas:
+      // no modifica ni borra datos existentes. Copia legible en docs/migrations/015-agente-comercial.sql.
+      db.exec(MIGRATION_15_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (15, ?)`).run(new Date().toISOString());
     });
     apply();
   }
