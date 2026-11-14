@@ -327,8 +327,7 @@ label.f{color:#2b3950}
 .btn:disabled,.btn[aria-disabled=true]{transform:none;box-shadow:none}
 
 /* Tarjetas */
-.card{border-color:var(--line);border-radius:var(--r);padding:var(--s4) 18px;box-shadow:var(--shadow-sm)}
-@media(min-width:820px){.card{padding:20px 22px}}
+.card{border-color:var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
 a.card{transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s}
 a.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--line-strong)}
 a.card.cat h3{color:var(--navy)}
@@ -398,7 +397,7 @@ footer.foot a:hover{color:#ffd7bd}
 .rdash-kpis div{background:#f5f7fa;border-color:var(--line)}
 .rdash-kpis b{color:var(--brand-navy)}
 .rdash-table tr.on{background:#e6f6fa}
-.rdash{grid-template-columns:minmax(0,1fr)}.rdash>*{min-width:0}.rdash-tablecard{overflow-x:auto}
+.rdash{grid-template-columns:minmax(0,1fr)}.rdash>*{min-width:0}
 @media(min-width:900px){.rdash{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}}
 @media(max-width:560px){.rdash-map.card{padding:14px 10px}.rdash-map .map-legend{gap:10px;font-size:.76rem;border-radius:12px}}
 
@@ -406,7 +405,6 @@ footer.foot a:hover{color:#ffd7bd}
 @media(max-width:560px){
   .wrap{padding:0 16px}
   section.block{padding:40px 0}
-  .card{padding:14px 16px}
   .cost-banner{padding:12px}
 }
 
