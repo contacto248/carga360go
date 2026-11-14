@@ -1,3 +1,4 @@
+import { costHintFor } from "@/lib/costos/hint";
 import type { Metadata } from "next";
 import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import Link from "next/link";
@@ -63,7 +64,7 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
         </p>
       </div>
       <ManualReadonlyBanner user={user} />
-      <LoadCard load={load} canManage={isOwner} priceHint={settings.showSuggestedPrice} showOfferButton={false} />
+      <LoadCard load={load} canManage={isOwner} priceHint={settings.showSuggestedPrice ? costHintFor(load) : null} showOfferButton={false} />
       {load.isDemo ? null : (
         <OffersPanel
           loadId={load.id}
