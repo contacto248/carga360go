@@ -264,3 +264,151 @@ body:has(.help-stack) footer.foot{padding-bottom:140px}
 .wa-channel strong{display:block;color:var(--ink)}
 .wa-channel span{display:block;color:var(--muted);font-size:.9rem}
 .wa-channel .btn{flex:0 0 auto}
+
+/* ===== Diseño visual nov-2026 · capa 2 (paleta del logo, contraste AA, foco, tarjetas, mapa) =====
+ * Se agrega al final para no reescribir reglas anteriores: aquí solo se sobrescriben tokens y estados.
+ * Paleta del logo: azul #002451, naranjo #FF5001. Contrastes medidos en CAMBIOS_DISENO.md. */
+:root{
+  --brand-navy:#002451;--brand-orange:#FF5001;
+  /* Naranjo de acción: el del logo no llega a 4,5:1 con texto blanco; #C84300 da 4,93:1 y #A33600 6,81:1 */
+  --accent:#C84300;--accent2:#A33600;
+  --muted:#5b6778;--muted-soft:#66717f;--line:#d9e0ea;--line-strong:#c3cddc;
+  --focus:#0E7490;--focus-dark:#67E8F9;
+  --r:16px;--r-sm:10px;
+  --shadow-sm:0 1px 2px #0b16330d,0 1px 3px #0b163314;
+  --shadow-md:0 6px 16px #0b16331a,0 2px 4px #0b16330f;
+  --shadow-lg:0 22px 48px #0b163338;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:72px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+body{font-size:16px;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+::selection{background:#ffd3b3;color:#0B1633}
+
+/* Jerarquía tipográfica */
+h1,h2,h3,h4{font-weight:800;letter-spacing:-.015em;text-wrap:balance}
+h1{letter-spacing:-.025em}
+section.block h2{font-size:clamp(1.5rem,1.15rem + 1.1vw,2.05rem);color:var(--navy);margin-bottom:.6rem}
+section.block h2::after{content:"";display:block;width:44px;height:4px;border-radius:4px;background:var(--brand-orange);margin-top:10px}
+.rdash-head h2::after{margin-top:8px}
+.card h3{font-size:1.08rem;color:var(--navy)}
+.lead{font-size:1.04rem;line-height:1.6}
+.page-title{padding:var(--s6) 0 var(--s3)}
+.page-title h1{font-size:clamp(1.55rem,1.3rem + .9vw,2rem);color:var(--navy)}
+.meta{color:var(--muted)}
+
+/* Espaciado consistente */
+section.block{padding:var(--s7) 0}
+@media(min-width:820px){section.block{padding:var(--s8) 0}}
+.grid{gap:var(--s4)}
+.wrap{padding:0 20px}
+@media(min-width:1200px){.wrap{max-width:1160px}}
+
+/* Foco visible y accesible en todo el sitio */
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+:where(header.top,.hero,footer.foot,.cta-band,.rdash-map,.mobile-menu) :where(a,button,[tabindex]):focus-visible{outline-color:var(--focus-dark)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px #0e749033}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
+input,select,textarea{border-color:var(--line-strong);transition:border-color .15s,box-shadow .15s}
+input:hover,select:hover,textarea:hover{border-color:#9fb0c7}
+label.f{color:#2b3950}
+
+/* Botones: tamaño táctil, estados hover/activo/foco */
+.btn{min-height:44px;border-radius:12px;letter-spacing:.005em;box-shadow:0 1px 0 #ffffff26 inset,0 2px 6px #c8430033;transition:background-color .15s var(--ease),transform .15s var(--ease),box-shadow .15s var(--ease),border-color .15s}
+.btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 6px 16px #a3360040}
+.btn:active{transform:translateY(0);box-shadow:0 1px 3px #a3360040}
+.btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.btn.sm{min-height:36px;border-radius:10px}
+.btn.sec{background:#fff;color:var(--navy);border-color:var(--line-strong);box-shadow:var(--shadow-sm)}
+.btn.sec:hover{background:#f2f5fa;border-color:var(--navy);box-shadow:var(--shadow-md)}
+.btn.ghost{box-shadow:none;border-color:#ffffff73}
+.btn.ghost:hover{background:#ffffff1a;border-color:#fff;box-shadow:none}
+.btn.wa:hover{box-shadow:0 6px 16px #1fb45740}
+.btn.danger{box-shadow:none}.btn.danger:hover{background:#fef2f2;border-color:var(--bad);color:#991b1b}
+.btn:disabled,.btn[aria-disabled=true]{transform:none;box-shadow:none}
+
+/* Tarjetas */
+.card{border-color:var(--line);border-radius:var(--r);padding:var(--s4) 18px;box-shadow:var(--shadow-sm)}
+@media(min-width:820px){.card{padding:20px 22px}}
+a.card{transition:transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s}
+a.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--line-strong)}
+a.card.cat h3{color:var(--navy)}
+a.card.cat:hover h3{color:var(--accent)}
+.path{border-top:4px solid var(--brand-orange)}
+.path:nth-child(2){border-top-color:var(--brand-navy)}
+.pill{font-weight:700}
+
+/* Encabezado y menú */
+.demo-banner{background:#0B1633;color:#e6edf8;border-bottom:1px solid #ffffff1a;font-size:.8rem}
+.demo-banner strong{color:#ffb98c}
+header.top{box-shadow:0 1px 0 #ffffff12,0 8px 24px #0b163340}
+nav.links a{transition:background-color .15s,color .15s;font-weight:600}
+nav.links a.on{background:var(--navy2);color:#fff;box-shadow:inset 0 -3px 0 var(--brand-orange)}
+.mobile-menu a{font-weight:600}
+
+/* Portada */
+.hero{background:radial-gradient(900px 420px at 88% -8%,#ff50012e,transparent 62%),radial-gradient(700px 380px at -10% 110%,#22b8cf1f,transparent 60%),linear-gradient(160deg,#0B1633 0%,var(--brand-navy) 58%,#0c2b5c 100%)}
+.hero h1 em{color:var(--brand-orange)}
+.hero p{color:#dbe5f4}
+.hero-pill{background:#ffffff14;color:#ffd7bd;border-color:#ffffff33}
+.hero-legal{color:#c6d3e6}
+.qsearch{border-radius:18px;box-shadow:var(--shadow-lg)}
+.qtabs button{transition:background-color .15s}
+.qtabs button:not(.on):hover{background:#e1e8f2}
+.live-board{border-radius:20px;box-shadow:0 20px 40px #00000033}
+.lb-list a{transition:transform .15s var(--ease),box-shadow .15s}
+.lb-list a:hover{transform:translateY(-1px);box-shadow:0 6px 16px #0003}
+.counters-band{box-shadow:var(--shadow-sm)}
+.counter strong{font-size:2.1rem;color:var(--brand-navy)}
+.cta-band{background:radial-gradient(600px 260px at 100% 0,#ff500126,transparent 60%),linear-gradient(160deg,#0B1633,var(--brand-navy));border-radius:22px;box-shadow:var(--shadow-lg)}
+footer.foot{border-top:4px solid var(--brand-orange)}
+footer.foot a:hover{color:#ffd7bd}
+.notice{border-radius:var(--r-sm)}
+
+/* Mensaje de costo real del flete (reemplaza la antigua campaña de inscripción) */
+.cost-banner{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:5px solid var(--brand-orange);border-radius:var(--r);padding:14px 16px;margin:0 0 14px;color:var(--ink);box-shadow:var(--shadow-sm)}
+.cost-banner p{margin:0}.cost-banner p+p{margin-top:4px}
+.cost-banner-icon{flex:0 0 auto;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#fff1e8;color:var(--accent);font-size:1.1rem;line-height:1}
+.cost-banner strong{color:var(--navy)}
+.cost-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px!important}
+.cost-tags span{font-size:.74rem;font-weight:700;color:var(--navy);background:#eef2f8;border-radius:99px;padding:3px 9px}
+
+/* Tabla de regiones: números en cero con contraste suficiente */
+.rdash-table td.z{color:#66717f}
+.rdash-note{color:var(--muted-soft)}
+
+/* ===== Mapa de regiones: panel oscuro de alto contraste ===== */
+.rdash-map.card{background:radial-gradient(#ffffff10 1px,transparent 1.2px) 0 0/16px 16px,radial-gradient(520px 340px at 30% 20%,#1d3a78 0%,transparent 70%),linear-gradient(165deg,#0B1633 0%,#0f2350 100%);border:1px solid #1f3566;box-shadow:var(--shadow-lg),inset 0 1px 0 #ffffff14;color:#e6edf8;padding:18px}
+.rdash-maphead strong{color:#fff;font-size:1.05rem}
+.rdash-maphead .meta{color:#b8c6e0}
+.rdash-land{filter:drop-shadow(0 3px 6px #00000073)}
+.rdash-reg{transition:filter .15s,opacity .15s}
+.rdash-reg:hover{filter:brightness(1.12) saturate(1.1)}
+.rdash-reg:focus-visible{stroke:var(--focus-dark);stroke-width:2.6}
+.rdash-num{font-size:11px;font-weight:800;letter-spacing:.02em}
+.rdash-panel{fill:#b8c6e0;font-size:11.5px;font-weight:800;letter-spacing:.12em}
+.rdash-tip{background:#ffffff;color:#0B1633;border:1px solid #d9e0ea;box-shadow:0 12px 28px #0000004d}
+.rdash-tip b{color:var(--accent)}
+.rdash-map .map-legend{color:#dbe5f4;font-size:.8rem;font-weight:600;gap:14px;padding:8px 12px;background:#ffffff0d;border:1px solid #ffffff1f;border-radius:99px;align-self:center}
+.rdash-map .map-legend i{width:14px;height:14px;border-radius:4px;box-shadow:0 0 0 1px #ffffff40}
+.rdash-map .rdash-note{color:#b8c6e0}
+.rdash-map .rdash-empty{background:#ffffff0f;border:1px dashed #ffffff4d;color:#dbe5f4}
+.rdash-map .rdash-empty b{color:#fff}
+.rdash-map .rdash-sel{background:#ffffff14;border-color:#ffffff33;color:#e6edf8}
+.rdash-map .rdash-sel b{color:#fff}
+.rdash-kpis div{background:#f5f7fa;border-color:var(--line)}
+.rdash-kpis b{color:var(--brand-navy)}
+.rdash-table tr.on{background:#e6f6fa}
+@media(max-width:560px){.rdash-map.card{padding:14px 10px}.rdash-map .map-legend{gap:10px;font-size:.76rem;border-radius:12px}}
+
+/* Celular */
+@media(max-width:560px){
+  .wrap{padding:0 16px}
+  section.block{padding:40px 0}
+  .card{padding:14px 16px}
+  .cost-banner{padding:12px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+  .btn:hover,a.card:hover,.lb-list a:hover{transform:none}
+}
