@@ -1,0 +1,27 @@
+combustible_id,zona_geografica_id,zona_geografica_nombre,combustible_nombre_corto,combustible_nombre_largo,precio_promedio,precio_min,precio_max,unidad_cobro_nombre_corto,grupo_tipo_combustible
+1,1,"Zona Norte",93,"Gasolina 93",1682.0040000,1551.000,1722.000,$/L,"1,8"
+9,1,"Zona Norte",A95,"Gasolina 95",1713.8570000,1585.000,1754.000,$/L,"7,9"
+10,1,"Zona Norte",A97,"Gasolina 97",1745.9730000,1614.000,1770.000,$/L,"2,10"
+11,1,"Zona Norte",ADI,"Petroleo Diesel",1675.7710000,1375.000,1723.000,$/L,"3,11"
+6,1,"Zona Norte",GLP,"GLP Vehicular",773.8750000,588.000,864.000,$/m3,6
+4,1,"Zona Norte",KE,Kerosene,1443.3260000,1350.000,1567.000,$/L,"4,12"
+1,2,"Zona Centro",93,"Gasolina 93",1613.5560000,1387.000,1907.000,$/L,"1,8"
+7,2,"Zona Centro",95,"Gasolina 95",1647.9010000,1246.000,1710.000,$/L,"7,9"
+2,2,"Zona Centro",97,"Gasolina 97",1687.7820000,1466.000,1737.000,$/L,"2,10"
+12,2,"Zona Centro",AKE,Kerosene,1371.8190000,1058.000,1627.000,$/L,"4,12"
+3,2,"Zona Centro",DI,"Petroleo Diesel",1619.6540000,1160.000,1846.000,$/L,"3,11"
+6,2,"Zona Centro",GLP,"GLP Vehicular",709.0500000,623.000,825.000,$/m3,6
+7,3,Metropolitana,95,"Gasolina 95",1621.5410000,1434.000,1697.000,$/L,"7,9"
+2,3,Metropolitana,97,"Gasolina 97",1673.1460000,1277.000,1750.000,$/L,"2,10"
+8,3,Metropolitana,A93,"Gasolina 93",1576.0990000,1387.000,1644.000,$/L,"1,8"
+12,3,Metropolitana,AKE,Kerosene,1372.2750000,1000.000,1573.000,$/L,"4,12"
+3,3,Metropolitana,DI,"Petroleo Diesel",1595.0910000,1208.000,1653.000,$/L,"3,11"
+6,3,Metropolitana,GLP,"GLP Vehicular",712.5330000,591.000,795.000,$/m3,6
+5,3,Metropolitana,GNC,GNC,943.8000000,899.000,1091.000,$/m3,5
+1,4,"Zona Sur",93,"Gasolina 93",1661.1500000,1499.000,1984.000,$/L,"1,8"
+7,4,"Zona Sur",95,"Gasolina 95",1689.3370000,1233.000,1917.000,$/L,"7,9"
+10,4,"Zona Sur",A97,"Gasolina 97",1719.2180000,1612.000,1924.000,$/L,"2,10"
+11,4,"Zona Sur",ADI,"Petroleo Diesel",1672.4610000,1366.000,1938.000,$/L,"3,11"
+12,4,"Zona Sur",AKE,Kerosene,1420.9900000,1074.000,1731.000,$/L,"4,12"
+6,4,"Zona Sur",GLP,"GLP Vehicular",754.3330000,601.000,861.000,$/m3,6
+5,4,"Zona Sur",GNC,GNC,427.8000000,404.000,513.000,$/m3,5
