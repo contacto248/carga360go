@@ -13,6 +13,7 @@ import { getLoad, listOwn } from "@/lib/listings";
 import { awardedContact, canOffer, effectiveAllowImprove, offersOpen, offersVisibleTo } from "@/lib/offers";
 import { getSettings } from "@/lib/settings";
 import { tripView } from "@/lib/viaje";
+import { trackingCodeFor, trackingCodeVisibleTo } from "@/lib/agent/tracking";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -36,6 +37,8 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
   const settings = getSettings();
   const viaje = tripView(load.id, user);
   const isOwner = user?.id === load.ownerId;
+  // Código corto de seguimiento: solo lo ven la dueña, el transportista adjudicado y los administradores.
+  const trackingCode = !load.isDemo && trackingCodeVisibleTo(load.id, user) ? trackingCodeFor(load.id) : null;
   let mode: "owner" | "admin" | "carrier" | "carrier_locked" | "guest" | "other" = "guest";
   let lockReason = "";
   if (user) {
@@ -63,6 +66,12 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
         </p>
       </div>
       <ManualReadonlyBanner user={user} />
+      {trackingCode ? (
+        <p className="notice" style={{ margin: "0 0 12px" }}>
+          Código de seguimiento: <strong>{trackingCode}</strong>. Con él y un código de un solo uso enviado al contacto registrado de la dueña de la carga,
+          el asistente puede informar el estado sin iniciar sesión. No lo comparta con quien no deba ver esta carga.
+        </p>
+      ) : null}
       <LoadCard load={load} canManage={isOwner} priceHint={settings.showSuggestedPrice} showOfferButton={false} />
       {load.isDemo ? null : (
         <OffersPanel

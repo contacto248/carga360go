@@ -1,5 +1,7 @@
 import { liveContext } from "../assistant/live";
 import { decideTextReply, type Decision } from "../assistant/reply";
+import { agentWhatsappEnabled } from "../agent/config";
+import { handleAgentTurn } from "../agent/engine";
 import { BRAND } from "../catalog";
 import { appUrl } from "../mail";
 import { sendEmail } from "../notify";
@@ -121,6 +123,17 @@ export type { Decision };
 /** Decide la respuesta: derivaciones duras primero, luego IA y, si falla, reglas. */
 export async function decideReply(conv: WaConversation, text: string | null): Promise<Decision> {
   if (text === null) return { text: NON_TEXT_REPLY, engine: "reglas", handoff: false, aiAttempt: "omitido", fallbackReason: null };
+  if (agentWhatsappEnabled()) {
+    // Flujo del agente comercial (cotizar, registro, estado con verificación, persona). Apagado por defecto.
+    const reply = await handleAgentTurn({ channel: "whatsapp", sessionKey: conv.id, text });
+    return {
+      text: reply.text,
+      engine: `agente:${reply.mode}:${reply.intent}`,
+      handoff: reply.handoff,
+      aiAttempt: reply.mode === "ia" ? "ok" : "omitido",
+      fallbackReason: null,
+    };
+  }
   return decideTextReply(text, listMessages(conv.id, 12), "whatsapp");
 }
 
