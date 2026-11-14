@@ -59,3 +59,16 @@ Mientras no exista una identificación confiable del usuario en el chat, se mant
   (`readonlyExpired` en la respuesta).
 - La aprobación normal (`approveCarrier`) y el rechazo (`rejectCarrier`) limpian el estado. Volver a presionar el botón
   renueva 30 días desde ese momento. No se puede otorgar a cuentas ya verificadas ni a administradores.
+
+## 3. Aviso automático por WhatsApp y correo
+
+Cuando el administrador otorga la verificación manual, el sistema avisa a la persona por **correo electrónico** y **WhatsApp**. El envío ocurre después de guardar el acceso; si falla, la verificación se mantiene y el intento queda en la auditoría (`usuario.solo_lectura_avisada`).
+
+- Textos: `src/lib/onboarding/messages.ts` (`buildManualReadonlyGrantedEmail`, `manualReadonlyGrantedWhatsapp` y las variantes de revocación). Motor: `src/lib/manual-readonly-notify.ts`.
+- Ambos mensajes indican, en español de Chile: que la cuenta quedó habilitada **solo para ver** la plataforma; que no puede publicar ni tomar cargas, ofertar, editar ni operar hasta completar la acreditación; la fecha de vencimiento (calendario de Chile, máximo 30 días); lo que le falta para acreditarse; y un enlace a `/panel`.
+- Destinatarios: correo y WhatsApp principales. Si falta uno, se usa el contacto de respaldo del mismo tipo (el respaldo telefónico solo si es celular chileno, porque WhatsApp no llega a un fijo).
+- Si SMTP no está configurado (`SMTP_HOST`), el correo se guarda en el outbox (`MAIL_OUTBOX`) con estado `no enviado: canal no configurado`. Nunca se marca como enviado si no salió.
+- WhatsApp usa el cliente existente (`src/lib/whatsapp/send.ts`, credenciales `WA_ACCESS_TOKEN` + `WA_PHONE_NUMBER_ID` o 360dialog). Si no hay canal, el texto se guarda en el outbox de WhatsApp (junto al de correo, carpeta `whatsapp-outbox`) con el mismo estado. Si hay canal y la persona escribió en las últimas 23 horas, se manda un texto de sesión. Si no hay ventana de 24 h, se intenta la plantilla solo cuando está configurada (`WA_READONLY_TEMPLATE` / `WA_READONLY_REVOKE_TEMPLATE`). Las plantillas propuestas están en `docs/whatsapp-plantilla-verificacion-manual.md` y quedan **pendientes de aprobación de Meta**.
+- No se repite si se otorga (o se revoca) dos veces el mismo día calendario de Chile: el segundo intento se audita como `usuario.solo_lectura_aviso_omitido`.
+- Al revocar se envía un aviso corto (se puede apagar con `MANUAL_READONLY_REVOKE_NOTIFY=false`).
+- Los avisos no hablan de comisiones, cobros ni precios. El registro de envíos está en `manual_readonly_notifications` (se crea al usarse; no es una migración numerada, para no chocar con otras ramas).

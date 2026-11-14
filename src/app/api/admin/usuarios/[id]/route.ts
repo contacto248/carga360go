@@ -6,13 +6,17 @@ import { approveCarrier, REQUIREMENT_STATUS_LABELS, REQUIREMENTS, setRequirement
 import { markContactVerified, rejectCarrier } from "@/lib/carrier";
 import { resolveStored } from "@/lib/documents";
 import { audit } from "@/lib/audit";
-import { clientIp } from "@/lib/request-auth";
+import { clientIp, userFromHeaders } from "@/lib/request-auth";
 import { setBackupContact } from "@/lib/backup-contact";
 import { AppError } from "@/lib/errors";
 import { grantManualReadonly, MANUAL_READONLY_DAYS, revokeManualReadonly } from "@/lib/manual-readonly";
+import { notifyManualReadonlyGranted, notifyManualReadonlyRevoked } from "@/lib/manual-readonly-notify";
 
 export const PATCH = guard(async (request, ctx) => {
-  const admin = await requireRoles(["admin"]);
+  // userFromHeaders: misma sesión cookie/Bearer, sin el ALS de next/headers (así se puede probar el handler).
+  const admin = userFromHeaders(request.headers);
+  if (!admin) throw new AppError("Debes iniciar sesión.", 401);
+  if (admin.role !== "admin") throw new AppError("No tienes permiso para esta acción.", 403);
   const { id } = await ctx.params;
   const body = await readJson(request);
   const profile = profileFromBody(body);
@@ -31,9 +35,19 @@ export const PATCH = guard(async (request, ctx) => {
     if (body.manualReadonly === "otorgar") {
       const until = grantManualReadonly(admin, id);
       audit(admin, "usuario.solo_lectura_otorgada", target, { hasta: until, dias: MANUAL_READONLY_DAYS }, ip);
+      try {
+        await notifyManualReadonlyGranted({ actor: admin, userId: id, until, ip });
+      } catch (error) {
+        console.error("[carga360go] No se pudo avisar la verificación manual", error);
+      }
     } else if (body.manualReadonly === "revocar") {
       const wasActive = revokeManualReadonly(admin, id);
       audit(admin, "usuario.solo_lectura_revocada", target, wasActive ? "revocada antes de vencer" : "no estaba vigente", ip);
+      try {
+        await notifyManualReadonlyRevoked({ actor: admin, userId: id, ip });
+      } catch (error) {
+        console.error("[carga360go] No se pudo avisar la revocación de solo lectura", error);
+      }
     } else {
       throw new AppError('manualReadonly debe ser "otorgar" o "revocar".');
     }
