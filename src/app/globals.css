@@ -288,3 +288,9 @@ body:has(.help-stack) footer.foot{padding-bottom:140px}
 .agent-status{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:12px 0}
 .agent-status .card{padding:12px}
 .agent-status b{display:block;font-size:1.4rem}
+
+/* En móvil la barra inferior de accesos (z-index 40) tapaba los botones flotantes de ayuda/asistente: se suben sobre ella. */
+@media(max-width:819px){
+  .help-dock{bottom:calc(72px + env(safe-area-inset-bottom))}
+  .chat-panel{max-height:calc(100dvh - 160px - env(safe-area-inset-bottom))}
+}
