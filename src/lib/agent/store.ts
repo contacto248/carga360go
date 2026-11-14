@@ -373,3 +373,11 @@ export function purgeOldAgentConversations(days = 180, now = new Date()): number
     )
     .run(cutoff).changes;
 }
+
+/** Último lead de un tipo en la conversación (para no duplicar derivaciones). */
+export function latestLeadFor(conversationId: string, kind: LeadKind): AgentLead | null {
+  const row = getDb()
+    .prepare(`SELECT * FROM agent_leads WHERE conversation_id = ? AND kind = ? ORDER BY created_at DESC LIMIT 1`)
+    .get(conversationId, kind) as LeadRow | undefined;
+  return row ? toLead(row) : null;
+}

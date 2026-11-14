@@ -2,6 +2,7 @@
 -- Se aplica sola al arrancar el sitio (getDb). Solo crea tablas e índices nuevos:
 -- no modifica ni borra filas de tablas existentes. Respaldar la base antes de desplegar.
 -- Reversión manual (borra solo lo que agrega esta migración):
+--   DROP TABLE agent_otp_challenges; DROP TABLE load_tracking_codes;
 --   DROP TABLE agent_leads; DROP TABLE agent_messages; DROP TABLE agent_conversations;
 --   DELETE FROM schema_migrations WHERE version = 15;
 
@@ -53,3 +54,24 @@ CREATE TABLE IF NOT EXISTS agent_leads (
 );
 CREATE INDEX IF NOT EXISTS idx_agent_leads_created ON agent_leads(created_at);
 CREATE INDEX IF NOT EXISTS idx_agent_leads_status ON agent_leads(status, kind);
+
+-- Código corto de seguimiento por carga (se crea al primer uso; no modifica la tabla loads).
+CREATE TABLE IF NOT EXISTS load_tracking_codes (
+  load_id TEXT PRIMARY KEY REFERENCES loads(id) ON DELETE CASCADE,
+  code TEXT NOT NULL UNIQUE,            -- SEG-XXXXXX
+  created_at TEXT NOT NULL
+);
+
+-- Códigos de un solo uso para verificar el contacto registrado antes de informar el estado de una carga.
+CREATE TABLE IF NOT EXISTS agent_otp_challenges (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+  load_id TEXT REFERENCES loads(id) ON DELETE CASCADE,  -- NULL si el código de seguimiento no existe (respuesta idéntica, siempre falla)
+  channel TEXT NOT NULL CHECK (channel IN ('email', 'whatsapp')),
+  code_hash TEXT NOT NULL,              -- sha256(conversación + código); el código nunca se guarda ni se registra
+  attempts INTEGER NOT NULL DEFAULT 0,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_otp_conv ON agent_otp_challenges(conversation_id, created_at);

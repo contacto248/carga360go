@@ -156,6 +156,23 @@ export const MIGRATION_15_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_agent_leads_created ON agent_leads(created_at);
   CREATE INDEX IF NOT EXISTS idx_agent_leads_status ON agent_leads(status, kind);
+  CREATE TABLE IF NOT EXISTS load_tracking_codes (
+    load_id TEXT PRIMARY KEY REFERENCES loads(id) ON DELETE CASCADE,
+    code TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS agent_otp_challenges (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+    load_id TEXT REFERENCES loads(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL CHECK (channel IN ('email', 'whatsapp')),
+    code_hash TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_otp_conv ON agent_otp_challenges(conversation_id, created_at);
 `;
 
 let database: Database.Database | null = null;
