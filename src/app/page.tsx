@@ -15,8 +15,8 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const FAQ = [
   {
-    q: "¿Cuánto cuesta?",
-    a: "Estamos en campaña de inscripción: cada cuenta tiene 30 días gratis desde su inscripción. Después se cobrará una membresía, con valores por definir. Te avisaremos con anticipación y no se cobra nada automáticamente sin tu aceptación. Carga360go no cobra comisión por el flete.",
+    q: "¿Cómo se calcula el costo del flete?",
+    a: "Automáticamente, con la ruta, los peajes según los ejes del camión, el precio del diésel y los costos operacionales. El cliente ve el costo real de su envío, desglosado; el transportista ve el costo aproximado de su viaje.",
   },
   {
     q: "¿Quién ve el contacto?",
@@ -39,12 +39,12 @@ const FAQ = [
     a: "Si una carga o un camión calza con lo tuyo, o con una búsqueda que guardaste, te avisamos por correo. Puedes pausarlas cuando quieras. Las alertas por WhatsApp no están activas; si se habilitan, serán opt-in.",
   },
   {
-    q: "¿El precio sugerido es una cotización?",
-    a: "No. Es un rango referencial según distancia estimada y tipo de equipo. El precio final lo acuerdan las partes.",
+    q: "¿El costo calculado es una cotización cerrada?",
+    a: "No. Es una estimación referencial con cada componente a la vista. El valor final lo acuerdan las partes.",
   },
   {
-    q: "¿Carga360go cobra o retiene el flete?",
-    a: "No. El acuerdo y el pago son directos entre mandante y transportista. Carga360go conecta a las partes.",
+    q: "¿Cómo se sigue cada operación?",
+    a: "Cada carga registra sus eventos con fecha y hora: publicación, ofertas, adjudicación y estado del viaje. El contacto solo se comparte entre las dos partes, y todo ocurre en una sola web automatizada.",
   },
 ];
 
@@ -81,11 +81,11 @@ export default async function HomePage() {
       <section className="hero hero2">
         <div className="wrap hero-grid">
           <div>
-            <span className="pill hero-pill">30 días gratis por cuenta · 16 regiones · de Arica a Punta Arenas</span>
+            <span className="pill hero-pill">Costo real del flete · 16 regiones · de Arica a Punta Arenas</span>
             <h1>Conectamos cargas y camiones. Movemos la industria de Chile.</h1>
             <p>
-              Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y coordina en directo. Menos
-              viajes en vacío, sin comisión por el flete.
+              Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y conoce el costo real del viaje:
+              ruta, peajes según ejes, diésel y costos operacionales. Menos viajes en vacío.
             </p>
             <QuickSearch />
             <div className="cta">
@@ -100,7 +100,7 @@ export default async function HomePage() {
               </Link>
             </div>
             <p className="hero-legal">
-              Carga360go conecta a las partes. El acuerdo y el pago son directos. {BRAND.company} · RUT {BRAND.rut}.
+              Carga360go conecta a las partes, con trazabilidad de cada operación. {BRAND.company} · RUT {BRAND.rut}.
             </p>
           </div>
           <aside className="live-board" aria-label="Últimas publicaciones">
@@ -170,9 +170,8 @@ export default async function HomePage() {
               <h3>Empresas y mandantes</h3>
               <p>
                 1) Crea tu cuenta y acepta términos y privacidad. 2) Publica la carga: origen, destino, fecha, peso, equipo y
-                medidas. Verás un rango referencial, que no es una cotización. 3) Recibe ofertas dentro del plazo de la carga, o revisa camiones
-                compatibles. 4) Elige una oferta; recién ahí ambas partes ven el contacto y coordinan por WhatsApp. Sin
-                comisión por el flete.
+                medidas. Verás el costo real estimado del envío, desglosado. 3) Recibe ofertas dentro del plazo de la carga, o revisa camiones
+                compatibles. 4) Elige una oferta; recién ahí ambas partes ven el contacto y coordinan por WhatsApp.
               </p>
               <Link className="btn sm" href="/cargas/nueva">
                 Publicar una carga
@@ -280,9 +279,10 @@ export default async function HomePage() {
               <p>Nadie ve WhatsApp, teléfono ni correo hasta que se adjudica una oferta, y entonces solo las dos partes.</p>
             </div>
             <div className="card trust">
-              <span className="badge-f">30 días gratis desde tu inscripción</span>
+              <span className="badge-f">⛽ Costo real del flete</span>
               <p>
-                Sin comisión por flete. El acuerdo y el pago son directos entre las partes. {BRAND.company} · RUT {BRAND.rut}.
+                Ruta, peajes según ejes, diésel y costos operacionales, calculados automáticamente y con trazabilidad.{" "}
+                {BRAND.company} · RUT {BRAND.rut}.
               </p>
             </div>
           </div>
@@ -348,12 +348,12 @@ export default async function HomePage() {
           <div className="cta-band">
             <h2>Publica tu primera carga o tu camión</h2>
             <p>
-              Tienes 30 días gratis desde tu inscripción. Registra tu empresa o tu cuenta de transportista, o escríbenos a{" "}
+              Registra tu empresa o tu cuenta de transportista y conoce el costo real de cada viaje, o escríbenos a{" "}
               {BRAND.email} o al WhatsApp publicado en el sitio.
             </p>
             <div className="cta">
               <Link className="btn" href="/registro">
-                Crear cuenta gratis
+                Crear cuenta
               </Link>
               <a className="btn wa" href={whatsapp} target="_blank" rel="noopener noreferrer">
                 WhatsApp {BRAND.whatsappDisplay}

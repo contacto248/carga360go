@@ -31,7 +31,7 @@ export default async function NuevaCargaPage() {
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <div className="page-title">
         <h1>Publicar carga</h1>
-        <p>Tres pasos: ruta, carga y precio. Gratis durante tus 30 días desde la inscripción y avisamos por correo a los camiones que calzan.</p>
+        <p>Tres pasos: ruta, carga y precio. Avisamos por correo a los camiones que calzan.</p>
       </div>
       <FreeBanner user={user} />
       <LoadForm

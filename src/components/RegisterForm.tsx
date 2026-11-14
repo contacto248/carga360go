@@ -155,7 +155,7 @@ export function RegisterForm() {
               <a href="/terminos" target="_blank" rel="noopener noreferrer">
                 Términos de uso
               </a>{" "}
-              (incluye la campaña de 30 días gratis desde la inscripción y la futura membresía) *
+              *
             </span>
           </label>
         </div>

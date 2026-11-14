@@ -21,7 +21,7 @@ export default function CalculadoraPage() {
           Buscar cargas
         </Link>
         <Link className="btn sec" href="/camiones/nuevo">
-          Publicar mi camión gratis
+          Publicar mi camión
         </Link>
       </div>
     </div>

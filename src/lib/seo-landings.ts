@@ -14,11 +14,11 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   {
     slug: "/transporte-minero-chile",
     titleTag: "Transporte minero en Chile | Carga360go",
-    meta: "Publica o encuentra transporte para faenas y proveedores mineros en Chile: cargas, retornos y equipos aptos. Conexión directa, sin comisión por el flete.",
+    meta: "Publica o encuentra transporte para faenas y proveedores mineros en Chile: cargas, retornos y equipos aptos. Conexión directa y costo real del flete.",
     h1: "Transporte minero en Chile: carga, retornos y equipos aptos",
     body: [
       "Carga360go conecta a empresas generadoras —contratistas, proveedores y faenas— con transportistas que publican camiones y retornos en Chile. El foco de esta página es el transporte ligado a la minería: carga general o masiva hacia y desde zonas de operación, equipos compatibles y viajes de vuelta.",
-      "Puedes publicar una carga con origen, destino, fecha, peso, tipo de equipo y medidas, o publicar tus camiones y corredores libres. El sistema sugiere coincidencias según esos datos. El acuerdo, el precio y el pago del flete los cierran las partes; Carga360go no es transportista, no cobra comisión por el flete y no garantiza la ejecución del viaje.",
+      "Puedes publicar una carga con origen, destino, fecha, peso, tipo de equipo y medidas, o publicar tus camiones y corredores libres. El sistema sugiere coincidencias según esos datos. El costo del flete se calcula con la ruta, los peajes según los ejes, el diésel y los costos operacionales; el acuerdo final lo cierran las partes. Carga360go no es transportista y no garantiza la ejecución del viaje.",
       "Hoy priorizamos corredores piloto en el norte: Calama–Antofagasta, Calama–Copiapó y Antofagasta–Copiapó. La cobertura del sitio es nacional, de Arica a Punta Arenas, y se publica solo actividad real y vigente.",
     ],
     ctas: [
@@ -35,7 +35,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
     body: [
       "Mover maquinaria, equipos sobredimensionados o carga de gran peso exige un equipo compatible, no cualquier camión. En Carga360go la ficha de cama baja pide los datos que importan: ejes, ancho, capacidad y medidas de la carga, para sugerir coincidencias útiles y no solo un listado genérico.",
       "Si eres empresa, publica la carga con largo, ancho, alto, peso y fecha de retiro. Si eres transportista, publica tu cama baja o rampla con su ficha técnica y tus corredores disponibles. La coincidencia es una recomendación automática: no reemplaza permisos especiales, escoltas ni la revisión que cada parte debe hacer antes de contratar.",
-      "Este servicio sirve a construcción, industria, energía, agro y minería. El contacto se entrega solo cuando el mandante elige una oferta. El flete se acuerda y se paga en directo, sin comisión de la plataforma.",
+      "Este servicio sirve a construcción, industria, energía, agro y minería. El contacto se entrega solo cuando el mandante elige una oferta. El costo del flete se muestra desglosado y el acuerdo es directo entre las partes.",
     ],
     ctas: [
       { href: "/cargas?equipo=cama_baja", label: "Buscar cargas que pidan cama baja" },
@@ -82,13 +82,13 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
     h1: "Transporte de carga en Antofagasta",
     body: [
       "Antofagasta concentra carga industrial, portuaria y minera. Carga360go permite a empresas publicar transportes con origen o destino en la ciudad o la región, y a transportistas ofrecer camiones o retornos en esos corredores.",
-      "Las coincidencias consideran equipo, capacidad, fechas y ruta. Un precio referencial puede aparecer como rango orientativo; no es una cotización de Carga360go. El valor final lo acuerdan las partes, y la plataforma no cobra ni retiene el flete.",
+      "Las coincidencias consideran equipo, capacidad, fechas y ruta. El costo del viaje se estima con ruta, peajes según ejes, diésel y costos operacionales; no es una cotización cerrada. El valor final lo acuerdan las partes.",
       "Este es uno de los corredores piloto, junto con Calama y Copiapó. Si hoy no hay resultados para tu filtro, guarda una alerta por correo y te avisamos cuando se publique un aviso compatible.",
     ],
     ctas: [
       { href: "/camiones", label: "Soy empresa: encuentra camiones" },
       { href: "/cargas", label: "Soy transportista: encuentra cargas" },
-      { href: "/registro", label: "Crear cuenta, 30 días gratis" },
+      { href: "/registro", label: "Crear cuenta" },
     ],
   },
   {

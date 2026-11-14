@@ -72,7 +72,7 @@ export default function ContactoPage() {
           <li>
             ¿Datos mal escritos (correo, RUT, WhatsApp)? Corrígelos en <Link href="/cuenta-en-revision#mis-datos">Mis datos</Link>.
           </li>
-          <li>Cada cuenta tiene 30 días gratis desde su inscripción; luego se cobrará una membresía (valores por definir) con beneficios y convenios. Te avisaremos antes de cualquier cobro. No cobramos comisión por el flete.</li>
+          <li>El costo de cada flete se calcula automáticamente con la ruta, los peajes según ejes, el diésel y los costos operacionales.</li>
         </ul>
       </div>
     </div>

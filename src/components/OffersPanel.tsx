@@ -102,7 +102,7 @@ export function OffersPanel(props: Props) {
       {props.mode === "guest" ? (
         <div className="notice">
           ¿Eres transportista? <Link href={`/ingreso?next=/cargas/${props.loadId}`}>Ingresa</Link> o{" "}
-          <Link href="/registro">crea tu cuenta gratis</Link> y valida tus documentos para ofertar.
+          <Link href="/registro">crea tu cuenta</Link> y valida tus documentos para ofertar.
         </div>
       ) : null}
       {props.mode === "carrier_locked" ? <div className="notice">{props.lockReason}</div> : null}
@@ -187,7 +187,7 @@ export function OffersPanel(props: Props) {
           {mine && mine.status === "activa" ? <p className="meta">Para mejorar tu oferta el precio debe ser igual o menor a ${formatClp(mine.priceClp)}.</p> : null}
           <div className="row" style={{ marginTop: 10 }}>
             <button className="btn" type="submit" disabled={pending}>
-              {pending ? "Enviando…" : mine && mine.status === "activa" ? "Mejorar oferta" : "Enviar oferta gratis"}
+              {pending ? "Enviando…" : mine && mine.status === "activa" ? "Mejorar oferta" : "Enviar oferta"}
             </button>
           </div>
         </form>

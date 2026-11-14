@@ -59,7 +59,7 @@ export default async function CamionesPage({
           <p>Camiones disponibles por región y corredor, de Arica a Punta Arenas, en una ventana de fechas.</p>
         </div>
         <Link className="btn" href="/camiones/nuevo">
-          + Publicar camión gratis
+          + Publicar camión
         </Link>
       </div>
       <ManualReadonlyBanner user={viewer} />
