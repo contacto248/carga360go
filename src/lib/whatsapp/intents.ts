@@ -1,4 +1,4 @@
-import { COST_EXPLANATION } from "../agent/costs";
+import { COST_EXPLANATION } from "../agent/cost-copy";
 import { BRAND, EQUIPMENT } from "../catalog";
 
 const SITE = "https://carga360go.cl";
