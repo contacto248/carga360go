@@ -50,6 +50,10 @@ export const AUDIT_LABELS: Record<string, string> = {
   "usuario.solo_lectura_revocada": "Verificación manual revocada",
   "usuario.solo_lectura_vencida": "Solo lectura vencida: cuenta vuelve a pendiente",
   "ajustes.editados": "Ajustes de la plataforma",
+  "costos.parametro": "Parámetro de costos modificado",
+  "costos.cotizacion_estado": "Revisión de cotización",
+  "costos.refresco_manual": "Actualización manual de fuentes de costos",
+  "costos.cotizacion_publicacion": "Cotización guardada al publicar carga",
 };
 
 function writeAudit(
@@ -137,6 +141,8 @@ const TARGETS: Record<string, string> = {
   documento: "Documento",
   oferta: "Oferta",
   ajustes: "Ajustes",
+  costos: "Motor de costos",
+  cotizacion: "Cotización",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */
