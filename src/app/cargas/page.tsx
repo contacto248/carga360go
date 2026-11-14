@@ -1,4 +1,5 @@
 import { getSettings } from "@/lib/settings";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoadCard } from "@/components/Cards";
@@ -65,6 +66,7 @@ export default async function CargasPage({
           + Publicar carga gratis
         </Link>
       </div>
+      <ManualReadonlyBanner user={viewer} />
       <LoadFilters value={filters} counts={originCounts("cargas")} />
       <div className="list-bar">
         <span className="meta">{loads.length === 1 ? "1 resultado" : `${loads.length} resultados`}</span>

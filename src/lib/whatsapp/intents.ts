@@ -141,6 +141,15 @@ export const WEB_GREETING =
   "Conectamos empresas que necesitan mover carga con transportistas verificados, de Arica a Punta Arenas.\n\n" +
   "¿En qué le ayudo? Puede usar los botones de abajo o escribir su consulta.";
 
+/**
+ * Petición de contacto de respaldo mientras la verificación (correo, teléfono o documentos) está pendiente.
+ * El bot no recibe el dato por el chat (no pedimos datos personales por aquí): lo guarda la persona en su panel.
+ * Punto de integración para el flujo conversacional del bot: ver docs/VERIFICACION-RESPALDO.md.
+ */
+export const BACKUP_CONTACT_ASK =
+  "Si todavía no termina de verificar su correo, su teléfono o sus documentos, deje un teléfono o correo de respaldo (distinto del principal) " +
+  `en su panel, sección "Contacto de respaldo": ${LINKS.home}/panel. Así podemos ubicarle si no alcanza a terminar la inscripción.`;
+
 /** Respuesta del motor de reglas. Siempre breve, en español de Chile y con enlace. */
 export type ReplyChannel = "whatsapp" | "web";
 
@@ -182,7 +191,8 @@ export function ruleReply(intent: Intent, live: LiveContext, channel: ReplyChann
         `1. Regístrese gratis en ${LINKS.registro}\n` +
         "2. Verifique su correo y su celular.\n" +
         "3. Suba sus 6 documentos: cédula de identidad, licencia profesional, padrón, revisión técnica, SOAP y permiso de circulación.\n" +
-        "4. Nuestro equipo los revisa y aprueba su cuenta. Desde ahí ve los datos de contacto de las cargas ✅"
+        "4. Nuestro equipo los revisa y aprueba su cuenta. Desde ahí ve los datos de contacto de las cargas ✅\n\n" +
+        BACKUP_CONTACT_ASK
       );
     case "documentos_rechazo":
       return (
@@ -231,7 +241,8 @@ export function ruleReply(intent: Intent, live: LiveContext, channel: ReplyChann
     case "estado_cuenta":
       return (
         "La aprobación de cuentas de transportista la hace nuestro equipo después de revisar sus documentos. " +
-        `Puede ver qué le falta entrando a ${LINKS.ingreso}. Si lleva tiempo esperando, escriba "persona" y le ayudamos.`
+        `Puede ver qué le falta entrando a ${LINKS.ingreso}. Si lleva tiempo esperando, escriba "persona" y le ayudamos.\n\n` +
+        BACKUP_CONTACT_ASK
       );
     case "contacto":
       return `Puede escribirnos por aquí o a ${BRAND.email} ✉️\nSitio: ${LINKS.home}\n${BRAND.company}, RUT ${BRAND.rut}.`;

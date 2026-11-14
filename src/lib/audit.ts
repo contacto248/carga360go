@@ -45,6 +45,10 @@ export const AUDIT_LABELS: Record<string, string> = {
   "carga.borrada": "Carga borrada",
   "camion.borrado": "Camión borrado",
   "usuario.datos_propios": "Usuario corrigió sus datos",
+  "usuario.respaldo": "Contacto de respaldo guardado",
+  "usuario.solo_lectura_otorgada": "Verificación manual: solo lectura por 30 días",
+  "usuario.solo_lectura_revocada": "Verificación manual revocada",
+  "usuario.solo_lectura_vencida": "Solo lectura vencida: cuenta vuelve a pendiente",
   "ajustes.editados": "Ajustes de la plataforma",
 };
 

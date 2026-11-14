@@ -6,6 +6,7 @@ import { phoneChannelReady } from "../notify";
 import { roleLabel } from "../roles";
 import type { Role } from "../types";
 import { docsDeadlineDays } from "./config";
+import { needsBackupContact } from "../backup-contact";
 
 export type OnboardingDocProgress = {
   uploaded: number;
@@ -31,6 +32,8 @@ export type OnboardingStatus = {
   freeDays: number;
   pending: OnboardingPendingItem[];
   complete: boolean;
+  /** Verificación pendiente y sin contacto de respaldo: los mensajes lo piden (no cuenta en `pending`). */
+  backupContactMissing?: boolean;
 };
 
 export type OnboardingPendingItem = "email" | "phone" | "documents";
@@ -100,5 +103,6 @@ export function onboardingStatusOf(userId: string, now = new Date()): Onboarding
     freeDays: FREE_DAYS,
     pending,
     complete: pending.length === 0,
+    backupContactMissing: needsBackupContact(row.id),
   };
 }

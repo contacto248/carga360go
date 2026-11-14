@@ -7,6 +7,9 @@ import { markContactVerified, rejectCarrier } from "@/lib/carrier";
 import { resolveStored } from "@/lib/documents";
 import { audit } from "@/lib/audit";
 import { clientIp } from "@/lib/request-auth";
+import { setBackupContact } from "@/lib/backup-contact";
+import { AppError } from "@/lib/errors";
+import { grantManualReadonly, MANUAL_READONLY_DAYS, revokeManualReadonly } from "@/lib/manual-readonly";
 
 export const PATCH = guard(async (request, ctx) => {
   const admin = await requireRoles(["admin"]);
@@ -18,6 +21,22 @@ export const PATCH = guard(async (request, ctx) => {
   if (Object.keys(profile).length > 0) {
     updateProfile(id, profile, "admin");
     audit(admin, "usuario.editado", target, { campos: Object.keys(profile) }, ip);
+  }
+  if (body.backupContact !== undefined && body.backupContact !== null) {
+    const saved = setBackupContact(id, body.backupContact);
+    audit(admin, "usuario.respaldo", target, { tipo: saved.type, origen: "admin" }, ip);
+  }
+  // Verificación manual: solo lectura por 30 días (o revocarla). requireRoles(["admin"]) arriba: solo administradores.
+  if (body.manualReadonly !== undefined) {
+    if (body.manualReadonly === "otorgar") {
+      const until = grantManualReadonly(admin, id);
+      audit(admin, "usuario.solo_lectura_otorgada", target, { hasta: until, dias: MANUAL_READONLY_DAYS }, ip);
+    } else if (body.manualReadonly === "revocar") {
+      const wasActive = revokeManualReadonly(admin, id);
+      audit(admin, "usuario.solo_lectura_revocada", target, wasActive ? "revocada antes de vencer" : "no estaba vigente", ip);
+    } else {
+      throw new AppError('manualReadonly debe ser "otorgar" o "revocar".');
+    }
   }
   if (typeof body.emailVerified === "boolean") {
     markContactVerified(id, "email", body.emailVerified);

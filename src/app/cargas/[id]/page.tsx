@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LoadCard } from "@/components/Cards";
@@ -61,6 +62,7 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
           <Link href="/cargas">← Volver a cargas</Link>
         </p>
       </div>
+      <ManualReadonlyBanner user={user} />
       <LoadCard load={load} canManage={isOwner} priceHint={settings.showSuggestedPrice} showOfferButton={false} />
       {load.isDemo ? null : (
         <OffersPanel

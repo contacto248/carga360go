@@ -8,7 +8,11 @@ import { accreditationOf } from "@/lib/accreditation";
 import { DocPanel } from "@/components/DocPanel";
 import { ProfileForm } from "@/components/ProfileForm";
 import { ResendVerification } from "@/components/ResendVerification";
-import { carrierChecklist, isCarrierLocked } from "@/lib/carrier";
+import { carrierChecklist } from "@/lib/carrier";
+import { BackupContactForm } from "@/components/BackupContactForm";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
+import { backupContactOf, verificationPending } from "@/lib/backup-contact";
+import { isManualReadonly } from "@/lib/manual-readonly";
 import { BRAND, equipmentById } from "@/lib/catalog";
 import { getCurrentUser } from "@/lib/current-user";
 import { listDocuments } from "@/lib/documents";
@@ -44,7 +48,12 @@ export default async function CuentaEnRevisionPage() {
     );
   }
   const acc = accreditationOf(user.id);
-  if (!isCarrierLocked(user)) {
+  const pendingVerification = verificationPending(user.id);
+  const backup = backupContactOf(user.id);
+  const backupForm = pendingVerification ? <BackupContactForm current={backup?.display ?? null} required /> : null;
+  // Un transportista sin aprobar ve esta página completa, aunque tenga solo lectura manual vigente (debe terminar su verificación).
+  const carrierPending = user.role === "transportista" && user.verificationStatus !== "verificado";
+  if (!carrierPending) {
     return (
       <div className="wrap" style={{ paddingBottom: 30 }}>
         <div className="card" style={{ marginBottom: 14 }}>
@@ -64,8 +73,10 @@ export default async function CuentaEnRevisionPage() {
             Ir a mi panel
           </Link>
         </div>
+        <ManualReadonlyBanner user={user} />
         <FreeBanner user={user} />
         <AccreditationPanel acc={acc} role={user.role} />
+        {backupForm}
         <h2 id="mis-datos" style={{ marginTop: 22 }}>
           Mis datos
         </h2>
@@ -79,6 +90,7 @@ export default async function CuentaEnRevisionPage() {
   const phoneCode = lastCodeInfo(user.id, "phone");
   const phoneCodeActive = Boolean(phoneCode && phoneCode.expiresAt > new Date().toISOString());
   const rejected = user.verificationStatus === "rechazado";
+  const readonly = isManualReadonly(user);
   return (
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <div className="page-title">
@@ -93,6 +105,8 @@ export default async function CuentaEnRevisionPage() {
           Tu cuenta fue rechazada{user.verificationNote ? `: ${user.verificationNote}` : "."} Corrige lo indicado y sube los documentos
           nuevamente; la cuenta vuelve a revisión automáticamente.
         </div>
+      ) : readonly ? (
+        <ManualReadonlyBanner user={user} />
       ) : (
         <div className="notice" style={{ marginBottom: 12 }}>
           Mientras tu cuenta está en revisión no puedes ver cargas ni camiones, ni publicar disponibilidad u ofertar. Te avisaremos cuando un
@@ -102,6 +116,7 @@ export default async function CuentaEnRevisionPage() {
       <FreeBanner user={user} />
       <KycGraceBanner grace={acc.grace} />
       <AccreditationPanel acc={acc} role={user.role} />
+      {backupForm}
       <h2>1. Confirma tu correo y teléfono</h2>
       <ContactVerify
         email={user.email}

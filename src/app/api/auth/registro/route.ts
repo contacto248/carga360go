@@ -26,10 +26,14 @@ export const POST = guard(async (request) => {
     city: String(body.city ?? ""),
     privacyVersion,
     termsVersion,
+    // Contacto de respaldo obligatorio en la web: la verificación siempre parte pendiente.
+    backupContact: body.backupContact == null ? "" : String(body.backupContact),
+    requireBackupContact: true,
   });
   await setSessionCookie(result.token);
   const ip = clientIp(request.headers);
   audit(result.user, "usuario.registro", { type: "usuario", id: result.user.id }, { role: result.user.role }, ip);
+  audit(result.user, "usuario.respaldo", { type: "usuario", id: result.user.id }, { origen: "registro" }, ip);
   audit(result.user, "usuario.privacidad_aceptada", { type: "usuario", id: result.user.id }, { version: privacyVersion, terminos: termsVersion }, ip);
   notifyNewRegistration(result.user);
   // Todas las cuentas confirman su correo (para publicar se exige el correo verificado).

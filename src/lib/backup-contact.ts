@@ -2,6 +2,7 @@ import { carrierChecklist } from "./carrier";
 import { getDb } from "./db";
 import { AppError } from "./errors";
 import { formatWhatsappDisplay, isValidEmail, normalizeWhatsapp } from "./format";
+import { kycEnabled } from "./kyc/config";
 
 /**
  * Contacto de respaldo (teléfono o correo) para cuentas cuya verificación está pendiente.
@@ -99,13 +100,15 @@ export function setBackupContact(userId: string, raw: unknown, now = new Date())
 }
 
 /**
- * ¿La verificación de la cuenta sigue pendiente? Correo o teléfono sin confirmar, documentos obligatorios
- * sin aprobar (transportistas) o cuenta no aprobada. Los administradores nunca.
+ * ¿La verificación de la cuenta sigue pendiente? Correo sin confirmar, teléfono sin confirmar (transportistas, o todas
+ * con KYC activo), documentos obligatorios sin aprobar (transportistas) o cuenta no aprobada. Los administradores nunca.
  */
 export function verificationPending(userId: string): boolean {
   const row = rowOf(userId);
   if (!row || row.role === "admin") return false;
-  if (!row.email_verified_at || !row.phone_verified_at) return true;
+  if (!row.email_verified_at) return true;
+  // El teléfono es obligatorio para transportistas, y para todas las cuentas con la verificación de identidad (KYC) activa.
+  if ((row.role === "transportista" || kycEnabled()) && !row.phone_verified_at) return true;
   if (row.role === "transportista" && !carrierChecklist(userId).docsReady) return true;
   return row.verification_status !== "verificado";
 }

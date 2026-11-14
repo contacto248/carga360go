@@ -42,6 +42,10 @@ function statusLines(status: OnboardingStatus): { text: string[]; html: string[]
   return { text, html };
 }
 
+/** Texto para pedir el contacto de respaldo mientras la verificación siga pendiente. */
+export const BACKUP_CONTACT_LINE =
+  "dejar un teléfono o correo de respaldo (distinto del principal) en tu panel, sección «Contacto de respaldo», por si no alcanzas a terminar la inscripción";
+
 function pendingList(status: OnboardingStatus): string[] {
   const items: string[] = [];
   if (status.pending.includes("email")) items.push("confirmar tu correo");
@@ -56,6 +60,7 @@ function pendingList(status: OnboardingStatus): string[] {
         : `subir los documentos que faltan (${status.docs.uploaded} de ${status.docs.total})`,
     );
   }
+  if (status.backupContactMissing) items.push(BACKUP_CONTACT_LINE);
   return items;
 }
 
@@ -130,6 +135,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
       : "Para terminar, entra a tu panel:",
     panelUrl(),
     "",
+    status.backupContactMissing ? `Mientras terminas, te pedimos ${BACKUP_CONTACT_LINE}.` : "",
     pdfLine,
     "",
     "Equipo Carga360go",
@@ -150,6 +156,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
         ? "<p>En lo que te corresponde, tu registro ya está completo. Revisa tu panel cuando quieras.</p>"
         : "<p>Para terminar, entra a tu panel con el botón de abajo.</p>"
     }
+    ${status.backupContactMissing ? `<p>Mientras terminas, te pedimos ${esc(BACKUP_CONTACT_LINE)}.</p>` : ""}
     ${opts.withPdf ? "<p>Adjuntamos el PDF con la copia de tu inscripción.</p>" : ""}
   `;
   return { subject, text, html: wrapHtml(subject, htmlBody) };
@@ -196,6 +203,7 @@ export function whatsappWelcomeChecklist(status: OnboardingStatus): string {
     "Estado de tu registro:",
     ...lines.map((line) => `• ${line}`),
     "",
+    ...(status.backupContactMissing ? [`Mientras terminas, te pedimos ${BACKUP_CONTACT_LINE}.`, ""] : []),
     `Completa tu registro aquí: ${panelUrl()}`,
   ].join("\n");
 }
