@@ -2,6 +2,7 @@ import { docTypeLabel } from "./catalog";
 import { getDb } from "./db";
 import { AppError } from "./errors";
 import { todayChile } from "./format";
+import { readonlyActive } from "./manual-readonly";
 import type { PublicUser, VerificationStatus } from "./types";
 
 /** Documentos mínimos que debe tener aprobados un transportista para desbloquear la plataforma. */
@@ -17,9 +18,22 @@ export type CarrierChecklist = {
   ready: boolean;
 };
 
-/** true si la cuenta es de transportista y aún no ha sido aprobada por un administrador. */
+/**
+ * true si la cuenta es de transportista y aún no ha sido aprobada por un administrador.
+ * Con verificación manual vigente (solo lectura por 30 días) no se bloquea la VISTA del marketplace;
+ * publicar, ofertar y adjudicar siguen bloqueados en el servidor (assertNotManualReadonly / assertAccredited).
+ */
 export function isCarrierLocked(user: PublicUser | null | undefined): boolean {
-  return Boolean(user && user.role === "transportista" && user.verificationStatus !== "verificado");
+  if (!user || user.role !== "transportista" || user.verificationStatus === "verificado") return false;
+  return !hasReadonlyAccess(user.id);
+}
+
+/** Consulta la base: el objeto de sesión podría venir de antes de que el administrador revocara o venciera la solo lectura. */
+function hasReadonlyAccess(userId: string): boolean {
+  const row = getDb()
+    .prepare(`SELECT role, verification_status, manual_readonly_until FROM users WHERE id = ?`)
+    .get(userId) as { role: string; verification_status: string; manual_readonly_until: string | null } | undefined;
+  return Boolean(row && readonlyActive(row));
 }
 
 export function carrierChecklist(userId: string): CarrierChecklist {
@@ -65,7 +79,9 @@ export function rejectCarrier(adminId: string, userId: string, note: string | nu
   if (clean.length > 500) throw new AppError("El motivo es demasiado largo.");
   getDb()
     .prepare(
-      `UPDATE users SET verification_status = 'rechazado', verification_note = ?, verified_at = NULL, verified_by = ? WHERE id = ?`,
+      `UPDATE users SET verification_status = 'rechazado', verification_note = ?, verified_at = NULL, verified_by = ?,
+         manual_readonly_until = NULL, manual_readonly_at = NULL, manual_readonly_by = NULL, manual_readonly_by_email = NULL
+       WHERE id = ?`,
     )
     .run(clean, adminId, userId);
 }

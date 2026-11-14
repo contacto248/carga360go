@@ -7,6 +7,7 @@ import { matchLoadsForTruck, matchTrucksForLoad } from "./match";
 import { canPublishLoad, canPublishTruck } from "./roles";
 import { cleanClp } from "./security";
 import { getSettings } from "./settings";
+import { assertNotManualReadonly } from "./manual-readonly";
 import type {
   LoadFilters,
   LoadListItem,
@@ -450,6 +451,8 @@ function assertOwner(ownerId: string, user: PublicUser) {
 }
 
 export function createLoad(user: PublicUser, input: LoadInput, isDemo = false): LoadListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "publicar cargas");
   if (!canPublishLoad(user.role)) {
     throw new AppError("Solo un mandante o un administrador puede publicar cargas.", 403);
   }
@@ -489,6 +492,8 @@ export function createLoad(user: PublicUser, input: LoadInput, isDemo = false): 
 }
 
 export function updateLoad(user: PublicUser, id: string, input: LoadInput): LoadListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "editar publicaciones");
   const current = getDb().prepare(`SELECT owner_id, status, offers_until FROM loads WHERE id = ?`).get(id) as
     | { owner_id: string; status: string | null; offers_until: string | null }
     | undefined;
@@ -537,6 +542,8 @@ export function deleteLoad(user: PublicUser, id: string) {
 }
 
 export function createTruck(user: PublicUser, input: TruckInput, isDemo = false): TruckListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "publicar camiones");
   if (!canPublishTruck(user.role)) {
     throw new AppError("Solo un transportista o un administrador puede publicar camiones.", 403);
   }
@@ -571,6 +578,8 @@ export function createTruck(user: PublicUser, input: TruckInput, isDemo = false)
 }
 
 export function updateTruck(user: PublicUser, id: string, input: TruckInput): TruckListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "editar publicaciones");
   const current = getDb().prepare(`SELECT owner_id FROM trucks WHERE id = ?`).get(id) as { owner_id: string } | undefined;
   if (!current) throw new AppError("Camión no encontrado.", 404);
   assertOwner(current.owner_id, user);

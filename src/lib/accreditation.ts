@@ -2,6 +2,7 @@ import { carrierChecklist, type ChecklistDoc } from "./carrier";
 import { getDb } from "./db";
 import { AppError } from "./errors";
 import { kycEnabled } from "./kyc/config";
+import { assertNotManualReadonly } from "./manual-readonly";
 import { kycOf, KYC_STATUS_LABELS } from "./kyc/service";
 import { graceOf, type KycGrace } from "./kyc/grace";
 import { privacyVersion, termsVersion } from "./privacy";
@@ -199,9 +200,10 @@ export function isAccredited(user: PublicUser | null | undefined): boolean {
   return accreditationOf(user.id).accredited;
 }
 
-/** Publicar cargas/camiones y ofertar exige acreditación 100%. */
+/** Publicar cargas/camiones y ofertar exige acreditación 100%. Con solo lectura manual vigente, el mensaje lo explica. */
 export function assertAccredited(user: PublicUser, action: string) {
   if (user.role === "admin") return;
+  assertNotManualReadonly(user, action);
   const acc = accreditationOf(user.id);
   if (acc.accredited) return;
   throw new AppError(
@@ -217,7 +219,12 @@ export function approveCarrier(adminId: string, userId: string) {
   const pending = acc.items.filter((item) => item.key !== "aprobacion" && !item.ok).map((item) => item.label.toLowerCase());
   if (pending.length > 0) throw new AppError(`No se puede aprobar todavía. Falta: ${pending.join(", ")}.`);
   getDb()
-    .prepare(`UPDATE users SET verification_status = 'verificado', verification_note = NULL, verified_at = ?, verified_by = ? WHERE id = ?`)
+    // La verificación completa reemplaza la solo lectura manual (se limpian sus columnas).
+    .prepare(
+      `UPDATE users SET verification_status = 'verificado', verification_note = NULL, verified_at = ?, verified_by = ?,
+         manual_readonly_until = NULL, manual_readonly_at = NULL, manual_readonly_by = NULL, manual_readonly_by_email = NULL
+       WHERE id = ?`,
+    )
     .run(new Date().toISOString(), adminId, userId);
 }
 export const approveAccount = approveCarrier;
