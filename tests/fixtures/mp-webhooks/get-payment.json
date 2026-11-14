@@ -1,0 +1,12 @@
+{
+  "id": "{{PAYMENT_ID}}",
+  "status": "{{STATUS}}",
+  "status_detail": "accredited",
+  "external_reference": "{{EXTERNAL_REFERENCE}}",
+  "transaction_amount": "{{AMOUNT}}",
+  "currency_id": "CLP",
+  "live_mode": false,
+  "collector_id": "{{MP_USER_ID}}",
+  "date_approved": "2026-11-11T10:04:55.000-03:00",
+  "fee_details": [{ "type": "mercadopago_fee", "amount": 15000 }]
+}

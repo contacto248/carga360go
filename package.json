@@ -1,0 +1,37 @@
+{
+  "name": "carga360go",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev -p 4317 -H 127.0.0.1",
+    "build": "next build",
+    "start": "next start -H 127.0.0.1 -p 3017",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "NODE_OPTIONS='--require ./tests/env.cjs' tsx --test tests/match.test.ts tests/auth-crud.test.ts tests/phase2.test.ts tests/carrier-gate.test.ts tests/regions.test.ts tests/redesign.test.ts tests/mobile-api.test.ts tests/whatsapp.test.ts tests/verification.test.ts tests/offers-security.test.ts tests/privacy.test.ts tests/accreditation.test.ts tests/admin-2fa.test.ts tests/mejoras-paquete.test.ts tests/web-chat.test.ts tests/whatsapp-canal.test.ts tests/pagos-mp.test.ts tests/kyc-didit.test.ts tests/registration-pdf.test.ts tests/kyc-lanzamiento.test.ts tests/pagos-legal.test.ts tests/audit-carga-publicada.test.ts tests/chat-respuestas-tres.test.ts tests/viaje-autoria.test.ts tests/ai-consumo.test.ts",
+    "create-admin": "tsx scripts/create-admin.ts",
+    "seed-dev": "tsx scripts/seed-dev.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "next": "^15.5.29",
+    "nodemailer": "^10.3.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^20",
+    "@types/nodemailer": "^8.0.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.6",
+    "typescript": "^5"
+  }
+}

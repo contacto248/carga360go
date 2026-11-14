@@ -1,0 +1,5 @@
+{
+  "id": "{{PREFERENCE_ID}}",
+  "init_point": "https://www.mercadopago.cl/checkout/v1/redirect?pref_id={{PREFERENCE_ID}}",
+  "sandbox_init_point": "https://sandbox.mercadopago.cl/checkout/v1/redirect?pref_id={{PREFERENCE_ID}}"
+}

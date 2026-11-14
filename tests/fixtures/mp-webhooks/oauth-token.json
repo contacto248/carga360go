@@ -1,0 +1,10 @@
+{
+  "access_token": "{{ACCESS_TOKEN}}",
+  "public_key": "TEST-public-key-simulada",
+  "refresh_token": "{{REFRESH_TOKEN}}",
+  "live_mode": false,
+  "user_id": "{{MP_USER_ID}}",
+  "token_type": "bearer",
+  "expires_in": 15552000,
+  "scope": "offline_access payments write"
+}

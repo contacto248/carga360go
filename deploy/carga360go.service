@@ -1,0 +1,22 @@
+[Unit]
+Description=Carga360go marketplace
+After=network.target
+
+[Service]
+Type=simple
+User=carga360go
+Group=carga360go
+WorkingDirectory=/opt/carga360go
+Environment=NODE_ENV=production
+Environment=TZ=America/Santiago
+Environment=PORT=3017
+Environment=HOSTNAME=127.0.0.1
+EnvironmentFile=/opt/carga360go/.env
+ExecStart=/usr/bin/node /opt/carga360go/node_modules/next/dist/bin/next start -H 127.0.0.1 -p 3017
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

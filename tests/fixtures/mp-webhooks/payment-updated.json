@@ -1,0 +1,10 @@
+{
+  "action": "payment.updated",
+  "api_version": "v1",
+  "data": { "id": "{{PAYMENT_ID}}" },
+  "date_created": "2026-11-11T10:04:58Z",
+  "id": "{{EVENT_ID}}",
+  "live_mode": false,
+  "type": "payment",
+  "user_id": "{{MP_USER_ID}}"
+}

@@ -1,0 +1,4 @@
+# Recordatorios de registro incompleto en STAGING (10:00 hora de Chile = 13:00 UTC).
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 13 * * * c360staging C360_ENV_FILE=/opt/carga360go-staging/.env C360_JOBS_URL=http://127.0.0.1:3019 C360_JOBS_HOST=staging.carga360go.cl /opt/carga360go-staging/deploy/onboarding-jobs.sh recordatorios >> /var/lib/carga360go-staging/onboarding-jobs.log 2>&1
