@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports -- script CommonJS de Node ejecutado fuera de Next */
 // Alerta por correo cuando falla el respaldo. Uso: carga360go-backup-alert "mensaje"
 // Lee la configuración SMTP de /opt/carga360go/.env y envía a contacto@carga360go.cl (o BACKUP_ALERT_TO).
 const fs = require("fs");
