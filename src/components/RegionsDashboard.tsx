@@ -6,8 +6,15 @@ import { MAP_H, MAP_PANELS, MAP_W, REGION_SHAPES } from "@/lib/chile-map-data";
 import type { RegionIndicators } from "@/lib/stats";
 
 const NAVY = "#0B1633";
-const CYAN = "#22B8CF";
-const SCALE = ["#E6EBF3", "#FDE6D6", "#FBC29C", "#F69A5E", "#F26B1D"];
+const CYAN = "#67E8F9";
+/**
+ * Escala pensada para el panel oscuro del mapa: "sin avisos" es un azul pizarra visible sobre el fondo,
+ * y la actividad sube hasta el naranjo del logo (#FF5001). Las etiquetas usan azul marino sobre los tramos
+ * con actividad (≥ 6,8:1) y texto claro sobre el tramo vacío (7,4:1).
+ */
+const SCALE = ["#2A3C64", "#FFD3B3", "#FFA466", "#FF7A2E", "#FF5001"];
+const BORDER = "#7F95C4";
+const LABEL_ON_EMPTY = "#C9D6EE";
 
 /** Escala de 5 tramos: 0 = sin avisos; el resto se reparte según el máximo real. */
 function level(value: number, max: number): number {
@@ -110,6 +117,7 @@ export function RegionsDashboard({
                 {PANEL_LABEL[panel.id]}
               </text>
             ))}
+            <g className="rdash-land">
             {regions.map((region) => {
               const shape = REGION_SHAPES[region.id];
               if (!shape) return null;
@@ -119,8 +127,8 @@ export function RegionsDashboard({
                   key={region.id}
                   d={shape.d}
                   fill={SCALE[level(region.activity, max)]}
-                  stroke={on ? CYAN : "#ffffff"}
-                  strokeWidth={on ? 2.4 : 0.8}
+                  stroke={on ? CYAN : BORDER}
+                  strokeWidth={on ? 2.6 : 0.7}
                   strokeLinejoin="round"
                   className={`rdash-reg${on ? " on" : ""}`}
                   tabIndex={0}
@@ -151,12 +159,13 @@ export function RegionsDashboard({
                 />
               );
             })}
+            </g>
             {selected && REGION_SHAPES[selected] ? (
               <path
                 d={REGION_SHAPES[selected].d}
                 fill="none"
                 stroke={CYAN}
-                strokeWidth={2.4}
+                strokeWidth={2.6}
                 strokeLinejoin="round"
                 pointerEvents="none"
               />
@@ -171,7 +180,7 @@ export function RegionsDashboard({
                   y={shape.cy + 3}
                   textAnchor="middle"
                   className="rdash-num"
-                  fill={level(region.activity, max) >= 3 ? "#ffffff" : NAVY}
+                  fill={level(region.activity, max) === 0 ? LABEL_ON_EMPTY : NAVY}
                 >
                   {region.numeral}
                 </text>
@@ -217,6 +226,9 @@ export function RegionsDashboard({
           </span>
           <span>
             <i style={{ background: SCALE[2] }} /> media
+          </span>
+          <span>
+            <i style={{ background: SCALE[3] }} /> media-alta
           </span>
           <span>
             <i style={{ background: SCALE[4] }} /> alta
