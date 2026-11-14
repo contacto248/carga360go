@@ -314,7 +314,7 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
                 <div className="meta">
                   ✓ Solo lectura vigente hasta el {dateTimeCL(readonly.until)} (hora de Chile), {readonly.daysLeft}{" "}
                   {readonly.daysLeft === 1 ? "día" : "días"} restantes. Aprobada por {readonly.grantedByEmail ?? readonly.grantedBy ?? "—"}
-                  {readonly.grantedAt ? ` el ${dateTimeCL(readonly.grantedAt)}` : ""}. No puede publicar, ofertar ni tomar cargas.
+                  {readonly.grantedAt ? ` el ${dateTimeCL(readonly.grantedAt)} (hora de Chile)` : ""}. No puede publicar, ofertar ni tomar cargas.
                 </div>
               ) : readonly.expired && readonly.until ? (
                 <div className="meta">La solo lectura venció el {dateTimeCL(readonly.until)} sin acreditación completa: la cuenta está pendiente.</div>
