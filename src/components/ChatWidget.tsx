@@ -9,7 +9,7 @@ type Contacts = { whatsapp: string; whatsappUrl: string; email: string };
 const QUICK: { label: string; message: string }[] = [
   { label: "Soy empresa con carga", message: "Soy empresa con carga" },
   { label: "Soy transportista", message: "Soy transportista" },
-  { label: "Precios", message: "Precios" },
+  { label: "Costo del flete", message: "¿Cuánto cuesta un flete?" },
   { label: "Hablar con una persona", message: "Quiero hablar con una persona" },
 ];
 

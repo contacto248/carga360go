@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { HelpLauncher } from "@/components/ChatWidget";
+import { VoiceAgentLauncher } from "@/components/VoiceAgent";
+import { agentEnabled } from "@/lib/agent/config";
 import { webChatEnabled } from "@/lib/chat/config";
 import { BRAND } from "@/lib/catalog";
 import { waLink } from "@/lib/format";
@@ -67,7 +69,7 @@ export function Footer() {
             : "Esta plataforma conecta partes; no gestiona pagos ni garantiza la ejecución del transporte. Los precios sugeridos son referenciales."}
         </div>
       </footer>
-      <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />
+      {agentEnabled() ? <VoiceAgentLauncher waHref={href} /> : <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />}
     </>
   );
 }

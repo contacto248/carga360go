@@ -1,8 +1,7 @@
 import { BRAND, EQUIPMENT } from "../catalog";
-import { CAMPAIGN_PROMISE, CAMPAIGN_TEXT, FREE_DAYS } from "../campaign";
 import { LINKS, type LiveContext } from "../whatsapp/intents";
-export const HANDOFF_TOKEN = "[[HUMANO]]";
 
+export const HANDOFF_TOKEN = "[[HUMANO]]";
 
 export type ChatChannel = "whatsapp" | "web";
 
@@ -23,11 +22,12 @@ const FACTS = [
   `- Páginas reales: inicio ${LINKS.home}, cargas ${LINKS.cargas}, camiones ${LINKS.camiones}, regiones ${LINKS.regiones}, calculadora ${LINKS.home}/herramientas/calculadora, cómo verificamos ${LINKS.home}/como-verificamos, contacto ${LINKS.home}/contacto, términos ${LINKS.terminos}, privacidad ${LINKS.privacidad}, panel ${LINKS.home}/panel.`,
   `- Tipos de camión: ${EQUIPMENT.map((item) => item.label).join(", ")}; también carga sobredimensionada en cama baja.`,
   "",
-  "Precios y campaña (hechos del sitio, no inventes otros):",
-  `- ${CAMPAIGN_TEXT}`,
-  `- Cada cuenta tiene ${FREE_DAYS} días gratis desde su inscripción. ${CAMPAIGN_PROMISE}`,
-  "- Durante el periodo gratis no hay comisión por el flete ni por publicar, ofertar o adjudicar. El precio de cada flete lo acuerdan la empresa y el transportista; Carga 360 Go no fija tarifas ni cotiza fletes.",
-  "- Los precios sugeridos que a veces muestra el sitio son rangos referenciales; no son una cotización ni una tarifa de Carga 360 Go.",
+  "Costos del flete (hechos, no inventes otros):",
+  "- El costo real del flete se calcula automáticamente con la ruta, los peajes según los ejes del camión, el diésel y los costos operacionales.",
+  "- El transportista ve un costo aproximado del viaje y el cliente (mandante) ve el costo real del envío.",
+  "- Nunca hables de comisiones, membresía, periodos de prueba, modelos de cobro ni estrategia de precios. No prometas ni inventes ninguna cifra en pesos.",
+  "- Si preguntan por el costo de un envío, explica lo anterior e invítalos a registrar una cotización o a usar la calculadora, sin dar montos.",
+  `- Calculadora: ${LINKS.home}/herramientas/calculadora.`,
   `- Correo: ${BRAND.email}. WhatsApp: ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}). Sitio: ${LINKS.home}.`,
 ].join("\n");
 
@@ -56,6 +56,7 @@ export function systemPrompt(live: LiveContext, channel: ChatChannel = "whatsapp
     styleFor(channel),
     "Reglas:",
     "- Nunca inventes datos. No prometas precios, tarifas, plazos de flete, contratos, pagos, seguros ni disponibilidad de un camión concreto. No cotices ni inventes montos en pesos.",
+    "- No hables de comisiones, membresía, periodos de prueba, modelos de cobro ni estrategia de precios.",
     "- Nunca digas que apruebas documentos, acreditaciones o cuentas, que procesas pagos, que cambias datos de una cuenta o que cierras un flete. Eso lo hace el equipo o el usuario en la web.",
     "- Nunca entregues teléfonos, correos ni nombres de empresas o transportistas publicados; para verlos hay que registrarse y, si es transportista, estar acreditado, y solo tras adjudicar.",
     "- No hables de otras empresas o marcas. La empresa es solo Carga 360 Go. No pidas contraseñas ni datos bancarios.",

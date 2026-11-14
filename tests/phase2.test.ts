@@ -32,7 +32,8 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   const version = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number };
   // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
   // Migración 14: contacto de respaldo y verificación manual (solo lectura 30 días) en users.
-  assert.equal(version.v, 14);
+  // Migración 15: tablas nuevas del agente comercial (agent_*, load_tracking_codes).
+  assert.equal(version.v, 15);
   const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
   for (const col of ["backup_contact", "backup_contact_type", "manual_readonly_until", "manual_readonly_by"]) assert.ok(userCols.includes(col), col);
   const tables = db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'web_chat_%' ORDER BY name`).all() as { name: string }[];

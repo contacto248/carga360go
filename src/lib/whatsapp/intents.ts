@@ -1,3 +1,4 @@
+import { COST_EXPLANATION } from "../agent/costs";
 import { BRAND, EQUIPMENT } from "../catalog";
 
 const SITE = "https://carga360go.cl";
@@ -102,7 +103,7 @@ export type LiveContext = {
 };
 
 const MENU = [
-  "1️⃣ Publicar una carga (gratis)",
+  "1️⃣ Publicar una carga",
   "2️⃣ Registrarme como transportista",
   "3️⃣ Ver cargas o camiones disponibles",
   "4️⃣ Documentos que se piden",
@@ -173,7 +174,7 @@ export function ruleReply(intent: Intent, live: LiveContext, channel: ReplyChann
       );
     case "publicar_carga":
       return (
-        "Publicar su carga es *gratis* 🚚\n" +
+        "Para publicar su carga 🚚\n" +
         "1. Cree su cuenta de empresa (1 minuto, con su RUT).\n" +
         "2. Indique origen, destino, fecha, tipo de camión y peso.\n" +
         "3. Avisamos a los transportistas con camiones compatibles y ellos lo contactan.\n\n" +
@@ -188,7 +189,7 @@ export function ruleReply(intent: Intent, live: LiveContext, channel: ReplyChann
     case "registro_transportista":
       return (
         "Para sumarse como transportista:\n" +
-        `1. Regístrese gratis en ${LINKS.registro}\n` +
+        `1. Regístrese en ${LINKS.registro}\n` +
         "2. Verifique su correo y su celular.\n" +
         "3. Suba sus 6 documentos: cédula de identidad, licencia profesional, padrón, revisión técnica, SOAP y permiso de circulación.\n" +
         "4. Nuestro equipo los revisa y aprueba su cuenta. Desde ahí ve los datos de contacto de las cargas ✅\n\n" +
@@ -209,9 +210,10 @@ export function ruleReply(intent: Intent, live: LiveContext, channel: ReplyChann
       );
     case "precio":
       return (
-        "Cada cuenta tiene *30 días gratis* desde su inscripción, para empresas (mandantes) y transportistas 🙌\n" +
-        "No cobramos comisión por el flete: el valor lo acuerdan la empresa y el transportista. Después habrá una membresía (valores aún no definidos) y se avisará antes de cualquier cobro.\n" +
-        `Más info: ${LINKS.terminos}`
+        `${COST_EXPLANATION} ` +
+        "El transportista ve un costo aproximado del viaje y el cliente ve el costo real del envío. " +
+        "Este chat no entrega cifras. Si quiere una cotización de un envío, indique origen, destino y tipo de camión, o use la calculadora.\n" +
+        `${LINKS.home}/herramientas/calculadora`
       );
     case "regiones":
       return (
@@ -236,7 +238,7 @@ export function ruleReply(intent: Intent, live: LiveContext, channel: ReplyChann
       return (
         `Hoy hay ${live.activeTrucks} camión(es) disponible(s) 🚚\n` +
         listOrEmpty(live.recentTrucks, "Todavía no hay camiones publicados.") +
-        `\n\nVea todos: ${LINKS.camiones}\nO publique su carga gratis y le avisamos a los compatibles: ${LINKS.publicar}`
+        `\n\nVea todos: ${LINKS.camiones}\nO publique su carga y le avisamos a los compatibles: ${LINKS.publicar}`
       );
     case "estado_cuenta":
       return (
