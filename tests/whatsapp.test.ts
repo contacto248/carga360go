@@ -125,7 +125,8 @@ test("Motor de reglas: intenciones en español y respuestas sin precios ni marca
   assert.equal(detectIntent("cuándo me pagan la factura"), "pago");
   assert.equal(detectIntent("tengo camión disponible para retorno"), "publicar_camion");
   const live = { activeLoads: 2, activeTrucks: 1, recentLoads: ["Santiago → Antofagasta"], recentTrucks: [] };
-  assert.match(ruleReply("precio", live), /gratis/i);
+  assert.match(ruleReply("precio", live), /peajes|di[eé]sel|costo real del flete/i);
+  assert.doesNotMatch(ruleReply("precio", live), /comisi[oó]n|membres[ií]a|30 d[ií]as gratis/i);
   assert.match(ruleReply("publicar_carga", live), /carga360go\.cl\/cargas\/nueva/);
   assert.match(ruleReply("documentos", live), /SOAP/);
   assert.match(ruleReply("buscar_carga", live), /carga360go\.cl\/cargas/);
