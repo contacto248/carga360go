@@ -63,7 +63,7 @@ export default async function CargasPage({
           <p>Filtra por equipo, región y ciudad de origen o destino, y fecha. Cada carga muestra los camiones compatibles. <Link href="/cargas?inmediata=1">Ver pedidos inmediatos</Link>.</p>
         </div>
         <Link className="btn" href="/cargas/nueva">
-          + Publicar carga gratis
+          + Publicar carga
         </Link>
       </div>
       <ManualReadonlyBanner user={viewer} />

@@ -88,7 +88,7 @@ export function RegionsDashboard({
             </span>
             <div className="row">
               <Link className="btn sm" href="/cargas/nueva">
-                Publicar carga gratis
+                Publicar carga
               </Link>
               <Link className="btn sm sec" href="/camiones/nuevo">
                 Publicar camión

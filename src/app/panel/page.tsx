@@ -181,7 +181,7 @@ function MyOffers({ userId }: { userId: string }) {
       <h2 style={{ marginTop: 22 }}>Mis ofertas</h2>
       {offers.length === 0 ? (
         <div className="empty">
-          Aún no has ofertado. <Link href="/cargas">Busca cargas y envía tu oferta gratis →</Link>
+          Aún no has ofertado. <Link href="/cargas">Busca cargas y envía tu oferta →</Link>
         </div>
       ) : (
         <div className="card" style={{ overflowX: "auto" }}>

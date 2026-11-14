@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const title = `Carga ${load.origin} → ${load.destination} · ${equipmentById(load.equipment).label}`;
   return {
     title,
-    description: `${title}, ${load.weightT} t. Transportistas verificados pueden ofertar gratis en Carga360go.`,
+    description: `${title}, ${load.weightT} t. Transportistas verificados pueden ofertar en Carga360go.`,
     alternates: { canonical: `/cargas/${id}` },
     robots: load.status === "abierta" ? undefined : { index: false, follow: true },
   };

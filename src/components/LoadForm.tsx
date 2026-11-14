@@ -153,7 +153,7 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
     <>
       {!user ? (
         <div className="notice" style={{ margin: "16px 0" }}>
-          Para publicar necesitas una cuenta gratis de empresa o transportista (toma 1 minuto y valida tu RUT).{" "}
+          Para publicar necesitas una cuenta de empresa o transportista (toma 1 minuto y valida tu RUT).{" "}
           <Link href="/registro">
             <strong>Registrar ahora →</strong>
           </Link>{" "}
@@ -248,7 +248,7 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
             </div>
             <p className="meta">
               {defaults.showSuggestedPrice ? `${PRICE_DISCLAIMER} ` : ""}Al publicar, avisamos por correo a los transportistas con camiones compatibles y los
-              transportistas aprobados pueden enviarte ofertas. Tú eliges la que prefieras. Sin comisión por el flete.
+              transportistas aprobados pueden enviarte ofertas. Tú eliges la que prefieras.
             </p>
             <div className="form-grid">
               <label className="f">
@@ -315,7 +315,7 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
             </button>
           ) : (
             <button key="publicar" data-publish="1" className="btn" type="submit" disabled={!allowed || pending}>
-              {pending ? "Guardando…" : initial.id ? "Guardar cambios" : "Publicar carga gratis"}
+              {pending ? "Guardando…" : initial.id ? "Guardar cambios" : "Publicar carga"}
             </button>
           )}
           {user && allowed ? (

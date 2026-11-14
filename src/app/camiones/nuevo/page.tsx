@@ -30,7 +30,7 @@ export default async function NuevoCamionPage() {
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <div className="page-title">
         <h1>Publicar camión disponible</h1>
-        <p>Tu corredor, tus fechas y la ficha técnica según el tipo de equipo. Gratis durante tus 30 días desde la inscripción y te avisamos por correo cuando aparece una carga que calza.</p>
+        <p>Tu corredor, tus fechas y la ficha técnica según el tipo de equipo. Te avisamos por correo cuando aparece una carga que calza.</p>
       </div>
       <FreeBanner user={user} />
       <TruckForm

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { freePeriodOf } from "@/lib/campaign";
 import type { PublicUser } from "@/lib/types";
 
 const LINKS = [
@@ -29,7 +28,6 @@ export function Header({ user }: { user: PublicUser | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const locked = user?.role === "transportista" && user.verificationStatus !== "verificado";
-  const period = user?.role === "admin" ? null : freePeriodOf(user?.freeUntil);
   const links = locked
     ? [{ href: "/cuenta-en-revision", label: "Mi cuenta (en revisión)" }]
     : user?.role === "admin"
@@ -46,21 +44,8 @@ export function Header({ user }: { user: PublicUser | null }) {
   return (
     <>
       <div className="demo-banner">
-        {period && period.active ? (
-          <>
-            <strong>Tu periodo gratis termina el {period.label}</strong>
-            <span className="hide-sm"> · campaña de inscripción de mandantes y transportistas</span>.
-          </>
-        ) : period ? (
-          <>
-            <strong>Tu periodo gratis terminó el {period.label}</strong>: no se cobra nada sin tu aceptación.
-          </>
-        ) : (
-          <>
-            <strong>Campaña de inscripción: 30 días gratis</strong> para mandantes, empresas y transportistas
-            <span className="hide-sm"> · luego membresía con beneficios y convenios</span>.
-          </>
-        )}
+        <strong>Costo real y automático del flete</strong>
+        <span className="hide-sm"> · ruta, peajes por ejes, diésel y costos operacionales · trazabilidad y seguridad en una sola web</span>
       </div>
       <header className="top">
         <div className="wrap">
