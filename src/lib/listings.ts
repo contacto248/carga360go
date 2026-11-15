@@ -426,7 +426,9 @@ export function listLoads(filters: LoadFilters = {}): LoadListItem[] {
 
 export function listTrucks(filters: TruckFilters = {}): TruckListItem[] {
   const trucks = allTrucks().filter((truck) => truckPassesFilters(truck, filters));
-  return sortItems(withTruckMatches(trucks, allLoads()), filters.orden, (truck) => truck.availableFrom);
+  // El listado público solo empareja con cargas abiertas (las adjudicadas o cerradas no se revelan aquí).
+  const openLoads = allLoads().filter((load) => load.status === "abierta");
+  return sortItems(withTruckMatches(trucks, openLoads), filters.orden, (truck) => truck.availableFrom);
 }
 
 /** Todas las publicaciones (para estadísticas y alertas). */
@@ -443,7 +445,8 @@ export function getLoad(id: string): LoadListItem | null {
 export function getTruck(id: string): TruckListItem | null {
   const row = getDb().prepare(`${TRUCK_SELECT} WHERE t.id = ?`).get(id) as TruckRow | undefined;
   if (!row) return null;
-  return withTruckMatches([mapTruck(row)], allLoads())[0] ?? null;
+  const openLoads = allLoads().filter((load) => load.status === "abierta");
+  return withTruckMatches([mapTruck(row)], openLoads)[0] ?? null;
 }
 
 function assertOwner(ownerId: string, user: PublicUser) {

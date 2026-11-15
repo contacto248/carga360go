@@ -10,7 +10,7 @@ import { audit } from "./audit";
 import { notifyDocumentUploaded, notifyNewRegistration } from "./admin-notify";
 import fs from "fs";
 import { queueAlert } from "./alerts";
-import { assertCanPublish, assertMarketplaceAccess, canSeeContact, redactLoad, redactTruck } from "./access";
+import { assertCanPublish, assertMarketplaceAccess, canSeeContact, loadForViewer, redactLoad, redactTruck } from "./access";
 import {
   SESSION_TTL_MS,
   deleteOwnAccount,
@@ -37,7 +37,7 @@ import {
 import { AppError } from "./errors";
 import { FREE_DAYS } from "./campaign";
 import { assertLegalAccepted, privacyVersion, termsVersion } from "./privacy";
-import { createLoad, createTruck, deleteLoad, deleteTruck, getLoad, getTruck, listLoads, listTrucks } from "./listings";
+import { createLoad, createTruck, deleteLoad, deleteTruck, getTruck, listLoads, listTrucks } from "./listings";
 import { loadFromPayload, truckFromPayload } from "./payload";
 import { LOGIN_LIMIT, REGISTER_LIMIT, rateLimit } from "./rate-limit";
 import { bearerToken, clientIp, userFromHeaders } from "./request-auth";
@@ -312,9 +312,9 @@ export const loads = mobile((request) => {
 
 export const load = mobile((request, id) => {
   const viewer = viewerAllowed(request);
-  const item = id ? getLoad(id) : null;
-  if (!item) throw new AppError("Carga no encontrada.", 404);
-  return json(mobileLoad(redactLoad(item, viewer)));
+  const visible = id ? loadForViewer(id, viewer) : null;
+  if (!visible) throw new AppError("Carga no encontrada.", 404);
+  return json(mobileLoad(visible.load));
 });
 
 export const createLoadMobile = mobile(async (request) => {

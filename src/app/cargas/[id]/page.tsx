@@ -7,8 +7,9 @@ import { LoadCard } from "@/components/Cards";
 import { OffersPanel } from "@/components/OffersPanel";
 import { TripBoard } from "@/components/TripBoard";
 import { accreditationOf } from "@/lib/accreditation";
-import { marketplaceViewer, redactLoad } from "@/lib/access";
+import { loadForViewer, loadVisibility, marketplaceViewer } from "@/lib/access";
 import { equipmentById } from "@/lib/catalog";
+import { getCurrentUser } from "@/lib/current-user";
 import { todayChile } from "@/lib/format";
 import { getLoad, listOwn } from "@/lib/listings";
 import { awardedContact, canOffer, effectiveAllowImprove, offersOpen, offersVisibleTo } from "@/lib/offers";
@@ -18,8 +19,12 @@ import { trackingCodeFor, trackingCodeVisibleTo } from "@/lib/agent/tracking";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
+  const viewer = await getCurrentUser();
   const load = getLoad(id);
-  if (!load) return { title: "Carga no encontrada", robots: { index: false, follow: false } };
+  // Adjudicadas o cerradas: no indexar ni revelar ruta/peso a quien no es parte.
+  if (!load || loadVisibility(load, viewer) === "hidden") {
+    return { title: "Carga no encontrada", robots: { index: false, follow: false } };
+  }
   const title = `Carga ${load.origin} → ${load.destination} · ${equipmentById(load.equipment).label}`;
   return {
     title,
@@ -32,9 +37,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function CargaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await marketplaceViewer();
   const { id } = await params;
-  const found = getLoad(id);
-  if (!found) notFound();
-  const load = redactLoad(found, user);
+  const visible = loadForViewer(id, user);
+  if (!visible) notFound();
+  const load = visible.load;
   const settings = getSettings();
   const viaje = tripView(load.id, user);
   const isOwner = user?.id === load.ownerId;

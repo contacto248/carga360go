@@ -7,7 +7,9 @@ export { stripContacts };
 import { getCurrentUser } from "./current-user";
 import { AppError } from "./errors";
 import { assertNotManualReadonly } from "./manual-readonly";
-import type { LoadListItem, PublicUser, TruckListItem } from "./types";
+import { getLoad } from "./listings";
+import type { LoadListItem, LoadStatus, PublicUser, TruckListItem } from "./types";
+import { isTripParty } from "./viaje";
 
 export const REVIEW_PATH = "/cuenta-en-revision";
 
@@ -84,4 +86,25 @@ export function redactTruck(truck: TruckListItem, viewer: PublicUser | null): Tr
     notes: null,
     matches: truck.matches.map((match) => ({ ...match, load: { ...match.load, ownerName: "", whatsapp: "", description: stripContacts(match.load.description) } })),
   };
+}
+
+/** Quién puede ver una carga por su id: el resumen público (si sigue abierta) o el detalle de las partes. */
+export type LoadVisibility = "public" | "party" | "hidden";
+
+export function loadVisibility(load: { id: string; status: LoadStatus }, viewer: PublicUser | null): LoadVisibility {
+  if (isTripParty(load.id, viewer)) return "party";
+  if (load.status === "abierta") return "public";
+  return "hidden";
+}
+
+/**
+ * Carga visible para quien consulta, con el mismo recorte de contactos que el listado /cargas.
+ * Si no existe o la persona no debe enterarse de que existe (adjudicada/cerrada y no es parte), devuelve null.
+ */
+export function loadForViewer(id: string, viewer: PublicUser | null): { load: LoadListItem; visibility: "public" | "party" } | null {
+  const found = getLoad(id);
+  if (!found) return null;
+  const visibility = loadVisibility(found, viewer);
+  if (visibility === "hidden") return null;
+  return { load: redactLoad(found, viewer), visibility };
 }

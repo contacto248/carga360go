@@ -286,6 +286,28 @@ test("seguimiento sin sesión: código + verificación de un solo uso; sin enví
   setOtpSenderForTests(null);
 });
 
+test("agente sin sesión: el id interno de una carga no entrega el detalle; deriva al panel", async () => {
+  enable();
+  const owner = person("mandante", "uuid-dueno");
+  const load = createLoad(owner.user, {
+    origin: "Copiapó",
+    destination: "Osorno",
+    pickupDate: addDays(6),
+    equipment: "rampla_plana",
+    description: "Bobinas de acero de prueba",
+    weightT: 12,
+    specs: {},
+    notes: "Contactar a María al +56 9 1111 2222",
+  });
+  const asked = await talk([`estado de la carga ${load.id}`]);
+  const reply = String(asked.last.data.reply);
+  assert.equal(reply.includes("Copiapó"), false);
+  assert.equal(reply.includes("Osorno"), false);
+  assert.equal(reply.includes("Bobinas"), false);
+  assert.equal(reply.includes("María"), false);
+  assert.equal(reply.includes("1111 2222"), false);
+});
+
 test("costos: el agente no da cifras sin cotización completa; con motor completo (simulado) da el costo referencial", async () => {
   enable();
   const ask = await post({ message: "¿cobran comisión?" });

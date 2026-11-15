@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LoadForm } from "@/components/LoadForm";
 import { OFFER_HOUR_CHOICES, getSettings } from "@/lib/settings";
-import { marketplaceViewer } from "@/lib/access";
+import { loadVisibility, marketplaceViewer } from "@/lib/access";
 import { todayChile } from "@/lib/format";
 import { getLoad } from "@/lib/listings";
 
@@ -13,7 +13,7 @@ export default async function EditarCargaPage({ params }: { params: Promise<{ id
   const user = await marketplaceViewer();
   const { id } = await params;
   const load = getLoad(id);
-  if (!load) notFound();
+  if (!load || loadVisibility(load, user) === "hidden") notFound();
   if (!user || user.id !== load.ownerId) {
     return (
       <div className="wrap" style={{ paddingBottom: 30 }}>
