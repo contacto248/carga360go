@@ -1,7 +1,7 @@
 import { REGIONS, cityByName } from "./catalog";
 import { getDb } from "./db";
 import { todayChile } from "./format";
-import { allListings } from "./listings";
+import { allListings, isLoadListedPublicly } from "./listings";
 import { matchLoadToTruck } from "./match";
 import { publicVerifiedSeal } from "./public-trust";
 import type { LoadPublic, TruckPublic } from "./types";
@@ -25,7 +25,7 @@ export type RecentItem =
 export function activeListings(today = todayChile()): { loads: LoadPublic[]; trucks: TruckPublic[] } {
   const { loads, trucks } = allListings();
   return {
-    loads: loads.filter((load) => !load.isDemo && load.pickupDate >= today),
+    loads: loads.filter((load) => !load.isDemo && isLoadListedPublicly(load, new Date(), today)),
     trucks: trucks.filter((truck) => !truck.isDemo && truck.availableTo >= today),
   };
 }

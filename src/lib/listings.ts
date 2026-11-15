@@ -4,6 +4,7 @@ import { getDb } from "./db";
 import { AppError } from "./errors";
 import { todayChile } from "./format";
 import { publicVerifiedSeal } from "./public-trust";
+import { offersOpen } from "./offers";
 import { matchLoadsForTruck, matchTrucksForLoad } from "./match";
 import { canPublishLoad, canPublishTruck } from "./roles";
 import { cleanClp } from "./security";
@@ -380,6 +381,17 @@ export function equipmentList(value: string | undefined): string[] {
   return (value || "").split(",").map((item) => item.trim()).filter(Boolean);
 }
 
+/** Listado público y portada: abierta, con plazo de ofertas vigente y fecha de retiro no vencida. */
+export function isLoadListedPublicly(
+  load: Pick<LoadPublic, "status" | "offersUntil" | "pickupDate">,
+  now = new Date(),
+  today = todayChile(),
+): boolean {
+  if (load.status !== "abierta") return false;
+  if (load.pickupDate < today) return false;
+  return offersOpen(load, now);
+}
+
 export function loadPassesFilters(load: LoadPublic, filters: LoadFilters): boolean {
   const equipos = equipmentList(filters.equipo);
   if (equipos.length && !equipos.includes(load.equipment)) return false;
@@ -421,14 +433,14 @@ function sortItems<T extends { createdAt: string; matches: unknown[] }>(items: T
 
 export function listLoads(filters: LoadFilters = {}): LoadListItem[] {
   // Las solicitudes ya adjudicadas o cerradas salen del listado público (siguen visibles en el panel y por enlace).
-  const loads = allLoads().filter((load) => load.status === "abierta" && loadPassesFilters(load, filters));
+  const loads = allLoads().filter((load) => isLoadListedPublicly(load) && loadPassesFilters(load, filters));
   return sortItems(withLoadMatches(loads, allTrucks()), filters.orden, (load) => load.pickupDate);
 }
 
 export function listTrucks(filters: TruckFilters = {}): TruckListItem[] {
   const trucks = allTrucks().filter((truck) => truckPassesFilters(truck, filters));
   // El listado público solo empareja con cargas abiertas (las adjudicadas o cerradas no se revelan aquí).
-  const openLoads = allLoads().filter((load) => load.status === "abierta");
+  const openLoads = allLoads().filter((load) => isLoadListedPublicly(load));
   return sortItems(withTruckMatches(trucks, openLoads), filters.orden, (truck) => truck.availableFrom);
 }
 
@@ -446,7 +458,7 @@ export function getLoad(id: string): LoadListItem | null {
 export function getTruck(id: string): TruckListItem | null {
   const row = getDb().prepare(`${TRUCK_SELECT} WHERE t.id = ?`).get(id) as TruckRow | undefined;
   if (!row) return null;
-  const openLoads = allLoads().filter((load) => load.status === "abierta");
+  const openLoads = allLoads().filter((load) => isLoadListedPublicly(load));
   return withTruckMatches([mapTruck(row)], openLoads)[0] ?? null;
 }
 
