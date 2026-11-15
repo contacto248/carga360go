@@ -24,7 +24,7 @@ const PRODUCTION_ANALYTICS_HOSTS = new Set(["www.carga360go.cl", "carga360go.cl"
 
 const title = "Carga360go — Cargas y camiones de transporte en todo Chile, de Arica a Punta Arenas";
 const description =
-  `Carga360go conecta cargas y camiones en Chile. Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y coordina en directo. Sin comisión por el flete. ${BRAND.company} · RUT ${BRAND.rut}.`;
+  `Carga360go conecta cargas y camiones en Chile. Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y conoce el costo real del flete: ruta, peajes según ejes, diésel y costos operacionales. ${BRAND.company} · RUT ${BRAND.rut}.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.carga360go.cl"),

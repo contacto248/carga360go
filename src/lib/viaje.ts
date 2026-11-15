@@ -58,7 +58,8 @@ export function isTripParty(loadId: string, user: PublicUser | null): boolean {
 export function tripView(loadId: string, user: PublicUser | null) {
   const row = partyOf(loadId);
   if (!row || row.status !== "adjudicada") return null;
-  const full = isTripParty(loadId, user);
+  // Contactos, eventos y estado del viaje solo para dueño, transportista adjudicado o administrador.
+  if (!isTripParty(loadId, user)) return null;
   const events = getDb()
     .prepare(
       `SELECT e.id, e.status, e.note, e.created_at AS createdAt, u.role AS actorRole
@@ -78,18 +79,16 @@ export function tripView(loadId: string, user: PublicUser | null) {
     status: current,
     label: TRIP_LABEL[current],
     next: NEXT[current].map((status) => ({ status, label: TRIP_LABEL[status] })),
-    canUpdate: full && current !== "entregado",
-    canRate: full && user?.role !== "admin" && current === "entregado" && !mine,
+    canUpdate: current !== "entregado",
+    canRate: user?.role !== "admin" && current === "entregado" && !mine,
     myRating: mine ?? null,
     average,
     ratingCount: ratings.length,
-    events: full
-      ? events.flatMap((event) =>
-          isTripStatus(event.status)
-            ? [{ id: event.id, status: event.status, label: TRIP_LABEL[event.status], note: event.note, createdAt: event.createdAt, authorLabel: authorLabel(event.actorRole) }]
-            : [],
-        )
-      : [],
+    events: events.flatMap((event) =>
+      isTripStatus(event.status)
+        ? [{ id: event.id, status: event.status, label: TRIP_LABEL[event.status], note: event.note, createdAt: event.createdAt, authorLabel: authorLabel(event.actorRole) }]
+        : [],
+    ),
   };
 }
 

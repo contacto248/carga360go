@@ -107,14 +107,10 @@ test("el historial muestra el rol del autor y oculta la identidad", async () => 
   }
 
   const outsider = tripView(load.id, stranger);
-  assert.ok(outsider);
-  assert.equal(outsider.canUpdate, false);
-  assert.deepEqual(outsider.events, []);
-  assert.equal(JSON.stringify(outsider).includes("Llegó al patio"), false);
+  assert.equal(outsider, null);
 
   const guest = tripView(load.id, null);
-  assert.ok(guest);
-  assert.deepEqual(guest.events, []);
+  assert.equal(guest, null);
 
   const rules = fs.readFileSync(new URL("../src/lib/viaje.ts", import.meta.url), "utf8");
   assert.match(rules, /asignado: \["en_camino", "incidencia"\]/);

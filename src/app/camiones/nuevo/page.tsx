@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FreeBanner } from "@/components/FreeBanner";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import { TruckForm } from "@/components/TruckForm";
 import { AccreditationPanel } from "@/components/AccreditationPanel";
 import { accreditationOf } from "@/lib/accreditation";
@@ -19,6 +20,7 @@ export default async function NuevoCamionPage() {
           <h1>Publicar camión disponible</h1>
           <p>Para publicar, tu cuenta debe estar verificada. Completa lo que falta y te avisaremos cuando un administrador la apruebe.</p>
         </div>
+        <ManualReadonlyBanner user={user} />
         <FreeBanner user={user} />
         <AccreditationPanel acc={acc} role={user!.role} />
       </div>
@@ -28,7 +30,7 @@ export default async function NuevoCamionPage() {
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <div className="page-title">
         <h1>Publicar camión disponible</h1>
-        <p>Tu corredor, tus fechas y la ficha técnica según el tipo de equipo. Gratis durante tus 30 días desde la inscripción y te avisamos por correo cuando aparece una carga que calza.</p>
+        <p>Tu corredor, tus fechas y la ficha técnica según el tipo de equipo. Te avisamos por correo cuando aparece una carga que calza.</p>
       </div>
       <FreeBanner user={user} />
       <TruckForm

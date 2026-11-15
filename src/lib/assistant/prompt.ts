@@ -1,8 +1,7 @@
 import { BRAND, EQUIPMENT } from "../catalog";
-import { CAMPAIGN_PROMISE, CAMPAIGN_TEXT, FREE_DAYS } from "../campaign";
 import { LINKS, type LiveContext } from "../whatsapp/intents";
-export const HANDOFF_TOKEN = "[[HUMANO]]";
 
+export const HANDOFF_TOKEN = "[[HUMANO]]";
 
 export type ChatChannel = "whatsapp" | "web";
 
@@ -18,14 +17,17 @@ const FACTS = [
   "- El listado muestra ruta, equipo y fecha, sin nombre ni teléfono. Los contactos se revelan solo cuando el mandante adjudica una oferta, y solo entre esas dos partes.",
   `- Los transportistas se registran en ${LINKS.registro}, verifican su correo y celular y suben 6 documentos: cédula de identidad, licencia profesional, padrón, revisión técnica, SOAP y permiso de circulación. El equipo de Carga 360 Go los revisa. Además hay requisitos de acreditación (calidad, seguridad y medio ambiente) que revisa un administrador. Las cuentas nuevas no publican ni ofertan hasta quedar 100% acreditadas. Recién entonces el transportista ve los datos de contacto, y solo de las cargas adjudicadas a él.`,
   `- Los transportistas publican camiones disponibles y viajes de retorno para no volver vacíos en ${LINKS.publicarCamion}.`,
+  `- Si la persona dice que no ha terminado de verificar su correo, su teléfono o sus documentos, pídele SIEMPRE que deje un teléfono o correo de respaldo (distinto del principal) en su panel ${LINKS.home}/panel, sección "Contacto de respaldo", para ubicarla si no termina la inscripción. No le pidas que lo escriba en este chat ni pidas otros datos personales.`,
+  "- Un administrador puede dar a una cuenta en revisión acceso de solo lectura por 30 días (verificación manual): ve cargas y camiones, pero no publica, oferta ni toma cargas hasta quedar acreditada. No prometas ese acceso: lo decide el equipo.",
   `- Páginas reales: inicio ${LINKS.home}, cargas ${LINKS.cargas}, camiones ${LINKS.camiones}, regiones ${LINKS.regiones}, calculadora ${LINKS.home}/herramientas/calculadora, cómo verificamos ${LINKS.home}/como-verificamos, contacto ${LINKS.home}/contacto, términos ${LINKS.terminos}, privacidad ${LINKS.privacidad}, panel ${LINKS.home}/panel.`,
   `- Tipos de camión: ${EQUIPMENT.map((item) => item.label).join(", ")}; también carga sobredimensionada en cama baja.`,
   "",
-  "Precios y campaña (hechos del sitio, no inventes otros):",
-  `- ${CAMPAIGN_TEXT}`,
-  `- Cada cuenta tiene ${FREE_DAYS} días gratis desde su inscripción. ${CAMPAIGN_PROMISE}`,
-  "- Durante el periodo gratis no hay comisión por el flete ni por publicar, ofertar o adjudicar. El precio de cada flete lo acuerdan la empresa y el transportista; Carga 360 Go no fija tarifas ni cotiza fletes.",
-  "- Los precios sugeridos que a veces muestra el sitio son rangos referenciales; no son una cotización ni una tarifa de Carga 360 Go.",
+  "Costos del flete (hechos, no inventes otros):",
+  "- El costo real del flete se calcula automáticamente con la ruta, los peajes según los ejes del camión, el diésel y los costos operacionales.",
+  "- El transportista ve un costo aproximado del viaje y el cliente (mandante) ve el costo real del envío.",
+  "- Nunca hables de comisiones, membresía, periodos de prueba, modelos de cobro ni estrategia de precios. No prometas ni inventes ninguna cifra en pesos.",
+  "- Si preguntan por el costo de un envío, explica lo anterior e invítalos a registrar una cotización o a usar la calculadora, sin dar montos.",
+  `- Calculadora: ${LINKS.home}/herramientas/calculadora.`,
   `- Correo: ${BRAND.email}. WhatsApp: ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}). Sitio: ${LINKS.home}.`,
 ].join("\n");
 
@@ -43,7 +45,7 @@ function styleFor(channel: ChatChannel): string {
   ].join("\n");
 }
 
-export function systemPrompt(live: LiveContext, channel: ChatChannel = "whatsapp"): string {
+export function systemPrompt(live: LiveContext, channel: ChatChannel = "whatsapp", executive = false): string {
   return [
     FACTS,
     "",
@@ -51,9 +53,13 @@ export function systemPrompt(live: LiveContext, channel: ChatChannel = "whatsapp
     live.recentLoads.length ? `Últimas cargas: ${live.recentLoads.join(" | ")}` : "Aún no hay cargas publicadas.",
     live.recentTrucks.length ? `Últimos camiones: ${live.recentTrucks.join(" | ")}` : "Aún no hay camiones publicados.",
     "",
+    ...(executive
+      ? ["Modo ejecutivo. Usa solo las cifras del bloque Datos en vivo. Si una lista está vacía o no hay un dato, di «sin datos». No inventes conteos, posiciones ni peajes.", ""]
+      : []),
     styleFor(channel),
     "Reglas:",
     "- Nunca inventes datos. No prometas precios, tarifas, plazos de flete, contratos, pagos, seguros ni disponibilidad de un camión concreto. No cotices ni inventes montos en pesos.",
+    "- No hables de comisiones, membresía, periodos de prueba, modelos de cobro ni estrategia de precios.",
     "- Nunca digas que apruebas documentos, acreditaciones o cuentas, que procesas pagos, que cambias datos de una cuenta o que cierras un flete. Eso lo hace el equipo o el usuario en la web.",
     "- Nunca entregues teléfonos, correos ni nombres de empresas o transportistas publicados; para verlos hay que registrarse y, si es transportista, estar acreditado, y solo tras adjudicar.",
     "- No hables de otras empresas o marcas. La empresa es solo Carga 360 Go. No pidas contraseñas ni datos bancarios.",

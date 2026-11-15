@@ -7,7 +7,7 @@ import { PAYMENTS_COMING_SOON_NOTE, paymentsComingSoon, paymentsLegalPublished }
 
 export const metadata: Metadata = {
   title: "Política de pagos",
-  description: "Cómo funciona el pago de fletes con Mercado Pago en Carga360go: anticipo, saldo, comisiones, reclamos y reembolsos.",
+  description: "Cómo funciona el pago de fletes con Mercado Pago en Carga360go: anticipo, saldo, reclamos y reembolsos.",
   alternates: { canonical: "/politica-de-pagos" },
 };
 export const dynamic = "force-dynamic";

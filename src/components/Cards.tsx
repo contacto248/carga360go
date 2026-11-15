@@ -8,8 +8,10 @@ import { MATCH_DISCLAIMER, MATCH_NAME } from "@/lib/match-copy";
 import { formatClp, formatDateCL, waLink } from "@/lib/format";
 import { roadKm } from "@/lib/geo";
 import { TruckArt } from "./TruckArt";
-import { PRICE_DISCLAIMER, estimatePrice } from "@/lib/pricing";
-import type { LoadListItem, TruckListItem } from "@/lib/types";
+import { REFERENCE_NOTICE } from "@/lib/costos/notice";
+import type { CostHint } from "@/lib/costos/hint";
+import { publicVerifiedSeal } from "@/lib/public-trust";
+import type { LoadListItem, MatchResult, TruckListItem } from "@/lib/types";
 
 function WhatsApp({ number, text, label = "WhatsApp" }: { number: string; text: string; label?: string }) {
   return (
@@ -37,7 +39,7 @@ function RegionLine({ origin, destination }: { origin: string; destination: stri
 function TrustBadges({ status, docsOk }: { status: string; docsOk?: boolean }) {
   return (
     <>
-      {status === "verificado" ? <span className="pill ok" title="Cuenta revisada por un administrador">✔ Verificado</span> : null}
+      {publicVerifiedSeal(status, docsOk) ? <span className="pill ok" title="Cuenta revisada por un administrador y con documentos al día">✔ Verificado</span> : null}
       {status === "rechazado" ? <span className="pill bad">Cuenta rechazada</span> : null}
       {status === "pendiente" ? (
         <span className="pill gray" title="Un administrador aún no revisa la cuenta de quien publica">
@@ -55,14 +57,24 @@ function Distance({ origin, destination }: { origin: string; destination: string
   return <span title="Distancia vial estimada">≈ {formatClp(km)} km</span>;
 }
 
-function PriceHint({ origin, destination, equipment }: { origin: string; destination: string; equipment: string }) {
-  const estimate = estimatePrice(origin, destination, equipment);
-  if (!estimate) return null;
-  return (
-    <div className="price-hint" title={PRICE_DISCLAIMER}>
-      💡 Precio referencial: ${formatClp(estimate.min)} – ${formatClp(estimate.max)} <Link className="ref" href="/herramientas/calculadora">referencial · cómo se calcula</Link>
-    </div>
-  );
+function PriceHint({ hint }: { hint: CostHint }) {
+  if (hint.method === "motor" && hint.total) {
+    return (
+      <div className="price-hint" title={REFERENCE_NOTICE}>
+        💡 Costo referencial del flete: ${formatClp(hint.total)}
+        {hint.complete ? "" : " (incompleto)"} <Link className="ref" href="/herramientas/calculadora">sujeto a revisión · cómo se calcula</Link>
+      </div>
+    );
+  }
+  if (hint.min && hint.max) {
+    return (
+      <div className="price-hint" title={REFERENCE_NOTICE}>
+        💡 Rango de respaldo (cálculo antiguo, sin ruta real): ${formatClp(hint.min)} – ${formatClp(hint.max)}{" "}
+        <Link className="ref" href="/herramientas/calculadora">sujeto a revisión · cómo se calcula</Link>
+      </div>
+    );
+  }
+  return null;
 }
 
 function deadlineText(until: string | null): string {
@@ -100,12 +112,13 @@ export function LoadStatusLine({ load }: { load: LoadListItem }) {
 export function LoadCard({
   load,
   canManage = false,
-  priceHint = false,
+  priceHint = null,
   showOfferButton = true,
 }: {
   load: LoadListItem;
   canManage?: boolean;
-  priceHint?: boolean;
+  /** Costo calculado en el servidor (null = no mostrar). */
+  priceHint?: CostHint | null;
   showOfferButton?: boolean;
 }) {
   const router = useRouter();
@@ -160,7 +173,7 @@ export function LoadCard({
         </div>
       ) : null}
       {load.budgetClp ? <div className="meta">Precio ofrecido por el mandante: <strong>${formatClp(load.budgetClp)} CLP</strong></div> : null}
-      {priceHint ? <PriceHint origin={load.origin} destination={load.destination} equipment={load.equipment} /> : null}
+      {priceHint ? <PriceHint hint={priceHint} /> : null}
       {load.notes ? <div className="meta">{load.notes}</div> : null}
       <div className="row" style={{ marginTop: 10 }}>
         {showOfferButton && !load.isDemo ? (
@@ -213,6 +226,7 @@ export function LoadCard({
                   </li>
                 ))}
               </ul>
+              <TripCostLine cost={item.tripCost} />
               <div style={{ marginTop: 6 }}>
                 {!item.truck.whatsapp ? (
                   <span className="meta">🔒 Si le interesa, este transportista puede ofertar en la carga. El contacto se comparte al adjudicar.</span>
@@ -323,6 +337,7 @@ export function TruckCard({ truck, canManage = false }: { truck: TruckListItem; 
                   </li>
                 ))}
               </ul>
+              <TripCostLine cost={item.tripCost} />
               <div style={{ marginTop: 6 }}>
                 {!item.load.whatsapp ? (
                   <Link className="btn sm" href={`/cargas/${item.load.id}#ofertas`}>
@@ -340,5 +355,22 @@ export function TruckCard({ truck, canManage = false }: { truck: TruckListItem; 
         </div>
       ) : null}
     </article>
+  );
+}
+
+/** Costo real aproximado del viaje para el transportista (motor de costos). Sin cifra si el cálculo quedó incompleto. */
+function TripCostLine({ cost }: { cost?: MatchResult["tripCost"] }) {
+  if (!cost) return null;
+  if (cost.complete && cost.total !== null) {
+    return (
+      <p className="meta" style={{ margin: "6px 0 0" }}>
+        Costo real aproximado del viaje: <strong>${formatClp(cost.total)}</strong> con IVA{cost.km ? ` · ruta de ${Math.round(cost.km).toLocaleString("es-CL")} km` : ""}. {REFERENCE_NOTICE}
+      </p>
+    );
+  }
+  return (
+    <p className="meta" style={{ margin: "6px 0 0" }}>
+      Costo del viaje: cálculo con datos pendientes (ruta, peajes o diésel); no se muestra una cifra.
+    </p>
   );
 }

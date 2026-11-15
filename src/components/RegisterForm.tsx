@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { formatRut, isValidRut } from "@/lib/format";
+import { PASSWORD_MIN } from "@/lib/security";
 import { PlacePicker } from "./PlacePicker";
 import { ResendVerification } from "./ResendVerification";
 
@@ -19,6 +20,7 @@ export function RegisterForm() {
   const [password2, setPassword2] = useState("");
   const [whatsapp, setWhatsapp] = useState("+56 9 ");
   const [city, setCity] = useState("Santiago");
+  const [backupContact, setBackupContact] = useState("");
   const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState("");
   const [pending, setPending] = useState(false);
@@ -32,16 +34,17 @@ export function RegisterForm() {
     event.preventDefault();
     if (!rutOk) return setError("El RUT no es válido (revisa el dígito verificador).");
     if (password !== password2) return setError("Las contraseñas no coinciden.");
-    if (password.length < 10) return setError("La contraseña debe tener al menos 10 caracteres.");
+    if (password.length < PASSWORD_MIN) return setError(`La contraseña debe tener al menos ${PASSWORD_MIN} caracteres.`);
     if (!acceptPrivacy) return setError("Para crear tu cuenta debes leer y aceptar la Política de Privacidad.");
     if (!acceptTerms) return setError("Para crear tu cuenta debes leer y aceptar los Términos de uso.");
+    if (!backupContact.trim()) return setError("Indica un teléfono o correo de respaldo.");
     setPending(true);
     setError("");
     setErrorCode("");
     const response = await fetch("/api/auth/registro", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role, razonSocial, rut, contactName, email, password, whatsapp, city, website, formStartedAt: startedAt.current, acceptPrivacy, acceptTerms }),
+      body: JSON.stringify({ role, razonSocial, rut, contactName, email, password, whatsapp, city, backupContact, website, formStartedAt: startedAt.current, acceptPrivacy, acceptTerms }),
     });
     setPending(false);
     if (!response.ok) {
@@ -103,16 +106,27 @@ export function RegisterForm() {
           <input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
         </label>
         <label className="f">
-          Contraseña * (mínimo 10 caracteres)
-          <input type="password" autoComplete="new-password" minLength={10} value={password} onChange={(event) => setPassword(event.target.value)} required />
+          Contraseña * (mínimo {PASSWORD_MIN} caracteres)
+          <input type="password" autoComplete="new-password" minLength={PASSWORD_MIN} value={password} onChange={(event) => setPassword(event.target.value)} required />
         </label>
         <label className="f">
           Repite la contraseña *
-          <input type="password" autoComplete="new-password" minLength={10} value={password2} onChange={(event) => setPassword2(event.target.value)} required />
+          <input type="password" autoComplete="new-password" minLength={PASSWORD_MIN} value={password2} onChange={(event) => setPassword2(event.target.value)} required />
         </label>
         <label className="f">
           WhatsApp *
           <input value={whatsapp} onChange={(event) => setWhatsapp(event.target.value)} inputMode="tel" required />
+        </label>
+        <label className="f">
+          Teléfono o correo de respaldo *
+          <input
+            name="backupContact"
+            value={backupContact}
+            onChange={(event) => setBackupContact(event.target.value)}
+            placeholder="+56 9 XXXX XXXX o correo@ejemplo.cl"
+            required
+          />
+          <span className="meta">Distinto de tu correo y WhatsApp. Lo usamos solo si no alcanzas a terminar tu verificación.</span>
         </label>
         <PlacePicker label="tu base" value={city} onChange={setCity} />
         <div className="full privacy-accept">
@@ -142,7 +156,7 @@ export function RegisterForm() {
               <a href="/terminos" target="_blank" rel="noopener noreferrer">
                 Términos de uso
               </a>{" "}
-              (incluye la campaña de 30 días gratis desde la inscripción y la futura membresía) *
+              *
             </span>
           </label>
         </div>

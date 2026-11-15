@@ -1,13 +1,12 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import { HelpLauncher } from "@/components/ChatWidget";
-import { webChatEnabled } from "@/lib/chat/config";
+import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
 import { BRAND } from "@/lib/catalog";
 import { waLink } from "@/lib/format";
-import { paymentsComingSoon, paymentsLegalPublished } from "@/lib/pagos/config";
+import { paymentsLegalPublished } from "@/lib/pagos/config";
 
 export function Footer() {
   const payments = paymentsLegalPublished();
-  const comingSoon = paymentsComingSoon();
   const href = waLink(BRAND.whatsapp, BRAND.infoMessage);
   return (
     <>
@@ -17,8 +16,8 @@ export function Footer() {
             <img className="foot-logo" src="/brand/logo-wordmark.png" alt="Carga360go" width={177} height={40} />
             <p>Bolsa de carga y camiones para transporte de carga general y masiva en las 16 regiones de Chile, de Arica a Punta Arenas.</p>
             <p>
-              <strong>Campaña de inscripción:</strong> 30 días gratis por cuenta desde su inscripción; luego membresía (valores por definir)
-              con beneficios y convenios. Te avisaremos antes de cualquier cobro. <Link href="/terminos#membresia">Condiciones</Link>
+              <strong>Costo real y automático del flete:</strong> ruta, peajes según ejes, diésel y costos operacionales. Trazabilidad
+              de cada operación y seguridad en una sola web automatizada.
             </p>
           </div>
           <div>
@@ -60,14 +59,13 @@ export function Footer() {
           </div>
         </div>
         <div className="wrap foot-note">
-          {payments && comingSoon
-            ? "Esta plataforma conecta partes; el pago de fletes con Mercado Pago estará disponible próximamente (ver Política de pagos). Carga360go no custodia el dinero del flete ni garantiza la ejecución del transporte. Los precios sugeridos son referenciales."
-            : payments
-            ? "Esta plataforma conecta partes; el pago del flete se hace con Mercado Pago directamente al transportista y Carga360go no custodia ese dinero ni garantiza la ejecución del transporte. Los precios sugeridos son referenciales."
-            : "Esta plataforma conecta partes; no gestiona pagos ni garantiza la ejecución del transporte. Los precios sugeridos son referenciales."}
+          Esta plataforma conecta partes y no garantiza la ejecución del transporte. Los costos que muestra son estimaciones calculadas
+          con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
-      <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />
+      <Suspense fallback={null}>
+        <AgenteAcreditacion />
+      </Suspense>
     </>
   );
 }

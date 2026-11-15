@@ -1,26 +1,34 @@
+import { costHintFor } from "@/lib/costos/hint";
 import type { Metadata } from "next";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LoadCard } from "@/components/Cards";
 import { OffersPanel } from "@/components/OffersPanel";
 import { TripBoard } from "@/components/TripBoard";
 import { accreditationOf } from "@/lib/accreditation";
-import { marketplaceViewer, redactLoad } from "@/lib/access";
+import { loadForViewer, loadVisibility, marketplaceViewer } from "@/lib/access";
 import { equipmentById } from "@/lib/catalog";
+import { getCurrentUser } from "@/lib/current-user";
 import { todayChile } from "@/lib/format";
 import { getLoad, listOwn } from "@/lib/listings";
 import { awardedContact, canOffer, effectiveAllowImprove, offersOpen, offersVisibleTo } from "@/lib/offers";
 import { getSettings } from "@/lib/settings";
 import { tripView } from "@/lib/viaje";
+import { trackingCodeFor, trackingCodeVisibleTo } from "@/lib/agent/tracking";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
+  const viewer = await getCurrentUser();
   const load = getLoad(id);
-  if (!load) return { title: "Carga no encontrada", robots: { index: false, follow: false } };
+  // Adjudicadas o cerradas: no indexar ni revelar ruta/peso a quien no es parte.
+  if (!load || loadVisibility(load, viewer) === "hidden") {
+    return { title: "Carga no encontrada", robots: { index: false, follow: false } };
+  }
   const title = `Carga ${load.origin} → ${load.destination} · ${equipmentById(load.equipment).label}`;
   return {
     title,
-    description: `${title}, ${load.weightT} t. Transportistas verificados pueden ofertar gratis en Carga360go.`,
+    description: `${title}, ${load.weightT} t. Transportistas verificados pueden ofertar en Carga360go.`,
     alternates: { canonical: `/cargas/${id}` },
     robots: load.status === "abierta" ? undefined : { index: false, follow: true },
   };
@@ -29,12 +37,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function CargaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await marketplaceViewer();
   const { id } = await params;
-  const found = getLoad(id);
-  if (!found) notFound();
-  const load = redactLoad(found, user);
+  const visible = loadForViewer(id, user);
+  if (!visible) notFound();
+  const load = visible.load;
   const settings = getSettings();
   const viaje = tripView(load.id, user);
   const isOwner = user?.id === load.ownerId;
+  // Código corto de seguimiento: solo lo ven la dueña, el transportista adjudicado y los administradores.
+  const trackingCode = !load.isDemo && trackingCodeVisibleTo(load.id, user) ? trackingCodeFor(load.id) : null;
   let mode: "owner" | "admin" | "carrier" | "carrier_locked" | "guest" | "other" = "guest";
   let lockReason = "";
   if (user) {
@@ -61,7 +71,14 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
           <Link href="/cargas">← Volver a cargas</Link>
         </p>
       </div>
-      <LoadCard load={load} canManage={isOwner} priceHint={settings.showSuggestedPrice} showOfferButton={false} />
+      <ManualReadonlyBanner user={user} />
+      {trackingCode ? (
+        <p className="notice" style={{ margin: "0 0 12px" }}>
+          Código de seguimiento: <strong>{trackingCode}</strong>. Con él y un código de un solo uso enviado al contacto registrado de la dueña de la carga,
+          el asistente puede informar el estado sin iniciar sesión. No lo comparta con quien no deba ver esta carga.
+        </p>
+      ) : null}
+      <LoadCard load={load} canManage={isOwner} priceHint={settings.showSuggestedPrice ? costHintFor(load) : null} showOfferButton={false} />
       {load.isDemo ? null : (
         <OffersPanel
           loadId={load.id}

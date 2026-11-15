@@ -6,7 +6,10 @@ import { stripContacts } from "./contact-filter";
 export { stripContacts };
 import { getCurrentUser } from "./current-user";
 import { AppError } from "./errors";
-import type { LoadListItem, PublicUser, TruckListItem } from "./types";
+import { assertNotManualReadonly } from "./manual-readonly";
+import { getLoad } from "./listings";
+import type { LoadListItem, LoadStatus, PublicUser, TruckListItem } from "./types";
+import { isTripParty } from "./viaje";
 
 export const REVIEW_PATH = "/cuenta-en-revision";
 
@@ -28,6 +31,8 @@ export function assertMarketplaceAccess(user: PublicUser | null) {
 export function assertCanPublish(user: PublicUser | null) {
   assertMarketplaceAccess(user);
   if (!user) throw new AppError("Ingresa con tu cuenta para publicar.", 401);
+  // Verificación manual (solo lectura 30 días): ve la plataforma, pero no publica.
+  if (user.role !== "admin") assertNotManualReadonly(user, "publicar");
   if (user.role !== "admin" && !user.emailVerifiedAt) {
     throw new AppError(
       "Confirma tu correo antes de publicar. Abre el enlace que te enviamos o pide otro en \"Mi cuenta\".",
@@ -51,13 +56,20 @@ function canSeeOwn(viewer: PublicUser | null, ownerId: string): boolean {
   return Boolean(viewer && (viewer.role === "admin" || viewer.id === ownerId));
 }
 
+/** Quita identificadores internos de usuario de una publicación visible para terceros. */
+function omitInternalUserIds<T extends { ownerId?: string }>(item: T): T {
+  const copy = { ...item };
+  delete (copy as { ownerId?: string }).ownerId;
+  return copy;
+}
+
 export function redactLoad(load: LoadListItem, viewer: PublicUser | null): LoadListItem {
   if (viewer?.role === "admin") return load;
   // El dueño ve su propia publicación completa, pero no el contacto de los camiones sugeridos.
   if (canSeeOwn(viewer, load.ownerId)) {
     return { ...load, matches: load.matches.map((match) => ({ ...match, truck: { ...match.truck, ownerName: "", whatsapp: "" } })) };
   }
-  return {
+  return omitInternalUserIds({
     ...load,
     contactHidden: true,
     ownerName: "",
@@ -65,7 +77,7 @@ export function redactLoad(load: LoadListItem, viewer: PublicUser | null): LoadL
     description: stripContacts(load.description),
     notes: null,
     matches: load.matches.map((match) => ({ ...match, truck: { ...match.truck, ownerName: "", whatsapp: "", notes: null } })),
-  };
+  });
 }
 
 export function redactTruck(truck: TruckListItem, viewer: PublicUser | null): TruckListItem {
@@ -73,12 +85,33 @@ export function redactTruck(truck: TruckListItem, viewer: PublicUser | null): Tr
   if (canSeeOwn(viewer, truck.ownerId)) {
     return { ...truck, matches: truck.matches.map((match) => ({ ...match, load: { ...match.load, ownerName: "", whatsapp: "", description: stripContacts(match.load.description) } })) };
   }
-  return {
+  return omitInternalUserIds({
     ...truck,
     contactHidden: true,
     ownerName: "",
     whatsapp: "",
     notes: null,
     matches: truck.matches.map((match) => ({ ...match, load: { ...match.load, ownerName: "", whatsapp: "", description: stripContacts(match.load.description) } })),
-  };
+  });
+}
+
+/** Quién puede ver una carga por su id: el resumen público (si sigue abierta) o el detalle de las partes. */
+export type LoadVisibility = "public" | "party" | "hidden";
+
+export function loadVisibility(load: { id: string; status: LoadStatus }, viewer: PublicUser | null): LoadVisibility {
+  if (isTripParty(load.id, viewer)) return "party";
+  if (load.status === "abierta") return "public";
+  return "hidden";
+}
+
+/**
+ * Carga visible para quien consulta, con el mismo recorte de contactos que el listado /cargas.
+ * Si no existe o la persona no debe enterarse de que existe (adjudicada/cerrada y no es parte), devuelve null.
+ */
+export function loadForViewer(id: string, viewer: PublicUser | null): { load: LoadListItem; visibility: "public" | "party" } | null {
+  const found = getLoad(id);
+  if (!found) return null;
+  const visibility = loadVisibility(found, viewer);
+  if (visibility === "hidden") return null;
+  return { load: redactLoad(found, viewer), visibility };
 }

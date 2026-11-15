@@ -1,19 +1,20 @@
 import { audit } from "@/lib/audit";
 import { NextResponse } from "next/server";
 import { guard, readJson, requireUser } from "@/lib/api";
-import { assertMarketplaceAccess, redactLoad } from "@/lib/access";
-import { getCurrentUser } from "@/lib/current-user";
+import { assertMarketplaceAccess, loadForViewer } from "@/lib/access";
 import { AppError } from "@/lib/errors";
-import { deleteLoad, getLoad, updateLoad } from "@/lib/listings";
+import { deleteLoad, updateLoad } from "@/lib/listings";
 import { loadFromPayload } from "@/lib/payload";
+import { userFromHeaders } from "@/lib/request-auth";
 
-export const GET = guard(async (_request, ctx) => {
-  const viewer = await getCurrentUser();
+export const GET = guard(async (request, ctx) => {
+  // userFromHeaders: misma resolución cookie/Bearer que el resto de la API, sin ALS de next/headers (necesario en pruebas).
+  const viewer = userFromHeaders(request.headers);
   assertMarketplaceAccess(viewer);
   const { id } = await ctx.params;
-  const load = getLoad(id);
-  if (!load) throw new AppError("Carga no encontrada.", 404);
-  return NextResponse.json({ load: redactLoad(load, viewer) });
+  const visible = loadForViewer(id, viewer);
+  if (!visible) throw new AppError("Carga no encontrada.", 404);
+  return NextResponse.json({ load: visible.load });
 });
 
 export const PATCH = guard(async (request, ctx) => {

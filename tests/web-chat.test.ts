@@ -12,6 +12,7 @@ import { AI_FALLBACK_REPLY } from "../src/lib/assistant/reply";
 import { CHAT_COOKIE, CHAT_MAX_MESSAGE, setWebChatEnabled, webChatEnabled } from "../src/lib/chat/config";
 import { getDb } from "../src/lib/db";
 import { resetRateLimits } from "../src/lib/rate-limit";
+import { systemPrompt } from "../src/lib/assistant/prompt";
 import { detectIntent, ruleReply } from "../src/lib/whatsapp/intents";
 import { setSetting } from "../src/lib/whatsapp/store";
 
@@ -102,8 +103,14 @@ test("Motor de reglas del chat: empresa, transportista, precios y persona", () =
   assert.equal(detectIntent("Precios"), "precio");
   assert.equal(detectIntent("Quiero hablar con una persona"), "humano");
   const live = { activeLoads: 1, activeTrucks: 0, recentLoads: [], recentTrucks: [] };
-  assert.match(ruleReply("precio", live, "web"), /30 días gratis/i);
-  assert.match(ruleReply("precio", live, "web"), /comisi[oó]n/i);
+  const precio = ruleReply("precio", live, "web");
+  assert.match(precio, /peajes/i);
+  assert.match(precio, /di[eé]sel/i);
+  assert.match(precio, /costo real del flete/i);
+  assert.doesNotMatch(precio, /comisi[oó]n|membres[ií]a|30 d[ií]as gratis|Mercado Pago/i);
+  const prompt = systemPrompt(live, "web");
+  assert.match(prompt, /peajes/i);
+  assert.doesNotMatch(prompt, /comisi[oó]n por el flete|30 d[ií]as gratis|CAMPAIGN_|Mercado Pago/i);
   assert.match(ruleReply("publicar_carga", live, "web"), /cargas\/nueva/);
   assert.match(ruleReply("registro_transportista", live, "web"), /registro/);
   assert.match(ruleReply("humano", live, "web"), /wa\.me\/56958428693/);
@@ -126,13 +133,15 @@ test("POST /api/chat: sesión, historial, límites y derivación a humano", asyn
   const second = await postChat("Soy empresa con carga", cookie);
   assert.equal(second.response.status, 200);
   assert.equal(second.data.conversationId, first.data.conversationId);
-  assert.match(String(second.data.reply), /gratis/i);
+  assert.match(String(second.data.reply), /cargas\/nueva/);
+  assert.doesNotMatch(String(second.data.reply), /gratis|comisi[oó]n|membres[ií]a/i);
   const messages = second.data.messages as { role: string; text: string }[];
   assert.ok(messages.length >= 4);
   assert.equal(messages.some((m) => m.role === "user" && /empresa/.test(m.text)), true);
 
   const prices = await postChat("Precios", cookie);
-  assert.match(String(prices.data.reply), /30 días gratis/i);
+  assert.match(String(prices.data.reply), /peajes/i);
+  assert.doesNotMatch(String(prices.data.reply), /comisi[oó]n|membres[ií]a|30 d[ií]as gratis/i);
 
   const human = await postChat("Quiero hablar con una persona", cookie);
   assert.equal(human.data.handoff, true);

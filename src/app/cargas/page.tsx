@@ -1,4 +1,6 @@
+import { costHintFor } from "@/lib/costos/hint";
 import { getSettings } from "@/lib/settings";
+import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoadCard } from "@/components/Cards";
@@ -62,9 +64,10 @@ export default async function CargasPage({
           <p>Filtra por equipo, región y ciudad de origen o destino, y fecha. Cada carga muestra los camiones compatibles. <Link href="/cargas?inmediata=1">Ver pedidos inmediatos</Link>.</p>
         </div>
         <Link className="btn" href="/cargas/nueva">
-          + Publicar carga gratis
+          + Publicar carga
         </Link>
       </div>
+      <ManualReadonlyBanner user={viewer} />
       <LoadFilters value={filters} counts={originCounts("cargas")} />
       <div className="list-bar">
         <span className="meta">{loads.length === 1 ? "1 resultado" : `${loads.length} resultados`}</span>
@@ -92,7 +95,7 @@ export default async function CargasPage({
                   {nearby.map((hit) => (
                     <div key={hit.item.id}>
                       <p className="meta">{hit.why}</p>
-                      <LoadCard load={redactLoad(hit.item, viewer)} priceHint={showPrice} />
+                      <LoadCard load={redactLoad(hit.item, viewer)} priceHint={showPrice ? costHintFor(hit.item) : null} />
                     </div>
                   ))}
                 </div>
@@ -103,7 +106,7 @@ export default async function CargasPage({
       ) : (
         <div className="grid c2">
           {loads.map((load) => (
-            <LoadCard key={load.id} load={load} priceHint={showPrice} />
+            <LoadCard key={load.id} load={load} priceHint={showPrice ? costHintFor(load) : null} />
           ))}
         </div>
       )}

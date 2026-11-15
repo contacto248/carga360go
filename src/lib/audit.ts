@@ -45,7 +45,28 @@ export const AUDIT_LABELS: Record<string, string> = {
   "carga.borrada": "Carga borrada",
   "camion.borrado": "Camión borrado",
   "usuario.datos_propios": "Usuario corrigió sus datos",
+  "usuario.respaldo": "Contacto de respaldo guardado",
+  "usuario.solo_lectura_otorgada": "Verificación manual: solo lectura por 30 días",
+  "usuario.solo_lectura_revocada": "Verificación manual revocada",
+  "usuario.solo_lectura_vencida": "Solo lectura vencida: cuenta vuelve a pendiente",
+  "usuario.solo_lectura_avisada": "Aviso de verificación manual (correo y WhatsApp)",
+  "usuario.solo_lectura_aviso_omitido": "Aviso de verificación manual omitido (mismo día)",
   "ajustes.editados": "Ajustes de la plataforma",
+  "agente.derivacion": "Agente comercial: derivación a una persona",
+  "agente.lead_creado": "Agente comercial: solicitud registrada",
+  "agente.lead_estado": "Agente comercial: estado de solicitud cambiado",
+  "agente.ajustes": "Agente comercial: ajustes",
+  "costos.parametro": "Parámetro de costos modificado",
+  "costos.cotizacion_estado": "Revisión de cotización",
+  "costos.refresco_manual": "Actualización manual de fuentes de costos",
+  "costos.cotizacion_publicacion": "Cotización guardada al publicar carga",
+  "bassam.autorizar": "Viaje autorizado",
+  "bassam.rechazar": "Viaje rechazado",
+  "bassam.solicitar_revision": "Revisión de viaje solicitada",
+  "bassam.gps": "Punto GPS del viaje autorizado",
+  "bassam.qr": "QR de origen y destino emitido",
+  "bassam.agente": "Agente de calidad: decisión automática",
+  "bassam.aprobado": "Gerencia aprobó un caso de severidad muy alta",
 };
 
 function writeAudit(
@@ -133,6 +154,10 @@ const TARGETS: Record<string, string> = {
   documento: "Documento",
   oferta: "Oferta",
   ajustes: "Ajustes",
+  agente: "Conversación del agente",
+  agente_lead: "Solicitud del agente",
+  costos: "Motor de costos",
+  cotizacion: "Cotización",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */

@@ -148,7 +148,6 @@ export function AdminConsole({
                       {user.email} {user.emailVerifiedAt ? "· correo ✓" : "· correo sin confirmar"}
                       <br />
                       Inscrito {formatDateCL(user.createdAt.slice(0, 10))}
-                      {user.freeUntil ? ` · gratis hasta ${formatDateCL(user.freeUntil)}` : ""}
                     </div>
                     {user.verificationNote ? <div className="meta">Último motivo: {user.verificationNote}</div> : null}
                   </td>

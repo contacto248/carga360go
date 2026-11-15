@@ -5,8 +5,8 @@ import type { SeoLandingContent } from "@/lib/seo-landings";
 export function LandingLegalNote() {
   return (
     <p className="meta landing-legal">
-      Carga360go no es transportista, no cobra comisión por el flete y no garantiza el viaje. Cada cuenta tiene 30 días
-      gratis desde su inscripción. {BRAND.company} · RUT {BRAND.rut}.{" "}
+      Carga360go no es transportista y no garantiza el viaje. El costo del flete se calcula con ruta, peajes según ejes, diésel y
+      costos operacionales. {BRAND.company} · RUT {BRAND.rut}.{" "}
       <Link href="/terminos">Términos de uso</Link> · <Link href="/privacidad">Política de privacidad</Link> ·{" "}
       <Link href="/como-verificamos">Cómo verificamos</Link>.
     </p>

@@ -45,19 +45,17 @@ function account(role: "transportista" | "mandante", name: string, city = "Santi
 test("la portada usa el copy del paquete y no promete acreditación 100% ni auditorías de calidad", () => {
   const home = read("src/app/page.tsx");
   assert.match(home, /Conectamos cargas y camiones\. Movemos la industria de Chile\./);
-  assert.match(home, /Soy transportista: encuentra cargas/);
-  assert.match(home, /Soy empresa: encuentra camiones/);
-  assert.match(home, /Calcular un flete referencial/);
-  assert.match(home, /Carga360go conecta a las partes/);
-  assert.match(home, /\/como-verificamos/);
-  assert.match(home, /\/transporte-minero-chile/);
-  assert.match(home, /Carga360 Match/);
+  assert.match(home, /Mandante con carga/);
+  assert.match(home, /Transportista/);
+  assert.match(home, /\/mi-cuenta\?rol=mandante/);
+  assert.match(home, /\/mi-cuenta\?rol=transportista/);
+  assert.match(home, /Cómo funciona/);
+  assert.match(home, /Beneficios/);
+  assert.match(home, /RegionsDashboard/);
+  assert.doesNotMatch(home, /cityCoords|new google\.maps|L\.marker/);
   assert.doesNotMatch(home, /100% acreditad/);
   assert.doesNotMatch(home, /calidad, seguridad y medio ambiente/);
   assert.doesNotMatch(home, /La bolsa de carga de Chile que/);
-  // Modo arranque: no se pinta el panel de 16 regiones si casi todas van en cero.
-  assert.match(home, /showRegionPanel = activeRegions >= 3/);
-  assert.match(home, /if \(stats\.activeLoads > 0\)/);
   assert.doesNotMatch(home, /testimonios/i);
 });
 

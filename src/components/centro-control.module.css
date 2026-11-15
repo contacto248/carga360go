@@ -1,0 +1,110 @@
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 260px;
+  gap: 16px;
+  background: #020a18;
+  color: #e8eef8;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px 0 32px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.side a {
+  color: #e8eef8;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #12203a;
+}
+
+.agents {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agents h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.main h1 {
+  margin: 0 0 8px;
+  color: #fff;
+}
+
+.lede {
+  color: #9fb0c8;
+  margin: 0 0 12px;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.counts p,
+.section {
+  margin: 0 0 12px;
+  background: #12203a;
+  border: 1px solid #243656;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.counts span,
+.section p {
+  color: #9fb0c8;
+}
+
+.counts strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.section h2 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.map {
+  width: 100%;
+  height: auto;
+}
+.map path {
+  fill: #12203a;
+  stroke: #243656;
+}
+.section button {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  min-height: 44px;
+  border: 1px solid #ff6d00;
+  border-radius: 12px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  padding: 0 12px;
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -31,7 +31,13 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   const db = getDb();
   const version = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number };
   // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
-  assert.equal(version.v, 13);
+  // Migración 14: contacto de respaldo y verificación manual (solo lectura 30 días) en users.
+  // Migración 16: motor de costos (tablas cost_*). Se comprueba por número exacto para convivir con la 15 de otra rama.
+  assert.equal(version.v, 19);
+  assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 14`).get());
+  assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'cost_quotes'`).get());
+  const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
+  for (const col of ["backup_contact", "backup_contact_type", "manual_readonly_until", "manual_readonly_by"]) assert.ok(userCols.includes(col), col);
   const tables = db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'web_chat_%' ORDER BY name`).all() as { name: string }[];
   assert.deepEqual(tables.map((t) => t.name), ["web_chat_conversations", "web_chat_messages"]);
   const loadCols = db.prepare(`PRAGMA table_info(loads)`).all() as { name: string }[];
@@ -121,6 +127,9 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   assert.equal(load.soloVerificados, true);
   assert.equal(load.matches.length, 0);
   setUserVerification(transportista.id, "verificado", null);
+  // Solo el sello de cuenta no basta: sin documentos verificados al día no hay match (T-008 residual).
+  assert.equal(getLoad(load.id)?.matches.length, 0);
+  setDocumentVerification(padron.id, "verificado", null);
   const after = getLoad(load.id);
   assert.equal(after?.matches.length, 1);
   assert.equal(after?.matches[0]?.truck.ownerVerification, "verificado");

@@ -10,7 +10,7 @@ import { audit } from "./audit";
 import { notifyDocumentUploaded, notifyNewRegistration } from "./admin-notify";
 import fs from "fs";
 import { queueAlert } from "./alerts";
-import { assertCanPublish, assertMarketplaceAccess, canSeeContact, redactLoad, redactTruck } from "./access";
+import { assertCanPublish, assertMarketplaceAccess, canSeeContact, loadForViewer, redactLoad, redactTruck } from "./access";
 import {
   SESSION_TTL_MS,
   deleteOwnAccount,
@@ -20,6 +20,8 @@ import {
   sessionExpiresAt,
 } from "./auth";
 import { carrierChecklist, isCarrierLocked, reopenAfterUpload, REQUIRED_CARRIER_DOCS } from "./carrier";
+import { needsBackupContact } from "./backup-contact";
+import { accountStateOf, manualReadonlyOf } from "./manual-readonly";
 import { BRAND, CITIES, DOC_TYPES, EQUIPMENT, REGIONS, docTypeById, docTypeLabel } from "./catalog";
 import { getDb } from "./db";
 import {
@@ -35,7 +37,7 @@ import {
 import { AppError } from "./errors";
 import { FREE_DAYS } from "./campaign";
 import { assertLegalAccepted, privacyVersion, termsVersion } from "./privacy";
-import { createLoad, createTruck, deleteLoad, deleteTruck, getLoad, getTruck, listLoads, listTrucks } from "./listings";
+import { createLoad, createTruck, deleteLoad, deleteTruck, getTruck, listLoads, listTrucks } from "./listings";
 import { loadFromPayload, truckFromPayload } from "./payload";
 import { LOGIN_LIMIT, REGISTER_LIMIT, rateLimit } from "./rate-limit";
 import { bearerToken, clientIp, userFromHeaders } from "./request-auth";
@@ -117,6 +119,12 @@ export function gateOf(user: PublicUser) {
     canOffer: acc.accredited && user.role === "transportista",
     reviewUrl: `${SITE}/cuenta-en-revision`,
     checklist,
+    /** Estado efectivo: "verificado" | "manual_readonly" (solo lectura por verificación manual) | "pendiente" | "rechazado". */
+    accountState: accountStateOf(user),
+    /** Fecha ISO hasta la que dura la solo lectura manual; null si no aplica. Mientras dure no puede publicar ni ofertar. */
+    readonlyUntil: manualReadonlyOf(user.id).active ? manualReadonlyOf(user.id).until : null,
+    /** true si la verificación está pendiente y aún no deja un teléfono o correo de respaldo (se guarda en PATCH /api/cuenta). */
+    backupContactRequired: needsBackupContact(user.id),
   };
 }
 
@@ -174,6 +182,8 @@ export const register = mobile(async (request) => {
     city: String(data.city ?? ""),
     privacyVersion,
     termsVersion,
+    // Opcional en la app (compatibilidad con versiones ya publicadas); si falta, gate.backupContactRequired lo pide después.
+    backupContact: data.backupContact == null ? null : String(data.backupContact),
   });
   audit(result.user, "usuario.registro", { type: "usuario", id: result.user.id }, { role: result.user.role, canal: "app" }, clientIp(request.headers));
   audit(result.user, "usuario.privacidad_aceptada", { type: "usuario", id: result.user.id }, { version: privacyVersion, terminos: termsVersion, canal: "app" }, clientIp(request.headers));
@@ -230,7 +240,7 @@ function mobileLoad(load: LoadPublic) {
     createdAt: load.createdAt,
     updatedAt: load.updatedAt,
     demo: load.isDemo || undefined,
-    ownerId: load.ownerId,
+    ...(load.ownerId ? { ownerId: load.ownerId } : {}),
     ownerName: load.ownerName,
     whatsapp: load.whatsapp,
     contactHidden: load.contactHidden ?? false,
@@ -256,7 +266,7 @@ function mobileTruck(truck: TruckPublic) {
     createdAt: truck.createdAt,
     updatedAt: truck.updatedAt,
     demo: truck.isDemo || undefined,
-    ownerId: truck.ownerId,
+    ...(truck.ownerId ? { ownerId: truck.ownerId } : {}),
     ownerName: truck.ownerName,
     whatsapp: truck.whatsapp,
     contactHidden: truck.contactHidden ?? false,
@@ -302,9 +312,9 @@ export const loads = mobile((request) => {
 
 export const load = mobile((request, id) => {
   const viewer = viewerAllowed(request);
-  const item = id ? getLoad(id) : null;
-  if (!item) throw new AppError("Carga no encontrada.", 404);
-  return json(mobileLoad(redactLoad(item, viewer)));
+  const visible = id ? loadForViewer(id, viewer) : null;
+  if (!visible) throw new AppError("Carga no encontrada.", 404);
+  return json(mobileLoad(visible.load));
 });
 
 export const createLoadMobile = mobile(async (request) => {

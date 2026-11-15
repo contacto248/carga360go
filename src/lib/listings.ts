@@ -3,10 +3,13 @@ import { cityByName, equipmentById, isEquipmentId, isKnownCity } from "./catalog
 import { getDb } from "./db";
 import { AppError } from "./errors";
 import { todayChile } from "./format";
+import { publicVerifiedSeal } from "./public-trust";
+import { offersOpen } from "./offers";
 import { matchLoadsForTruck, matchTrucksForLoad } from "./match";
 import { canPublishLoad, canPublishTruck } from "./roles";
 import { cleanClp } from "./security";
 import { getSettings } from "./settings";
+import { assertNotManualReadonly } from "./manual-readonly";
 import type {
   LoadFilters,
   LoadListItem,
@@ -319,7 +322,8 @@ function allTrucks(): TruckPublic[] {
 
 function carrierFitsLoad(load: LoadPublic, truck: TruckPublic): boolean {
   if (truck.ownerId === load.ownerId) return false;
-  if (load.soloVerificados && truck.ownerVerification !== "verificado") return false;
+  // Misma regla que el sello público: verificado + documentos al día (T-008 residual).
+  if (load.soloVerificados && !publicVerifiedSeal(truck.ownerVerification, truck.ownerDocsOk)) return false;
   return true;
 }
 
@@ -378,6 +382,17 @@ export function equipmentList(value: string | undefined): string[] {
   return (value || "").split(",").map((item) => item.trim()).filter(Boolean);
 }
 
+/** Listado público y portada: abierta, con plazo de ofertas vigente y fecha de retiro no vencida. */
+export function isLoadListedPublicly(
+  load: Pick<LoadPublic, "status" | "offersUntil" | "pickupDate">,
+  now = new Date(),
+  today = todayChile(),
+): boolean {
+  if (load.status !== "abierta") return false;
+  if (load.pickupDate < today) return false;
+  return offersOpen(load, now);
+}
+
 export function loadPassesFilters(load: LoadPublic, filters: LoadFilters): boolean {
   const equipos = equipmentList(filters.equipo);
   if (equipos.length && !equipos.includes(load.equipment)) return false;
@@ -387,7 +402,7 @@ export function loadPassesFilters(load: LoadPublic, filters: LoadFilters): boole
   if (filters.destino && load.destination !== filters.destino) return false;
   if (filters.desde && load.pickupDate < filters.desde) return false;
   if (filters.pesoMin && load.weightT < Number(filters.pesoMin)) return false;
-  if (filters.verificados === "1" && load.ownerVerification !== "verificado") return false;
+  if (filters.verificados === "1" && !publicVerifiedSeal(load.ownerVerification, load.ownerDocsOk)) return false;
   if (filters.inmediata === "1" && !load.inmediata) return false;
   if (filters.q) {
     const needle = filters.q.toLowerCase();
@@ -406,7 +421,7 @@ export function truckPassesFilters(truck: TruckPublic, filters: TruckFilters): b
   if (filters.destino && truck.destination !== filters.destino) return false;
   if (filters.dia && (truck.availableFrom > filters.dia || truck.availableTo < filters.dia)) return false;
   if (filters.capacidadMin && truck.tonnage < Number(filters.capacidadMin)) return false;
-  if (filters.verificados === "1" && truck.ownerVerification !== "verificado") return false;
+  if (filters.verificados === "1" && !publicVerifiedSeal(truck.ownerVerification, truck.ownerDocsOk)) return false;
   return true;
 }
 
@@ -419,13 +434,15 @@ function sortItems<T extends { createdAt: string; matches: unknown[] }>(items: T
 
 export function listLoads(filters: LoadFilters = {}): LoadListItem[] {
   // Las solicitudes ya adjudicadas o cerradas salen del listado público (siguen visibles en el panel y por enlace).
-  const loads = allLoads().filter((load) => load.status === "abierta" && loadPassesFilters(load, filters));
+  const loads = allLoads().filter((load) => isLoadListedPublicly(load) && loadPassesFilters(load, filters));
   return sortItems(withLoadMatches(loads, allTrucks()), filters.orden, (load) => load.pickupDate);
 }
 
 export function listTrucks(filters: TruckFilters = {}): TruckListItem[] {
   const trucks = allTrucks().filter((truck) => truckPassesFilters(truck, filters));
-  return sortItems(withTruckMatches(trucks, allLoads()), filters.orden, (truck) => truck.availableFrom);
+  // El listado público solo empareja con cargas abiertas (las adjudicadas o cerradas no se revelan aquí).
+  const openLoads = allLoads().filter((load) => isLoadListedPublicly(load));
+  return sortItems(withTruckMatches(trucks, openLoads), filters.orden, (truck) => truck.availableFrom);
 }
 
 /** Todas las publicaciones (para estadísticas y alertas). */
@@ -442,7 +459,8 @@ export function getLoad(id: string): LoadListItem | null {
 export function getTruck(id: string): TruckListItem | null {
   const row = getDb().prepare(`${TRUCK_SELECT} WHERE t.id = ?`).get(id) as TruckRow | undefined;
   if (!row) return null;
-  return withTruckMatches([mapTruck(row)], allLoads())[0] ?? null;
+  const openLoads = allLoads().filter((load) => isLoadListedPublicly(load));
+  return withTruckMatches([mapTruck(row)], openLoads)[0] ?? null;
 }
 
 function assertOwner(ownerId: string, user: PublicUser) {
@@ -450,6 +468,8 @@ function assertOwner(ownerId: string, user: PublicUser) {
 }
 
 export function createLoad(user: PublicUser, input: LoadInput, isDemo = false): LoadListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "publicar cargas");
   if (!canPublishLoad(user.role)) {
     throw new AppError("Solo un mandante o un administrador puede publicar cargas.", 403);
   }
@@ -489,6 +509,8 @@ export function createLoad(user: PublicUser, input: LoadInput, isDemo = false): 
 }
 
 export function updateLoad(user: PublicUser, id: string, input: LoadInput): LoadListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "editar publicaciones");
   const current = getDb().prepare(`SELECT owner_id, status, offers_until FROM loads WHERE id = ?`).get(id) as
     | { owner_id: string; status: string | null; offers_until: string | null }
     | undefined;
@@ -537,6 +559,8 @@ export function deleteLoad(user: PublicUser, id: string) {
 }
 
 export function createTruck(user: PublicUser, input: TruckInput, isDemo = false): TruckListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "publicar camiones");
   if (!canPublishTruck(user.role)) {
     throw new AppError("Solo un transportista o un administrador puede publicar camiones.", 403);
   }
@@ -571,6 +595,8 @@ export function createTruck(user: PublicUser, input: TruckInput, isDemo = false)
 }
 
 export function updateTruck(user: PublicUser, id: string, input: TruckInput): TruckListItem {
+  // Defensa en profundidad: con solo lectura manual vigente no se publica ni edita, venga de la web, la app o la API.
+  if (user.role !== "admin") assertNotManualReadonly(user, "editar publicaciones");
   const current = getDb().prepare(`SELECT owner_id FROM trucks WHERE id = ?`).get(id) as { owner_id: string } | undefined;
   if (!current) throw new AppError("Camión no encontrado.", 404);
   assertOwner(current.owner_id, user);

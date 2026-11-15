@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "./bassam/schema";
+import { seedTolls } from "./costos/tolls-seed";
 import Database from "better-sqlite3";
 import { addDaysIso, FREE_DAYS, freeUntilFrom } from "./campaign";
 import { todayChile } from "./format";
@@ -97,6 +99,193 @@ CREATE INDEX idx_trucks_equipment ON trucks(equipment);
 CREATE INDEX idx_documents_user ON documents(user_id);
 `;
 
+/** Migración 14: columnas nuevas de users (todas TEXT y nulas). */
+export const MIGRATION_14_USER_COLUMNS = [
+  "backup_contact",
+  "backup_contact_type",
+  "backup_contact_at",
+  "manual_readonly_until",
+  "manual_readonly_at",
+  "manual_readonly_by",
+  "manual_readonly_by_email",
+] as const;
+
+/** Migración 15: agente comercial. Tablas nuevas, sin tocar las existentes (ver docs/migrations/015-agente-comercial.sql). */
+export const MIGRATION_15_SQL = `
+  CREATE TABLE IF NOT EXISTS agent_conversations (
+    id TEXT PRIMARY KEY,
+    channel TEXT NOT NULL CHECK (channel IN ('web', 'whatsapp', 'telefono')),
+    session_key TEXT NOT NULL,
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    ip_hash TEXT,
+    state TEXT NOT NULL DEFAULT '{}',
+    last_intent TEXT,
+    handoff_at TEXT,
+    message_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_conv_session ON agent_conversations(channel, session_key);
+  CREATE INDEX IF NOT EXISTS idx_agent_conv_updated ON agent_conversations(updated_at);
+  CREATE TABLE IF NOT EXISTS agent_messages (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+    role TEXT NOT NULL CHECK (role IN ('cliente', 'agente', 'sistema')),
+    body TEXT NOT NULL,
+    via TEXT CHECK (via IN ('texto', 'voz')),
+    engine TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_msg_conv ON agent_messages(conversation_id, created_at);
+  CREATE TABLE IF NOT EXISTS agent_leads (
+    id TEXT PRIMARY KEY,
+    code TEXT NOT NULL UNIQUE,
+    conversation_id TEXT REFERENCES agent_conversations(id) ON DELETE SET NULL,
+    channel TEXT NOT NULL CHECK (channel IN ('web', 'whatsapp', 'telefono')),
+    kind TEXT NOT NULL CHECK (kind IN ('cotizacion', 'registro', 'derivacion')),
+    status TEXT NOT NULL DEFAULT 'nuevo' CHECK (status IN ('nuevo', 'en_gestion', 'cerrado', 'descartado')),
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    name TEXT,
+    contact TEXT,
+    contact_type TEXT CHECK (contact_type IS NULL OR contact_type IN ('email', 'telefono')),
+    backup_contact TEXT,
+    backup_contact_type TEXT CHECK (backup_contact_type IS NULL OR backup_contact_type IN ('email', 'telefono')),
+    role TEXT,
+    data TEXT NOT NULL DEFAULT '{}',
+    summary TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_leads_created ON agent_leads(created_at);
+  CREATE INDEX IF NOT EXISTS idx_agent_leads_status ON agent_leads(status, kind);
+  CREATE TABLE IF NOT EXISTS load_tracking_codes (
+    load_id TEXT PRIMARY KEY REFERENCES loads(id) ON DELETE CASCADE,
+    code TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS agent_otp_challenges (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+    load_id TEXT REFERENCES loads(id) ON DELETE CASCADE,
+    channel TEXT NOT NULL CHECK (channel IN ('email', 'whatsapp')),
+    code_hash TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_agent_otp_conv ON agent_otp_challenges(conversation_id, created_at);
+`;
+
+/** Migración 16: tablas del motor de costos (ver docs/migrations/016-motor-costos.sql). */
+export const MIGRATION_16_SQL = `
+CREATE TABLE IF NOT EXISTS cost_params (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  updated_by TEXT
+);
+CREATE TABLE IF NOT EXISTS cost_geocode_cache (
+  key TEXT PRIMARY KEY,
+  lat REAL NOT NULL,
+  lon REAL NOT NULL,
+  label TEXT NOT NULL,
+  region TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS cost_route_cache (
+  key TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  fetched_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS cost_sources (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('peaje', 'diesel')),
+  name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  expected_sha256 TEXT,
+  last_sha256 TEXT,
+  status TEXT NOT NULL,
+  last_ok_at TEXT,
+  last_error TEXT,
+  last_error_at TEXT,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS cost_toll_plazas (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  concession TEXT NOT NULL,
+  route TEXT NOT NULL,
+  km TEXT,
+  lat REAL NOT NULL,
+  lon REAL NOT NULL,
+  direction TEXT NOT NULL CHECK (direction IN ('ambos', 'norte', 'sur')),
+  scheme TEXT NOT NULL CHECK (scheme IN ('ejes', 'remolque')),
+  kind TEXT NOT NULL,
+  location_source TEXT NOT NULL,
+  location_note TEXT NOT NULL,
+  source_id TEXT NOT NULL REFERENCES cost_sources(id),
+  note TEXT,
+  active INTEGER NOT NULL DEFAULT 1
+);
+CREATE TABLE IF NOT EXISTS cost_toll_rates (
+  id TEXT PRIMARY KEY,
+  plaza_id TEXT NOT NULL REFERENCES cost_toll_plazas(id),
+  category TEXT NOT NULL,
+  rate_type TEXT NOT NULL CHECK (rate_type IN ('unica', 'TBFP', 'TBP')),
+  amount REAL NOT NULL CHECK (amount > 0),
+  valid_from TEXT NOT NULL,
+  valid_to TEXT NOT NULL,
+  source_id TEXT NOT NULL REFERENCES cost_sources(id),
+  checked_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_cost_toll_rates_plaza ON cost_toll_rates(plaza_id, category);
+CREATE TABLE IF NOT EXISTS cost_diesel_prices (
+  id TEXT PRIMARY KEY,
+  source_id TEXT NOT NULL,
+  zone TEXT NOT NULL,
+  price REAL NOT NULL,
+  price_min REAL,
+  price_max REAL,
+  unit TEXT NOT NULL,
+  fetched_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_cost_diesel_zone ON cost_diesel_prices(zone, fetched_at);
+CREATE TABLE IF NOT EXISTS cost_job_runs (
+  id TEXT PRIMARY KEY,
+  job TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  finished_at TEXT NOT NULL,
+  ok INTEGER NOT NULL,
+  detail TEXT
+);
+CREATE TABLE IF NOT EXISTS cost_quotes (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL DEFAULT 'borrador' CHECK (status IN ('borrador', 'revisada', 'enviada', 'descartada')),
+  channel TEXT NOT NULL,
+  origin_label TEXT NOT NULL,
+  destination_label TEXT NOT NULL,
+  vehicle TEXT NOT NULL,
+  distance_km REAL,
+  base_cost INTEGER NOT NULL,
+  reference_price INTEGER NOT NULL,
+  complete INTEGER NOT NULL,
+  method TEXT NOT NULL,
+  input TEXT NOT NULL,
+  result TEXT NOT NULL,
+  contact TEXT,
+  created_by TEXT,
+  created_at TEXT NOT NULL,
+  reviewed_by TEXT,
+  reviewed_by_email TEXT,
+  reviewed_at TEXT,
+  review_note TEXT,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_cost_quotes_status ON cost_quotes(status, created_at);
+`;
+
 let database: Database.Database | null = null;
 
 export function databasePath(): string {
@@ -122,6 +311,11 @@ export function getDb(): Database.Database {
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
+}
+
+/** true si esa migración exacta ya se aplicó (independiente de MAX(version)). */
+function hasMigration(db: Database.Database, version: number): boolean {
+  return Boolean(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = ?`).get(version));
 }
 
 function hasColumn(db: Database.Database, table: string, column: string): boolean {
@@ -467,6 +661,74 @@ function migrate(db: Database.Database) {
         CREATE INDEX IF NOT EXISTS idx_ai_call_day ON ai_call_log(day, status);
       `);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (13, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (schemaVersion(db) < 14 || MIGRATION_14_USER_COLUMNS.some((column) => !hasColumn(db, "users", column))) {
+    const apply = db.transaction(() => {
+      // Contacto de respaldo (teléfono o correo) para cuentas con verificación pendiente, y verificación manual
+      // del administrador: acceso de solo lectura por 30 días (estado efectivo "manual_readonly", ver manual-readonly.ts).
+      // Solo agrega columnas nulas: no cambia datos existentes. Copia legible en docs/migrations/014-verificacion-respaldo.sql.
+      for (const column of MIGRATION_14_USER_COLUMNS) {
+        if (!hasColumn(db, "users", column)) db.exec(`ALTER TABLE users ADD COLUMN ${column} TEXT`);
+      }
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_users_manual_readonly ON users(manual_readonly_until)`);
+      // Algunas instalaciones usaron la versión 14 para ingreso_sin_documentos.
+      // Reconciliar las columnas faltantes conserva ese campo y el registro original.
+      db.prepare(`INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 15)) {
+    const apply = db.transaction(() => {
+      // Agente comercial (web, WhatsApp y teléfono): conversaciones, mensajes y leads. Solo crea tablas nuevas.
+      // Se comprueba por número exacto (no por MAX) para no saltarse si la 16 se aplicó antes:
+      // no modifica ni borra datos existentes. Copia legible en docs/migrations/015-agente-comercial.sql.
+      db.exec(MIGRATION_15_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (15, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 16)) {
+    const apply = db.transaction(() => {
+      // Motor de costos logísticos: parámetros, cachés de ruta y geocodificación, plazas y tarifas de peaje con
+      // fuente y vigencia, histórico del diésel, estado de fuentes, corridas del job y cotizaciones con revisión.
+      // Solo crea tablas nuevas. Se comprueba por número exacto (no por MAX) para convivir con la migración 15
+      // de otra rama. Copia legible en docs/migrations/016-motor-costos.sql.
+      db.exec(MIGRATION_16_SQL);
+      seedTolls(db);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (16, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 17)) {
+    const apply = db.transaction(() => {
+      // Tablas de solicitudes, transportistas, documentos y el historial BASSAM 360.
+      // Solo crea tablas nuevas. No inserta personas. Copia en docs/migrations/017-bassam-tablas.sql.
+      db.exec(MIGRATION_17_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (17, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasColumn(db, "transportistas", "user_id")) db.exec(`ALTER TABLE transportistas ADD COLUMN user_id TEXT`);
+  if (!hasMigration(db, 18)) {
+    db.pragma("foreign_keys = OFF");
+    try {
+      const apply = db.transaction(() => {
+        // tipo_cliente transportista o mandante. El SELECT copia filas ya guardadas y no agrega ejemplos.
+        db.exec(MIGRATION_18_SQL);
+        db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (18, ?)`).run(new Date().toISOString());
+      });
+      apply();
+    } finally {
+      db.pragma("foreign_keys = ON");
+    }
+  }
+  if (!hasMigration(db, 19)) {
+    const apply = db.transaction(() => {
+      // Columna para el RUT leído del archivo. No inserta filas.
+      if (!hasColumn(db, "documentos_acreditacion", "rut_extraido")) db.exec(`ALTER TABLE documentos_acreditacion ADD COLUMN rut_extraido TEXT`);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (19, ?)`).run(new Date().toISOString());
     });
     apply();
   }

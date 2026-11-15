@@ -107,6 +107,7 @@ Al arrancar, la app aplica las migraciones que falten en `schema_migrations`. No
 | --- | --- |
 | 1 | Tablas iniciales: usuarios, sesiones, restablecimientos, cargas, camiones y documentos. |
 | 2 | `loads.solo_verificados`. En `documents`: `audience` (`camion` o `personal`), `detail` (clase de licencia) y `holder_name`. Los tipos de camión que ya existían quedan con audiencia `camion`. |
+| 14 | En `users`: contacto de respaldo (`backup_contact`, `backup_contact_type`, `backup_contact_at`) y verificación manual de solo lectura por 30 días (`manual_readonly_until`, `manual_readonly_at`, `manual_readonly_by`, `manual_readonly_by_email`). Ver `docs/VERIFICACION-RESPALDO.md`. |
 
 ## Despliegue en AlmaLinux 9
 

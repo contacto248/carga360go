@@ -8,7 +8,7 @@ import { termsMeta } from "@/lib/terms";
 export const metadata: Metadata = {
   title: "Términos de uso",
   description:
-    "Condiciones de uso de Carga360go para transportistas, mandantes y empresas con carga: acreditación, contactos, campaña de inscripción con 30 días gratis y futura membresía.",
+    "Condiciones de uso de Carga360go para transportistas, mandantes y empresas con carga: acreditación, contactos y uso de la plataforma.",
   alternates: { canonical: "/terminos" },
 };
 export const dynamic = "force-dynamic";

@@ -1,364 +1,73 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FreeBanner } from "@/components/FreeBanner";
-import { WhatsAppChannel } from "@/components/WhatsAppChannel";
-import { QuickSearch } from "@/components/QuickSearch";
-import { getCurrentUser } from "@/lib/current-user";
-import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
-import { TruckArt } from "@/components/TruckArt";
-import { BRAND, EQUIPMENT, equipmentById } from "@/lib/catalog";
-import { formatDateCL, waLink } from "@/lib/format";
 import { RegionsDashboard } from "@/components/RegionsDashboard";
-import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
+import { regionIndicators } from "@/lib/stats";
+import styles from "./home.module.css";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
-const FAQ = [
-  {
-    q: "¿Cuánto cuesta?",
-    a: "Estamos en campaña de inscripción: cada cuenta tiene 30 días gratis desde su inscripción. Después se cobrará una membresía, con valores por definir. Te avisaremos con anticipación y no se cobra nada automáticamente sin tu aceptación. Carga360go no cobra comisión por el flete.",
-  },
-  {
-    q: "¿Quién ve el contacto?",
-    a: "Nadie, hasta que se adjudica una oferta. El listado muestra ruta, equipo y fecha, sin nombre ni teléfono. Cuando el mandante elige, el WhatsApp y el correo se comparten solo entre él y el transportista elegido.",
-  },
-  {
-    q: "¿Qué significa verificado?",
-    a: "Que revisamos contacto y, en transportistas, documentos vigentes, con aprobación de un administrador. No es una garantía de solvencia, seguridad ni cumplimiento. Ver /como-verificamos.",
-  },
-  {
-    q: "¿Qué cargas se mueven?",
-    a: "Carga general, paletizada, refrigerada, a granel, líquida, contenedores, vehículos y carga sobredimensionada, de comercio, construcción, agro, retail, industria, distribución y minería. El foco de diferenciación está en minería, cama baja y retornos.",
-  },
-  {
-    q: "¿Qué es Carga360 Match?",
-    a: "Una recomendación automática que compara equipo, capacidad, medidas, ruta y fechas, y muestra un porcentaje de calce con las razones y lo que falta confirmar. No garantiza contratación ni aptitud del viaje.",
-  },
-  {
-    q: "¿Cómo funcionan las alertas?",
-    a: "Si una carga o un camión calza con lo tuyo, o con una búsqueda que guardaste, te avisamos por correo. Puedes pausarlas cuando quieras. Las alertas por WhatsApp no están activas; si se habilitan, serán opt-in.",
-  },
-  {
-    q: "¿El precio sugerido es una cotización?",
-    a: "No. Es un rango referencial según distancia estimada y tipo de equipo. El precio final lo acuerdan las partes.",
-  },
-  {
-    q: "¿Carga360go cobra o retiene el flete?",
-    a: "No. El acuerdo y el pago son directos entre mandante y transportista. Carga360go conecta a las partes.",
-  },
+const PASOS = [
+  { n: "1", title: "Datos", text: "Entra a Mi cuenta. El saludo usa el nombre de tu sesión." },
+  { n: "2", title: "Subir documentos", text: "En Mi cuenta ves solo la lista de tu tipo. No se mezclan." },
+  { n: "3", title: "Estado", text: "Ves Sin datos, En revisión o Acreditado. El admin confirma." },
 ];
 
-function Counter({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="counter">
-      <strong>{value.toLocaleString("es-CL")}</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
+const BENEFICIOS = [
+  { title: "Un solo lugar", text: "Te acreditas en /mi-cuenta. No hay otra pantalla para adjuntar." },
+  { title: "Dos caminos", text: "Publicar carga es para el mandante. Ofrecer el camión es para el transportista." },
+  { title: "Sin aprobación automática", text: "El agente lee documentos reales y no aprueba solo." },
+];
 
-export default async function HomePage() {
-  const user = await getCurrentUser();
-  const whatsapp = waLink(BRAND.whatsapp, BRAND.infoMessage);
-  const stats = liveStats();
-  const recent = recentListings(5);
-  const indicators = regionIndicators();
-  const visibleCounters: { value: number; label: string }[] = [];
-  if (stats.activeLoads > 0) visibleCounters.push({ value: stats.activeLoads, label: "cargas activas" });
-  if (stats.activeTrucks > 0) visibleCounters.push({ value: stats.activeTrucks, label: "camiones y retornos" });
-  if (stats.matches > 0) visibleCounters.push({ value: stats.matches, label: "calces posibles hoy" });
-  if (stats.verifiedCarriers > 0) visibleCounters.push({ value: stats.verifiedCarriers, label: "transportistas verificados" });
-  if (stats.regionsActive > 0) visibleCounters.push({ value: stats.regionsActive, label: "regiones con avisos" });
-  const activeRegions = indicators.filter((region) => region.activity > 0).length;
-  // En modo arranque no exhibimos el mapa ni la tabla de 16 regiones en cero.
-  const showRegionPanel = activeRegions >= 3;
-
+export default function HomePage() {
+  const regions = regionIndicators();
   return (
     <>
-      <div className="wrap" style={{ paddingTop: 12 }}>
-        <FreeBanner user={user} />
-      </div>
-      <section className="hero hero2">
-        <div className="wrap hero-grid">
-          <div>
-            <span className="pill hero-pill">30 días gratis por cuenta · 16 regiones · de Arica a Punta Arenas</span>
-            <h1>Conectamos cargas y camiones. Movemos la industria de Chile.</h1>
-            <p>
-              Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y coordina en directo. Menos
-              viajes en vacío, sin comisión por el flete.
-            </p>
-            <QuickSearch />
-            <div className="cta">
-              <Link className="btn" href="/cargas">
-                Soy transportista: encuentra cargas
-              </Link>
-              <Link className="btn ghost" href="/camiones">
-                Soy empresa: encuentra camiones
-              </Link>
-              <Link className="btn ghost" href="/herramientas/calculadora">
-                Calcular un flete referencial
-              </Link>
-            </div>
-            <p className="hero-legal">
-              Carga360go conecta a las partes. El acuerdo y el pago son directos. {BRAND.company} · RUT {BRAND.rut}.
-            </p>
-          </div>
-          <aside className="live-board" aria-label="Últimas publicaciones">
-            <div className="lb-head">
-              <span className="dot-live" /> Bolsa en vivo
-              <Link href="/cargas" className="lb-all">
-                Ver todo →
-              </Link>
-            </div>
-            {recent.length === 0 ? (
-              <div className="lb-empty">
-                <strong>Todavía no hay avisos activos.</strong>
-                <p>Sé de los primeros en publicar: tu aviso aparece aquí y avisamos a quienes calzan.</p>
-                <div className="row">
-                  <Link className="btn sm" href="/cargas/nueva">
-                    Publicar carga
-                  </Link>
-                  <Link className="btn sec sm" href="/camiones/nuevo">
-                    Publicar camión
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <ul className="lb-list">
-                {recent.map((item) => {
-                  const eq = equipmentById(item.equipment);
-                  return (
-                    <li key={`${item.kind}-${item.id}`}>
-                      <Link href={`/${item.kind === "carga" ? "cargas" : "camiones"}/${item.id}`}>
-                        <span className={`lb-kind ${item.kind}`}>{item.kind === "carga" ? "Carga" : "Camión"}</span>
-                        <span className="lb-route">
-                          {item.origin} → {item.destination}
-                        </span>
-                        <span className="lb-meta">
-                          {eq.icon} {eq.label} · {item.amount} · {item.kind === "carga" ? "retiro" : "desde"} {formatDateCL(item.date)}
-                          {item.verified ? " · ✔ verificado" : ""}
-                        </span>
-                        <span className="lb-time">{timeAgo(item.createdAt)}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </aside>
-        </div>
-      </section>
-
-      {visibleCounters.length > 0 ? (
-        <section className="counters-band">
-          <div className="wrap">
-            <div className="counters">
-              {visibleCounters.map((item) => (
-                <Counter key={item.label} value={item.value} label={item.label} />
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="block">
+      <section className={styles.hero}>
         <div className="wrap">
-          <h2>Cómo funciona para cada lado</h2>
-          <div className="grid c2 paths" style={{ marginTop: 16 }}>
-            <div className="card path">
-              <span className="path-ic">🏢</span>
-              <h3>Empresas y mandantes</h3>
-              <p>
-                1) Crea tu cuenta y acepta términos y privacidad. 2) Publica la carga: origen, destino, fecha, peso, equipo y
-                medidas. Verás un rango referencial, que no es una cotización. 3) Recibe ofertas dentro del plazo de la carga, o revisa camiones
-                compatibles. 4) Elige una oferta; recién ahí ambas partes ven el contacto y coordinan por WhatsApp. Sin
-                comisión por el flete.
-              </p>
-              <Link className="btn sm" href="/cargas/nueva">
-                Publicar una carga
-              </Link>
-            </div>
-            <div className="card path">
-              <span className="path-ic">🚛</span>
-              <h3>Transportistas</h3>
-              <p>
-                1) Crea tu cuenta, confirma correo y teléfono y sube tus documentos. 2) Cuando un administrador aprueba,
-                publica tu camión o tu retorno. 3) Recibe alertas por correo cuando una carga calza; WhatsApp, solo si más
-                adelante lo autorizas y la función está activa. 4) Oferta; si te eligen, coordinas en directo con el
-                mandante.
-              </p>
-              <Link className="btn sm" href="/camiones/nuevo">
-                Publicar un camión o retorno
-              </Link>
-            </div>
-          </div>
-          <WhatsAppChannel />
-        </div>
-      </section>
-
-      <section className="block alt">
-        <div className="wrap">
-          <h2>Minería, cama baja y retornos</h2>
-          <p className="lead">
-            Carga360go está abierta a carga general y masiva en todo Chile, y se diferencia cuando el viaje pide un equipo
-            concreto o un retorno útil. Servimos a empresas mineras, contratistas y proveedores que necesitan transporte
-            apto para faena; a quien mueve maquinaria con cama baja o rampla; y a transportistas que quieren llenar el viaje
-            de vuelta. No competimos solo por cantidad de avisos: competimos por compatibilidad técnica y documentación en
-            orden.
-          </p>
-          <div className="grid c3" style={{ marginTop: 16 }}>
-            <Link href="/transporte-minero-chile" className="card cat">
-              <div>
-                <h3>Transporte minero</h3>
-                <p>Cargas, retornos y equipos aptos hacia y desde zonas de operación.</p>
-              </div>
+          <h1>Conectamos cargas y camiones. Movemos la industria de Chile.</h1>
+          <p className={styles.lead}>Parte por el tipo. Cada camino abre su propia lista de documentos.</p>
+          <div className={styles.cta}>
+            <Link className={`${styles.big} ${styles.primary}`} href="/mi-cuenta?rol=mandante">
+              Mandante con carga
             </Link>
-            <Link href="/cama-baja-y-maquinaria" className="card cat">
-              <div>
-                <h3>Cama baja y maquinaria</h3>
-                <p>Ficha con ejes, ancho, capacidad y medidas, no un listado genérico.</p>
-              </div>
-            </Link>
-            <Link href="/cargas-de-retorno-mineras" className="card cat">
-              <div>
-                <h3>Cargas de retorno</h3>
-                <p>Publica el viaje de vuelta y recibe alertas cuando aparezca un calce.</p>
-              </div>
+            <Link className={`${styles.big} ${styles.secondary}`} href="/mi-cuenta?rol=transportista">
+              Transportista
             </Link>
           </div>
         </div>
       </section>
-
-      <section className="block">
+      <section className={styles.block} aria-label="Mapa de camiones y cargas">
         <div className="wrap">
-          <div className="rdash-head">
-            <div>
-              <h2>Cobertura</h2>
-              <p className="lead">
-                Operamos en las 16 regiones, de Arica a Punta Arenas. Para arrancar con actividad útil, priorizamos tres
-                corredores piloto: Calama–Antofagasta, Calama–Copiapó y Antofagasta–Copiapó. Esa prioridad se confirma o se
-                ajusta según demanda real, no se presenta como cobertura ya lograda.
-              </p>
-            </div>
-            <Link className="btn sec sm" href="/regiones">
-              Abrir panel de regiones →
-            </Link>
-          </div>
-          {showRegionPanel ? (
-            <RegionsDashboard regions={indicators} compact />
-          ) : (
-            <p className="notice" style={{ marginTop: 12 }}>
-              Mientras casi todas las regiones van en cero, no mostramos un mapa ni una tabla vacía. Si hay avisos reales,
-              aparecen arriba, en la bolsa en vivo, con su fecha. El panel completo permanece en{" "}
-              <Link href="/regiones">/regiones</Link>.
-            </p>
-          )}
+          <h2>Camiones y cargas</h2>
+          <p className={styles.lead}>El mapa usa los avisos reales por región. Sin coordenadas guardadas no se marcan puntos.</p>
+          <RegionsDashboard regions={regions} compact />
         </div>
       </section>
-
-      <section className="block alt">
+      <section className={styles.block}>
         <div className="wrap">
-          <h2>Qué significa verificado</h2>
-          <p className="lead">
-            Una cuenta verificada es una cuenta a la que un administrador ya le revisó el correo, y en el caso de los
-            transportistas también el teléfono y los documentos pedidos (cédula, licencia profesional, padrón, revisión
-            técnica, SOAP y permiso de circulación), que deben estar vigentes. Documentos al día significa que no hay
-            vencidos; el semáforo avisa 30 días antes. Verificado no significa que Carga360go avale solvencia, seguridad
-            operacional, idoneidad en faena ni el cumplimiento del transporte. Cada parte debe hacer su propia diligencia
-            antes de contratar. El detalle está en <Link href="/como-verificamos">Cómo verificamos</Link>.
-          </p>
-          <div className="grid c3" style={{ marginTop: 14 }}>
-            <div className="card trust">
-              <span className="badge-v">✔ Verificado</span>
-              <p>
-                Revisión de contacto y, en transportistas, de documentos vigentes, con aprobación de un administrador. No es
-                un sello de solvencia ni de seguridad operacional.
-              </p>
-            </div>
-            <div className="card trust">
-              <span className="badge-l">🔒 Contacto protegido</span>
-              <p>Nadie ve WhatsApp, teléfono ni correo hasta que se adjudica una oferta, y entonces solo las dos partes.</p>
-            </div>
-            <div className="card trust">
-              <span className="badge-f">30 días gratis desde tu inscripción</span>
-              <p>
-                Sin comisión por flete. El acuerdo y el pago son directos entre las partes. {BRAND.company} · RUT {BRAND.rut}.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="block">
-        <div className="wrap">
-          <h2>Equipos con ficha técnica</h2>
-          <p className="lead">
-            Cada equipo pide los datos que importan: la cama baja pide ejes y ancho; el refrigerado, temperatura; la tolva
-            y el estanque, metros cúbicos.
-          </p>
-          <div className="grid c4 eq-grid" style={{ marginTop: 16 }}>
-            {EQUIPMENT.filter((item) => item.id !== "otro").map((item) => (
-              <Link key={item.id} href={`/cargas?equipo=${item.id}`} className="card eq-tile">
-                <TruckArt id={item.id} />
-                <h3>{item.label}</h3>
-                <span className="eqcap">{EQUIPMENT_CAPACITY[item.id]}</span>
-                <p>{item.desc}</p>
-              </Link>
+          <h2>Cómo funciona</h2>
+          <div className={styles.steps}>
+            {PASOS.map((paso) => (
+              <article className={styles.card} key={paso.n}>
+                <h3>
+                  {paso.n}. {paso.title}
+                </h3>
+                <p>{paso.text}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
-
-      <section className="block alt">
+      <section className={styles.block}>
         <div className="wrap">
-          <h2>Próximamente</h2>
-          <p className="lead">Estamos trabajando en estas funciones. Todavía no están activas:</p>
-          <ul className="soon">
-            <li>Alertas y códigos de verificación por WhatsApp</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="block">
-        <div className="wrap">
-          <h2>Preguntas frecuentes</h2>
-          <div className="faq" style={{ marginTop: 12 }}>
-            {FAQ.map((item) => (
-              <details key={item.q} className="card">
-                <summary>{item.q}</summary>
-                <p>
-                  {item.q === "¿Qué significa verificado?" ? (
-                    <>
-                      Que revisamos contacto y, en transportistas, documentos vigentes, con aprobación de un administrador.
-                      No es una garantía de solvencia, seguridad ni cumplimiento. Ver{" "}
-                      <Link href="/como-verificamos">Cómo verificamos</Link>.
-                    </>
-                  ) : (
-                    item.a
-                  )}
-                </p>
-              </details>
+          <h2>Beneficios</h2>
+          <div className={styles.benefits}>
+            {BENEFICIOS.map((item) => (
+              <article className={styles.card} key={item.title}>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="block">
-        <div className="wrap">
-          <div className="cta-band">
-            <h2>Publica tu primera carga o tu camión</h2>
-            <p>
-              Tienes 30 días gratis desde tu inscripción. Registra tu empresa o tu cuenta de transportista, o escríbenos a{" "}
-              {BRAND.email} o al WhatsApp publicado en el sitio.
-            </p>
-            <div className="cta">
-              <Link className="btn" href="/registro">
-                Crear cuenta gratis
-              </Link>
-              <a className="btn wa" href={whatsapp} target="_blank" rel="noopener noreferrer">
-                WhatsApp {BRAND.whatsappDisplay}
-              </a>
-            </div>
           </div>
         </div>
       </section>

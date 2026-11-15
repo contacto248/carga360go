@@ -2,6 +2,8 @@ import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 import { audit } from "./audit";
 import { freeUntilFrom } from "./campaign";
 import { assertStrongPassword } from "./security";
+import { parseBackupContact } from "./backup-contact";
+import { readonlyActive } from "./manual-readonly";
 import { CITIES } from "./catalog";
 import { getDb } from "./db";
 import { AppError } from "./errors";
@@ -43,6 +45,7 @@ type UserRow = {
   locked_until: string | null;
   created_at: string;
   free_until?: string | null;
+  manual_readonly_until?: string | null;
 };
 
 export function hashPassword(password: string): string {
@@ -94,6 +97,7 @@ export function toPublicUser(row: UserRow): PublicUser {
     verifiedAt: row.verified_at ?? null,
     createdAt: row.created_at,
     freeUntil: row.role === "admin" ? null : (row.free_until ?? freeUntilFrom(row.created_at)),
+    manualReadonlyUntil: readonlyActive(row) ? (row.manual_readonly_until ?? null) : null,
   };
 }
 
@@ -117,6 +121,10 @@ export type RegisterInput = {
   /** Versión de la Política de Privacidad aceptada (las rutas de registro la exigen). */
   privacyVersion?: string | null;
   termsVersion?: string | null;
+  /** Teléfono chileno o correo de respaldo, distinto del principal (ver backup-contact.ts). */
+  backupContact?: string | null;
+  /** La web exige el contacto de respaldo al registrarse; la API móvil lo deja opcional (lo pide después). */
+  requireBackupContact?: boolean;
 };
 
 function cleanRegister(input: RegisterInput, allowAdmin: boolean): Omit<RegisterInput, "role"> & { role: Role } {
@@ -154,6 +162,8 @@ function cleanRegister(input: RegisterInput, allowAdmin: boolean): Omit<Register
 
 export function registerUser(input: RegisterInput): { user: PublicUser; token: string } {
   const data = cleanRegister(input, false);
+  const rawBackup = input.backupContact == null ? "" : String(input.backupContact).trim();
+  const backup = rawBackup || input.requireBackupContact ? parseBackupContact(rawBackup, { email: data.email, whatsapp: data.whatsapp }) : null;
   const db = getDb();
   const existing = findByEmail(data.email);
   if (existing && !existing.email_verified_at && existing.role !== "admin") {
@@ -181,8 +191,9 @@ export function registerUser(input: RegisterInput): { user: PublicUser; token: s
     db.prepare(
       `INSERT INTO users (
         id, email, password_hash, role, razon_social, rut, rut_norm, contact_name, whatsapp, city,
-        verification_status, created_at, privacy_accepted_at, privacy_version, terms_accepted_at, terms_version, free_until
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?, ?, ?, ?, ?, ?)`,
+        verification_status, created_at, privacy_accepted_at, privacy_version, terms_accepted_at, terms_version, free_until,
+        backup_contact, backup_contact_type, backup_contact_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
       id,
       data.email,
@@ -200,6 +211,9 @@ export function registerUser(input: RegisterInput): { user: PublicUser; token: s
       input.termsVersion ? created : null,
       input.termsVersion || null,
       freeUntilFrom(created),
+      backup?.value ?? null,
+      backup?.type ?? null,
+      backup ? created : null,
     );
     db.prepare(`INSERT INTO sessions (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)`).run(
       randomUUID(),

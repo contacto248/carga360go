@@ -1,6 +1,8 @@
 import { cityByName } from "./catalog";
+import { costForMatch } from "./costos/match";
+import { getSettings } from "./settings";
 import { daysBetween } from "./format";
-import type { LoadCore, MatchResult, TruckCore } from "./types";
+import type { LoadCore, MatchResult, MatchTripCost, TruckCore } from "./types";
 
 function num(specs: LoadCore["specs"] | TruckCore["specs"], key: string): number | undefined {
   const value = specs[key];
@@ -177,16 +179,50 @@ export function matchLoadToTruck(load: LoadCore, truck: TruckCore): MatchResult 
   return { score: Math.min(100, score), reasons, warnings };
 }
 
+/**
+ * Costo real aproximado del viaje (motor de costos, solo rutas en caché, sin red) para cada par del listado.
+ * Solo se calcula si la administración muestra costos (ajuste "Mostrar costo referencial"); si falla, queda null.
+ */
+function tripCostsEnabled(): boolean {
+  try {
+    return getSettings().showSuggestedPrice;
+  } catch {
+    return false;
+  }
+}
+
+export function tripCostFor(load: LoadCore, truck: TruckCore, memo?: Map<string, MatchTripCost | null>): MatchTripCost | null {
+  const key = `${load.origin}|${load.destination}|${load.equipment}|${load.weightT}|${truck.equipment}`;
+  if (memo?.has(key)) return memo.get(key) ?? null;
+  let cost: MatchTripCost | null = null;
+  try {
+    const view = costForMatch(load, { equipment: truck.equipment });
+    if (view) {
+      cost = { total: view.complete && view.method === "motor" ? view.costoTotal : null, complete: view.complete && view.method === "motor", km: view.km, method: view.method };
+    }
+  } catch {
+    cost = null;
+  }
+  memo?.set(key, cost);
+  return cost;
+}
+
 export function matchTrucksForLoad<T extends TruckCore>(load: LoadCore, trucks: T[]): { truck: T; match: MatchResult }[] {
+  const withCost = tripCostsEnabled();
+  const memo = new Map<string, MatchTripCost | null>();
   return trucks
     .map((truck) => ({ truck, match: matchLoadToTruck(load, truck) }))
     .filter((item): item is { truck: T; match: MatchResult } => item.match !== null)
+    .map((item) => (withCost ? { ...item, match: { ...item.match, tripCost: tripCostFor(load, item.truck, memo) } } : item))
     .sort((a, b) => b.match.score - a.match.score);
 }
 
 export function matchLoadsForTruck<T extends LoadCore>(truck: TruckCore, loads: T[]): { load: T; match: MatchResult }[] {
+  const withCost = tripCostsEnabled();
+  const memo = new Map<string, MatchTripCost | null>();
   return loads
     .map((load) => ({ load, match: matchLoadToTruck(load, truck) }))
     .filter((item): item is { load: T; match: MatchResult } => item.match !== null)
+    .map((item) => (withCost ? { ...item, match: { ...item.match, tripCost: tripCostFor(item.load, truck, memo) } } : item))
     .sort((a, b) => b.match.score - a.match.score);
 }

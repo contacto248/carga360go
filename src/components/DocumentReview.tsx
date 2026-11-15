@@ -1,0 +1,152 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import type { ConteoControl } from "@/lib/bassam/acreditacion";
+import type { EventoTimeline, FilaAcreditacion, PanelAcreditacion } from "@/lib/bassam/types";
+import styles from "./bassam-panel.module.css";
+
+const ACTIONS = [
+  { action: "aprobar", label: "Aprobar" },
+  { action: "rechazar", label: "Rechazar" },
+  { action: "pedir_renovacion", label: "Pedir renovación" },
+  { action: "pedir_correccion", label: "Pedir corrección" },
+] as const;
+
+type Accion = (typeof ACTIONS)[number]["action"];
+
+const ESTADO: Record<FilaAcreditacion["estado"], string> = {
+  pendiente: "pendiente",
+  aprobado: "aprobado",
+  rechazado: "rechazado",
+  renovacion: "renovación",
+};
+
+function Lista({ titulo, conteo, filas, busy, acciones, onAct }: { titulo: string; conteo: string; filas: FilaAcreditacion[]; busy: boolean; acciones: readonly (typeof ACTIONS)[number][]; onAct: (id: string, action: Accion) => void }) {
+  return (
+    <section className={styles.card}>
+      <h2>{titulo}</h2>
+      {filas.length === 0 ? (
+        <p>sin datos</p>
+      ) : (
+        <>
+          <p className={styles.meta}>{conteo}</p>
+          {filas.map((doc) => (
+          <article className={styles.trip} key={doc.id}>
+            <h3>
+              {doc.tipoCliente} · {doc.tipo}
+            </h3>
+            <p>Fecha: {doc.fecha}</p>
+            <p>RUT: {doc.rut}</p>
+            <p>Vencimiento: {doc.vencimiento}</p>
+            <p>{doc.comentarioIa}</p>
+            <p>Estado: {ESTADO[doc.estado]}</p>
+            {doc.estadoAdmin === "pendiente_ok" ? (
+              <div className={styles.actions}>
+                {acciones.map((item) => (
+                  <button key={item.action} type="button" className={item.action === "aprobar" ? styles.approve : styles.secondary} disabled={busy} onClick={() => onAct(doc.id, item.action)}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </article>
+        ))}
+        </>
+      )}
+    </section>
+  );
+}
+
+function Comentarios({ filas }: { filas: FilaAcreditacion[] }) {
+  const comentarios = filas.filter((fila) => fila.comentarioIa !== "sin datos");
+  return (
+    <section className={styles.card}>
+      <h2>Comentarios</h2>
+      {comentarios.length === 0 ? (
+        <p>sin datos</p>
+      ) : (
+        <>
+          <p className={styles.meta}>{String(comentarios.length)}</p>
+          {comentarios.map((fila) => (
+          <article className={styles.trip} key={fila.id}>
+            <p>
+              {fila.fecha} · {fila.tipoCliente} · {fila.tipo}
+            </p>
+            <p>{fila.comentarioIa}</p>
+          </article>
+        ))}
+        </>
+      )}
+    </section>
+  );
+}
+
+function Timeline({ eventos }: { eventos: PanelAcreditacion["timeline"] }) {
+  const filas: EventoTimeline[] = eventos === "sin datos" ? [] : eventos;
+  return (
+    <section className={styles.card}>
+      <h2>Línea de tiempo</h2>
+      {filas.length === 0 ? (
+        <p>sin datos</p>
+      ) : (
+        <>
+          <p className={styles.meta}>{String(filas.length)}</p>
+          {filas.map((event) => (
+          <article className={styles.trip} key={event.id}>
+            <p>
+              {event.fecha} · {event.origen} · {event.accion}
+            </p>
+            <p>{event.comentario}</p>
+          </article>
+        ))}
+        </>
+      )}
+    </section>
+  );
+}
+
+export function DocumentReview({ panel, conteos, correccion = false, endpoint = "/api/admin/bassam/documentos" }: { panel: PanelAcreditacion; conteos: ConteoControl; correccion?: boolean; endpoint?: string }) {
+  const acciones = ACTIONS.filter((item) => (correccion ? item.action !== "pedir_renovacion" : item.action !== "pedir_correccion"));
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const documentos = panel.transportistas.filas.length + panel.mandantes.filas.length;
+
+  async function act(id: string, action: Accion) {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action }),
+      });
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) setError(data?.error || "No se pudo registrar.");
+      else router.refresh();
+    } catch {
+      setError("No hay conexión.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <>
+      <div className={styles.counts} aria-label="Conteos reales">
+        <p><span>Cargas</span><strong>{conteos.cargas}</strong></p>
+        <p><span>Camiones</span><strong>{conteos.camiones}</strong></p>
+        <p><span>Documentos</span><strong>{conteos.documentos}</strong></p>
+        <p><span>Agente</span><strong>{conteos.agente}</strong></p>
+      </div>
+      <div className={styles.grid}>
+        <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} acciones={acciones} onAct={act} />
+        <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} acciones={acciones} onAct={act} />
+        <Comentarios filas={[...panel.transportistas.filas, ...panel.mandantes.filas]} />
+        <Timeline eventos={panel.timeline} />
+      </div>
+      {documentos === 0 ? null : <footer className={styles.footer}>{`Total: ${documentos} documentos registrados.`}</footer>}
+      {error ? <p className={styles.error}>{error}</p> : null}
+    </>
+  );
+}

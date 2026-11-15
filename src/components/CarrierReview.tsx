@@ -7,6 +7,8 @@ import { expiryStatus, formatDateCL } from "@/lib/format";
 import type { Accreditation } from "@/lib/accreditation";
 import { REQUIREMENTS, REQUIREMENT_STATUSES, REQUIREMENT_STATUS_LABELS } from "@/lib/requirements";
 import type { DocumentRecord, PublicUser, VerificationStatus } from "@/lib/types";
+import type { BackupContact } from "@/lib/backup-contact";
+import type { ManualReadonly } from "@/lib/manual-readonly";
 
 type Checklist = {
   emailVerified: boolean;
@@ -14,6 +16,13 @@ type Checklist = {
   docs: { type: string; label: string; status: string }[];
   docsReady: boolean;
   ready: boolean;
+};
+
+export type ManualReadonlyNoticeView = {
+  kind: "otorgar" | "revocar";
+  skipped?: boolean;
+  email: { label: string; to: string | null };
+  whatsapp: { label: string; to: string | null };
 };
 
 export type CarrierItem = {
@@ -24,7 +33,36 @@ export type CarrierItem = {
   docs: DocumentRecord[];
   lastEmailDelivery: string | null;
   lastPhoneDelivery: string | null;
+  /** Contacto de respaldo (privado: solo admin y el propio usuario). */
+  backup: BackupContact | null;
+  /** true si la verificación sigue pendiente (correo, teléfono, documentos o aprobación). */
+  backupPending: boolean;
+  /** Verificación manual: solo lectura por 30 días. */
+  readonly: ManualReadonly;
+  /** Último aviso de verificación provisional o de revocación (correo y WhatsApp). */
+  lastNotice?: ManualReadonlyNoticeView | null;
 };
+
+function noticeSummary(notice: ManualReadonlyNoticeView): string {
+  const kind = notice.kind === "otorgar" ? "de la verificación provisional" : "de la revocación";
+  const skip = notice.skipped ? " Ya se había avisado hoy." : "";
+  const emailTo = notice.email.to ? ` a ${notice.email.to}` : "";
+  const waTo = notice.whatsapp.to ? ` a ${notice.whatsapp.to}` : "";
+  return `Aviso ${kind}: correo, ${notice.email.label}${emailTo}; WhatsApp, ${notice.whatsapp.label}${waTo}.${skip}`;
+}
+
+const READONLY_BUTTON = "Verificación manual (solo lectura, 30 días)";
+
+function dateTimeCL(iso: string): string {
+  return new Date(iso).toLocaleString("es-CL", {
+    timeZone: "America/Santiago",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 const PILL: Record<string, string> = { falta: "gray", pendiente: "warn", rechazado: "bad", verificado: "ok", vencido: "bad" };
 const LABEL: Record<string, string> = { falta: "Falta", pendiente: "Por revisar", rechazado: "Rechazado", verificado: "Aprobado", vencido: "Vencido" };
@@ -38,6 +76,7 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
   const [error, setError] = useState("");
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState("");
+  const [notices, setNotices] = useState<Record<string, ManualReadonlyNoticeView>>({});
 
   async function call(key: string, url: string, body: unknown) {
     setError("");
@@ -48,10 +87,16 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
       body: JSON.stringify(body),
     });
     setBusy("");
+    const data = (await response.json().catch(() => null)) as
+      | { error?: string; notice?: ManualReadonlyNoticeView }
+      | null;
     if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
       setError(data?.error || "No se pudo guardar.");
       return;
+    }
+    if (data?.notice) {
+      const userId = key.includes(":") ? key.split(":")[1] : "";
+      if (userId) setNotices((current) => ({ ...current, [userId]: data.notice as ManualReadonlyNoticeView }));
     }
     router.refresh();
   }
@@ -60,6 +105,21 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
     const note = notes[`u:${id}`]?.trim();
     if (!note) return setError("Escribe el motivo antes de rechazar la cuenta.");
     call(`u:${id}`, `/api/admin/usuarios/${id}`, { verificationStatus: "rechazado", note });
+  }
+
+  function grantReadonly(user: PublicUser) {
+    const ok = window.confirm(
+      `¿Dar a ${user.razonSocial} acceso de SOLO LECTURA por 30 días?\n\n` +
+        "Podrá ver la plataforma, pero no publicar, ofertar ni tomar cargas hasta quedar acreditada y verificada por completo. " +
+        "Al vencer sin acreditación, vuelve a pendiente. Quedará registrado que lo aprobaste tú. Se le enviará un aviso formal por correo y un mensaje corto por WhatsApp.",
+    );
+    if (!ok) return;
+    call(`ro:${user.id}`, `/api/admin/usuarios/${user.id}`, { manualReadonly: "otorgar" });
+  }
+
+  function revokeReadonly(user: PublicUser) {
+    if (!window.confirm(`¿Revocar el acceso de solo lectura de ${user.razonSocial}? Volverá a quedar pendiente sin acceso.`)) return;
+    call(`ro:${user.id}`, `/api/admin/usuarios/${user.id}`, { manualReadonly: "revocar" });
   }
 
   function rejectDoc(id: string) {
@@ -77,21 +137,39 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
           {error}
         </p>
       ) : null}
-      {items.map(({ user, phoneDisplay, check, acc, docs, lastEmailDelivery, lastPhoneDelivery }) => (
+      {items.map(({ user, phoneDisplay, check, acc, docs, lastEmailDelivery, lastPhoneDelivery, backup, backupPending, readonly, lastNotice }) => (
         <article key={user.id} className="card" style={{ minWidth: 0 }}>
           <div className="row" style={{ justifyContent: "space-between" }}>
             <div>
               <h3 style={{ margin: 0 }}>{user.razonSocial}</h3>
               <div className="meta">
                 RUT {user.rut} · {user.city} · {user.contactName} · registrado {formatDateCL(user.createdAt.slice(0, 10))}
-                {user.freeUntil ? ` · gratis hasta ${formatDateCL(user.freeUntil)}` : ""}
               </div>
             </div>
-            <span className={`pill ${PILL[user.verificationStatus]}`}>
-              {user.verificationStatus === "verificado" ? "Aprobado" : user.verificationStatus === "rechazado" ? "Rechazado" : "En revisión"}
+            <span className={`pill ${readonly.active ? "warn" : PILL[user.verificationStatus]}`}>
+              {user.verificationStatus === "verificado"
+                ? "Aprobado"
+                : user.verificationStatus === "rechazado"
+                  ? "Rechazado"
+                  : readonly.active
+                    ? "Solo lectura (manual)"
+                    : "En revisión"}
             </span>
           </div>
           {user.verificationNote ? <div className="meta">Último motivo: {user.verificationNote}</div> : null}
+          <div className="meta" style={{ marginTop: 4 }}>
+            Contacto de respaldo:{" "}
+            {backup ? (
+              <strong>
+                {backup.display} ({backup.type === "email" ? "correo" : "teléfono"})
+              </strong>
+            ) : backupPending ? (
+              <span className="err">no registrado (se le pide mientras la verificación esté pendiente)</span>
+            ) : (
+              "no registrado"
+            )}
+            {backup?.updatedAt ? ` · actualizado ${dateTimeCL(backup.updatedAt)} (hora de Chile)` : ""}
+          </div>
 
           <div className="grid c2" style={{ marginTop: 10 }}>
             <div>
@@ -250,6 +328,44 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
           )}
 
           </>
+          )}
+
+          {user.verificationStatus === "verificado" ? null : (
+            <div className="qse" style={{ marginTop: 12 }}>
+              <strong>Verificación manual</strong>
+              {readonly.active && readonly.until ? (
+                <div className="meta">
+                  ✓ Solo lectura vigente hasta el {dateTimeCL(readonly.until)} (hora de Chile), {readonly.daysLeft}{" "}
+                  {readonly.daysLeft === 1 ? "día" : "días"} restantes. Aprobada por {readonly.grantedByEmail ?? readonly.grantedBy ?? "—"}
+                  {readonly.grantedAt ? ` el ${dateTimeCL(readonly.grantedAt)} (hora de Chile)` : ""}. No puede publicar, ofertar ni tomar cargas.
+                </div>
+              ) : readonly.expired && readonly.until ? (
+                <div className="meta">La solo lectura venció el {dateTimeCL(readonly.until)} sin acreditación completa: la cuenta está pendiente.</div>
+              ) : (
+                <div className="meta">
+                  Da acceso de solo lectura por 30 días mientras termina su acreditación. No habilita publicar, ofertar ni tomar cargas.
+                </div>
+              )}
+              <div className="row" style={{ marginTop: 6 }}>
+                <button className="btn sec sm" type="button" disabled={busy === `ro:${user.id}`} onClick={() => grantReadonly(user)}>
+                  {readonly.active ? "Renovar: " : ""}
+                  {READONLY_BUTTON}
+                </button>
+                {readonly.active ? (
+                  <button className="btn danger sm" type="button" disabled={busy === `ro:${user.id}`} onClick={() => revokeReadonly(user)}>
+                    Revocar solo lectura
+                  </button>
+                ) : null}
+              </div>
+              {(() => {
+                const shown = notices[user.id] ?? lastNotice;
+                return shown ? (
+                  <div className="meta" role="status" style={{ marginTop: 8 }}>
+                    {noticeSummary(shown)}
+                  </div>
+                ) : null;
+              })()}
+            </div>
           )}
 
           <div className="row" style={{ marginTop: 12, borderTop: "1px solid var(--line)", paddingTop: 12 }}>

@@ -9,36 +9,76 @@ type Contacts = { whatsapp: string; whatsappUrl: string; email: string };
 const QUICK: { label: string; message: string }[] = [
   { label: "Soy empresa con carga", message: "Soy empresa con carga" },
   { label: "Soy transportista", message: "Soy transportista" },
-  { label: "Precios", message: "Precios" },
+  { label: "Costo del flete", message: "¿Cuánto cuesta un flete?" },
   { label: "Hablar con una persona", message: "Quiero hablar con una persona" },
 ];
 
 const GREETING: ChatMsg = { id: "greeting", role: "assistant", text: WEB_GREETING, at: "" };
 
-export function HelpLauncher({ chatEnabled, waHref }: { chatEnabled: boolean; waHref: string }) {
-  const [open, setOpen] = useState(false);
-  const [hiddenOnAdmin, setHiddenOnAdmin] = useState(false);
-
+function useBassamDock() {
+  const [flags, setFlags] = useState({ hide: false, bassam: false });
   useEffect(() => {
-    const sync = () => setHiddenOnAdmin(window.location.pathname.startsWith("/admin"));
+    const sync = () => {
+      const path = window.location.pathname;
+      const bassam = path === "/admin/bassam" || path.startsWith("/admin/bassam/");
+      setFlags({ hide: path.startsWith("/admin") && !bassam, bassam });
+    };
     sync();
     window.addEventListener("popstate", sync);
     return () => window.removeEventListener("popstate", sync);
   }, []);
+  return flags;
+}
 
-  if (hiddenOnAdmin) return null;
+export function HelpLauncher({ chatEnabled, waHref }: { chatEnabled: boolean; waHref: string }) {
+  const [open, setOpen] = useState(false);
+  const { hide, bassam } = useBassamDock();
+
+  if (hide) return null;
 
   if (!chatEnabled) {
+    if (!bassam) {
+      return (
+        <a className="btn wa fab" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
+          💬 WhatsApp
+        </a>
+      );
+    }
     return (
-      <a className="btn wa fab" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
-        💬 WhatsApp
-      </a>
+      <div className={`help-dock${open ? " is-open" : ""}`}>
+        <button type="button" className="help-fab help-exec" onClick={() => setOpen(true)} aria-expanded={open} aria-controls="c360-chat-panel">
+          Asistente IA ejecutivo
+        </button>
+        {open ? (
+          <section id="c360-chat-panel" className="chat-panel" role="dialog" aria-modal="true" aria-labelledby="c360-exec-off">
+            <header className="chat-head">
+              <div>
+                <h2 id="c360-exec-off">Asistente IA ejecutivo</h2>
+                <p>Usa el chat que ya existe en esta página. Ahora está apagado: no hay otro proveedor ni otra clave.</p>
+              </div>
+              <button type="button" className="chat-x" onClick={() => setOpen(false)} aria-label="Cerrar el chat">
+                ✕
+              </button>
+            </header>
+            <p className="chat-note">sin datos de un asistente distinto.</p>
+          </section>
+        ) : (
+          <a className="btn wa fab help-wa" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
+            💬 WhatsApp
+          </a>
+        )}
+      </div>
     );
   }
 
   return (
     <div className={`help-dock${open ? " is-open" : ""}`}>
-      {open ? <ChatPanel waHref={waHref} onClose={() => setOpen(false)} /> : null}
+      {bassam ? (
+        <button type="button" className="help-fab help-exec" onClick={() => setOpen(true)} aria-expanded={open} aria-controls="c360-chat-panel">
+          Asistente IA ejecutivo
+        </button>
+      ) : null}
+      {open ? <ChatPanel waHref={waHref} onClose={() => setOpen(false)} executive={bassam} /> : null}
       {!open ? (
         <div className="help-stack">
           <a className="btn wa fab help-wa" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
@@ -58,7 +98,7 @@ export function HelpLauncher({ chatEnabled, waHref }: { chatEnabled: boolean; wa
   );
 }
 
-function ChatPanel({ waHref, onClose }: { waHref: string; onClose: () => void }) {
+function ChatPanel({ waHref, onClose, executive = false }: { waHref: string; onClose: () => void; executive?: boolean }) {
   const titleId = useId();
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -118,7 +158,7 @@ function ChatPanel({ waHref, onClose }: { waHref: string; onClose: () => void })
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify(executive ? { message, executive: true } : { message }),
       });
       const data = (await response.json().catch(() => null)) as
         | { error?: string; reply?: string; handoff?: boolean; messages?: ChatMsg[]; contacts?: Contacts }
@@ -144,8 +184,8 @@ function ChatPanel({ waHref, onClose }: { waHref: string; onClose: () => void })
     <section id="c360-chat-panel" className="chat-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <header className="chat-head">
         <div>
-          <h2 id={titleId}>Carga 360 Go</h2>
-          <p>Asistente virtual · español de Chile</p>
+          <h2 id={titleId}>{executive ? "Asistente IA ejecutivo" : "Carga 360 Go"}</h2>
+          <p>{executive ? "Mismo asistente de este chat. Sin otro proveedor ni otra clave." : "Asistente virtual · español de Chile"}</p>
         </div>
         <a className="chat-wa-mini" href={waHref} target="_blank" rel="noopener noreferrer">
           WhatsApp
