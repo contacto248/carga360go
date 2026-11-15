@@ -5,10 +5,15 @@ import { usePathname, useRouter } from "next/navigation";
 import type { PublicUser } from "@/lib/types";
 
 const LINKS = [
-  { href: "/cargas/nueva", label: "Publicar carga" },
-  { href: "/camiones", label: "Buscar camión" },
+  { href: "/mi-cuenta?rol=mandante", label: "Publicar carga" },
+  { href: "/camiones", label: "Camiones" },
   { href: "/mi-cuenta", label: "Mi cuenta" },
 ];
+
+function abrirAgente(event: { preventDefault(): void }) {
+  event.preventDefault();
+  window.dispatchEvent(new Event("c360-abrir-agente"));
+}
 
 export function Header({ user }: { user: PublicUser | null }) {
   const pathname = usePathname();
@@ -40,6 +45,9 @@ export function Header({ user }: { user: PublicUser | null }) {
                 {link.label}
               </Link>
             ))}
+            <a href="#agente-bassam" onClick={abrirAgente}>
+              Agente BASSAM 360
+            </a>
             {user ? (
               <button className="btn sm" type="button" onClick={salir}>
                 Salir
@@ -58,6 +66,9 @@ export function Header({ user }: { user: PublicUser | null }) {
             {link.label}
           </Link>
         ))}
+        <a href="#agente-bassam" onClick={abrirAgente}>
+          Agente BASSAM 360
+        </a>
       </nav>
     </>
   );

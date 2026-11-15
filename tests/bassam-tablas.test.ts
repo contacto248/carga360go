@@ -195,6 +195,7 @@ test("la subida guarda el archivo privado, lee RUT y fecha, y no aprueba", async
   assert.match(responderAgente("aprueba el documento", true), /No apruebo solo\. El admin confirma/);
   assert.equal((getDb().prepare(`SELECT estado_admin AS estado FROM documentos_acreditacion WHERE id = ?`).get(saved.id) as { estado: string }).estado, antes);
   const detalle = responderAgente("que hay", true);
+  assert.equal(responderAgente("no sé dónde adjuntar", true), SIN_DATOS);
   assert.match(detalle, /15\.432\.109-K/);
   assert.match(detalle, /15-12-2026/);
   assert.doesNotMatch(responderAgente("que hay", false), /15\.432\.109-K/);
@@ -311,6 +312,8 @@ test("la subida en mi cuenta compara el RUT y no aprueba", async () => {
   assert.equal(listPendingDocuments("transportista").some((doc) => doc.id === companyDoc.id), false);
   const page = fs.readFileSync(new URL("../src/app/mi-cuenta/page.tsx", import.meta.url), "utf8");
   assert.match(page, /MiCuentaUpload/);
+  assert.match(page, /rolPedido/);
+  assert.match(page, /Estado: \{vista\.estado\}/);
   const route = fs.readFileSync(new URL("../src/app/api/mi-cuenta/documento/route.ts", import.meta.url), "utf8");
   assert.doesNotMatch(route, /whatsapp|notifyDocumentUploaded|estado_admin = 'aprobado'/);
 });
@@ -343,9 +346,10 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   const footer = fs.readFileSync(new URL("../src/components/Footer.tsx", import.meta.url), "utf8");
   const cuenta = fs.readFileSync(new URL("../src/app/mi-cuenta/page.tsx", import.meta.url), "utf8");
   assert.match(header, /Publicar carga/);
-  assert.match(header, /Buscar camión/);
+  assert.match(header, /Camiones/);
   assert.match(header, /Mi cuenta/);
-  assert.doesNotMatch(header, /agente-bassam|Agente BASSAM|\/admin\/bassam|Publicar camión|Regiones/);
+  assert.match(header, /Agente BASSAM 360/);
+  assert.doesNotMatch(header, /\/admin\/bassam|Publicar camión|Buscar camión|Regiones/);
   assert.doesNotMatch(footer, /HelpLauncher|VoiceAgentLauncher|FleteButton|ChatWidget|VoiceAgent/);
   assert.equal((footer.match(/<AgenteAcreditacion \/>/g) || []).length, 1);
   const panelCuenta = fs.readFileSync(new URL("../src/components/AccreditationPanel.tsx", import.meta.url), "utf8");

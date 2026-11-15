@@ -1,0 +1,75 @@
+.hero {
+  padding: 48px 0 28px;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  max-width: 16ch;
+}
+
+.lead {
+  max-width: 42rem;
+  color: #5b6778;
+}
+
+.cta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.big {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 16px 22px;
+  border-radius: 14px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-decoration: none;
+  text-align: center;
+}
+
+.primary {
+  background: #0b1633;
+  color: #fff;
+}
+
+.secondary {
+  background: #f26b1d;
+  color: #fff;
+}
+
+.block {
+  padding: 8px 0 28px;
+}
+
+.steps,
+.benefits {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+@media (min-width: 800px) {
+  .cta,
+  .steps,
+  .benefits {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cta {
+    grid-template-columns: 1fr 1fr;
+    max-width: 760px;
+  }
+}
