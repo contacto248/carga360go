@@ -1,4 +1,15 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
+
+const sentryDsn = (process.env.SENTRY_DSN ?? "").trim();
+process.env.NEXT_PUBLIC_SENTRY_DSN = sentryDsn;
+process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT = (process.env.SENTRY_ENVIRONMENT ?? "").trim();
+
+function sentryConnectSources(): string[] {
+  const dsn = (process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN || "").trim();
+  if (!dsn) return [];
+  return ["https://*.ingest.sentry.io", "https://*.ingest.us.sentry.io", "https://*.ingest.de.sentry.io"];
+}
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -13,7 +24,7 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com https://stats.g.doubleclick.net",
       "font-src 'self' data:",
-      "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://stats.g.doubleclick.net",
+      [ "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://stats.g.doubleclick.net", ...sentryConnectSources() ].join(" "),
       "frame-src 'self' blob: https://www.googletagmanager.com",
       "object-src 'none'",
       "base-uri 'self'",
@@ -39,4 +50,23 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default sentryDsn
+  ? withSentryConfig(nextConfig, {
+      silent: true,
+      telemetry: false,
+      authToken: undefined,
+      sourcemaps: { disable: true },
+      release: { create: false, finalize: false, setCommits: false },
+      webpack: {
+        automaticVercelMonitors: false,
+        treeshake: { removeDebugLogging: true },
+      },
+      bundleSizeOptimizations: {
+        excludeDebugStatements: true,
+        excludeReplayIframe: true,
+        excludeReplayShadowDom: true,
+        excludeReplayWorker: true,
+      },
+      suppressOnRouterTransitionStartWarning: true,
+    })
+  : nextConfig;
