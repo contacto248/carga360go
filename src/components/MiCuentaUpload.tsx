@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { DOCUMENTOS_POR_CLIENTE, type TipoCliente } from "@/lib/bassam/tipos-cliente";
 
-export function MiCuentaUpload() {
+export function MiCuentaUpload({ cliente }: { cliente: TipoCliente }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -28,7 +29,13 @@ export function MiCuentaUpload() {
     <form onSubmit={onSubmit} className="card" style={{ display: "grid", gap: 12 }}>
       <label>
         Tipo de documento
-        <input name="tipo" required maxLength={80} placeholder="Cédula, licencia, padrón…" style={{ display: "block", width: "100%", minHeight: 44 }} />
+        <select name="tipo" required style={{ display: "block", width: "100%", minHeight: 44 }}>
+          {DOCUMENTOS_POR_CLIENTE[cliente].map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
       </label>
       <label>
         Archivo

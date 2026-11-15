@@ -12,7 +12,7 @@ import { todayChile } from "@/lib/format";
 export const metadata: Metadata = { title: "BASSAM 360", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function BassamPage() {
+export default async function BassamPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await getCurrentUser();
   if (!user || user.role !== "admin") {
     return (
@@ -28,9 +28,12 @@ export default async function BassamPage() {
       </div>
     );
   }
+  const params = await searchParams;
+  const raw = Array.isArray(params.tipo) ? params.tipo[0] : params.tipo;
+  const tipo = raw === "mandante" || raw === "transportista" ? raw : undefined;
   runExpiryAlerts(todayChile());
   const data = bassamSnapshot(user);
-  const docs = listPendingDocuments();
+  const docs = listPendingDocuments(tipo);
   return (
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <section className={styles.shell}>
@@ -43,7 +46,7 @@ export default async function BassamPage() {
           </Link>
         </p>
         <AdminNav current="/admin/bassam" />
-        <DocumentReview docs={docs} />
+        <DocumentReview docs={docs} filtro={tipo} />
         <BassamPanel initial={data} />
       </section>
     </div>

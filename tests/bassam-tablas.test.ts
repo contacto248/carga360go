@@ -15,7 +15,7 @@ import {
   storeAccreditationUpload,
   uploadAccountDocument,
 } from "../src/lib/bassam/acreditacion";
-import { MIGRATION_17_SQL } from "../src/lib/bassam/schema";
+import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "../src/lib/bassam/schema";
 import { waLink } from "../src/lib/format";
 import { BRAND } from "../src/lib/catalog";
 import { getDb } from "../src/lib/db";
@@ -58,6 +58,10 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
     assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n, 0);
   }
   assert.equal(listPendingDocuments().length, 0);
+  const cols = getDb().prepare(`PRAGMA table_info(documentos_acreditacion)`).all() as { name: string }[];
+  assert.ok(cols.some((col) => col.name === "tipo_cliente"));
+  assert.doesNotMatch(MIGRATION_18_SQL, /VALUES\s*\(/i);
+  assert.doesNotMatch(MIGRATION_18_SQL, /Juan Pérez|12\.345\.678-9/);
 });
 
 test("el agente solo llena comentario_ia y estado_ia, y el comentario queda en el historial", () => {
@@ -148,7 +152,8 @@ test("la subida guarda el archivo privado, lee RUT y fecha, y no aprueba", async
   const id = carrier("archivo");
   const saved = await storeAccreditationUpload({
     transportistaId: id,
-    tipo: "cedula",
+    tipoCliente: "transportista",
+    tipo: "licencia",
     filename: "cedula.txt",
     mime: "text/plain",
     bytes: Buffer.from("Titular 15.432.109-K. Vencimiento 15-12-2026."),
@@ -169,7 +174,7 @@ test("sin GOOGLE_VISION_KEY una imagen queda ILEGIBLE y no llama a Google", asyn
   const id = carrier("vision");
   let called = false;
   const saved = await storeAccreditationUpload(
-    { transportistaId: id, tipo: "padron", filename: "padron.jpg", mime: "image/jpeg", bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) },
+    { transportistaId: id, tipoCliente: "transportista", tipo: "padron", filename: "padron.jpg", mime: "image/jpeg", bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) },
     { fetchImpl: async () => { called = true; return new Response("no"); } },
   );
   assert.equal(called, false);
@@ -179,7 +184,7 @@ test("sin GOOGLE_VISION_KEY una imagen queda ILEGIBLE y no llama a Google", asyn
   process.env.GOOGLE_VISION_KEY = "clave-de-prueba";
   let seenKey = false;
   const read = await storeAccreditationUpload(
-    { transportistaId: id, tipo: "padron", filename: "padron2.jpg", mime: "image/jpeg", bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) },
+    { transportistaId: id, tipoCliente: "transportista", tipo: "padron", filename: "padron2.jpg", mime: "image/jpeg", bytes: Buffer.from([0xff, 0xd8, 0xff, 0xd9]) },
     {
       fetchImpl: async (url, init) => {
         seenKey = String(url).includes("clave-de-prueba") || JSON.stringify(init).includes("clave-de-prueba");
@@ -192,7 +197,7 @@ test("sin GOOGLE_VISION_KEY una imagen queda ILEGIBLE y no llama a Google", asyn
   assert.equal(read.estadoAdmin, "pendiente_ok");
   assert.match(read.comentarioIa, /^Revisión IA: RUT no coincide\. Vigencia sin datos\.$/);
   assert.equal(read.comentarioIa.includes("clave-de-prueba"), false);
-  await assert.rejects(() => storeAccreditationUpload({ transportistaId: randomUUID(), tipo: "cedula", filename: "x.txt", mime: "text/plain", bytes: Buffer.from("hola") }), /no encontrado/);
+  await assert.rejects(() => storeAccreditationUpload({ transportistaId: randomUUID(), tipoCliente: "transportista", tipo: "licencia", filename: "x.txt", mime: "text/plain", bytes: Buffer.from("hola") }), /no encontrado/);
 });
 
 test("la subida en mi cuenta compara el RUT y no aprueba", async () => {
@@ -235,6 +240,25 @@ test("la subida en mi cuenta compara el RUT y no aprueba", async () => {
   assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM documentos_acreditacion`).get() as { n: number }).n, before);
   assert.doesNotMatch(MIGRATION_17_SQL, /INSERT\s+INTO/i);
   assert.equal(String(process.env.DATABASE_PATH).includes("/var/lib/carga360go"), false);
+  const carriers = (getDb().prepare(`SELECT COUNT(*) AS n FROM transportistas`).get() as { n: number }).n;
+  const empresa = { ...user, id: randomUUID(), role: "mandante" as const, email: "empresa@tablas.test", razonSocial: "Empresa Norte" };
+  await assert.rejects(
+    () => uploadAccountDocument(empresa, { tipo: "licencia", filename: "licencia.txt", mime: "text/plain", bytes: Buffer.from("RUT 15.432.109-K") }, { today: "2026-11-15" }),
+    /no corresponde/,
+  );
+  const companyDoc = await uploadAccountDocument(
+    empresa,
+    { tipo: "rut_empresa", filename: "rut.txt", mime: "text/plain", bytes: Buffer.from("RUT 15.432.109-K hasta 2027-12-01") },
+    { today: "2026-11-15" },
+  );
+  assert.equal(companyDoc.estadoAdmin, "pendiente_ok");
+  assert.equal(companyDoc.comentarioIa, "Revisión IA Empresa: RUT coincide. Vigente hasta 2027-12-01.");
+  const stored = getDb().prepare(`SELECT tipo_cliente, transportista_id FROM documentos_acreditacion WHERE id = ?`).get(companyDoc.id) as { tipo_cliente: string; transportista_id: string | null };
+  assert.equal(stored.tipo_cliente, "mandante");
+  assert.equal(stored.transportista_id, null);
+  assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM transportistas`).get() as { n: number }).n, carriers);
+  assert.equal(listPendingDocuments("mandante").some((doc) => doc.id === companyDoc.id), true);
+  assert.equal(listPendingDocuments("transportista").some((doc) => doc.id === companyDoc.id), false);
   const page = fs.readFileSync(new URL("../src/app/mi-cuenta/page.tsx", import.meta.url), "utf8");
   assert.match(page, /MiCuentaUpload/);
   const route = fs.readFileSync(new URL("../src/app/api/mi-cuenta/documento/route.ts", import.meta.url), "utf8");

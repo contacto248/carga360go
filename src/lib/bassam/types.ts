@@ -62,7 +62,8 @@ export type PendingDocument = {
   comentarioIa: string | null;
   estadoIa: string | null;
   estadoAdmin: string;
-  transportistaId: string;
+  tipoCliente: "transportista" | "mandante";
+  transportistaId: string | null;
   transportistaNombre: string;
   transportistaEstado: string;
 };

@@ -19,19 +19,23 @@ export default async function MiCuentaPage() {
       </div>
     );
   }
-  if (user.role !== "transportista") {
+  if (user.role !== "transportista" && user.role !== "mandante") {
     return (
       <div className="wrap" style={{ padding: "24px 0 40px" }}>
         <h1>Mi cuenta</h1>
-        <p>La acreditación por documento es para cuentas de transportista.</p>
+        <p>La acreditación por documento es para cuentas de transportista o mandante.</p>
       </div>
     );
   }
   return (
     <div className="wrap" style={{ padding: "24px 0 40px" }}>
       <h1>Mi cuenta</h1>
-      <p>El documento queda en revisión. La lectura automática no lo aprueba.</p>
-      <MiCuentaUpload />
+      <p>
+        {user.role === "mandante"
+          ? "Empresa: RUT, e-RUT del SII, escritura del representante y certificado de cuenta bancaria. La lectura no aprueba el documento."
+          : "Transportista: licencia, padrón y SOAP. La lectura no aprueba el documento."}
+      </p>
+      <MiCuentaUpload cliente={user.role} />
     </div>
   );
 }

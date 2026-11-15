@@ -6,6 +6,7 @@ import { AppError } from "../errors";
 import { daysBetween } from "../format";
 import type { PublicUser } from "../types";
 import type { PendingDocument } from "./types";
+import { prefijoRevision, tiposDe, type TipoCliente } from "./tipos-cliente";
 
 export type { PendingDocument };
 
@@ -39,7 +40,10 @@ const ISO_RE = /\b(\d{4})-(\d{2})-(\d{2})\b/;
 const CL_RE = /\b(\d{2})[\/\-.](\d{2})[\/\-.](\d{4})\b/;
 
 export type UploadInput = {
-  transportistaId: string;
+  transportistaId?: string | null;
+  userId?: string | null;
+  rutCuenta?: string;
+  tipoCliente: TipoCliente;
   tipo: string;
   filename: string;
   bytes: Buffer;
@@ -112,7 +116,7 @@ function rutKey(value: string): string {
   return value.replace(/\./g, "").replace(/\s/g, "").toUpperCase();
 }
 
-export function reviewText(text: string, carrierRut: string, today: string): { comentario: string; estadoIa: string; fecha: string | null } {
+export function reviewText(text: string, carrierRut: string, today: string, cliente: TipoCliente = "transportista"): { comentario: string; estadoIa: string; fecha: string | null } {
   const found = readRutAndDate(text);
   const rutLine = !found.rut ? "RUT sin datos." : rutKey(found.rut) === rutKey(carrierRut) ? "RUT coincide." : "RUT no coincide.";
   let vigencia = "Vigencia sin datos.";
@@ -131,13 +135,15 @@ export function reviewText(text: string, carrierRut: string, today: string): { c
     }
   }
   if (found.rut && rutKey(found.rut) !== rutKey(carrierRut)) estadoIa = "rut_no_coincide";
-  return { comentario: `Revisión IA: ${rutLine} ${vigencia}`, estadoIa, fecha: found.fecha };
+  return { comentario: `${prefijoRevision(cliente)}: ${rutLine} ${vigencia}`, estadoIa, fecha: found.fecha };
 }
 
 /** Guarda el archivo fuera de la web. No aprueba. Sin clave de Vision marca ILEGIBLE y no llama a Google. */
 export async function storeAccreditationUpload(input: UploadInput, deps: UploadDeps = {}) {
   const tipo = input.tipo.trim();
-  if (!tipo || tipo.length > 80) throw new AppError("Tipo de documento no válido.");
+  const cliente = input.tipoCliente;
+  if (cliente !== "transportista" && cliente !== "mandante") throw new AppError("Tipo de cliente no válido.");
+  if (!tiposDe(cliente).includes(tipo)) throw new AppError("Ese documento no corresponde a este tipo de cuenta.");
   if (!input.bytes.length || input.bytes.length > 10 * 1024 * 1024) throw new AppError("El archivo no es válido o supera 10 MB.");
   const allowed = new Map([
     ["application/pdf", ".pdf"],
@@ -148,8 +154,14 @@ export async function storeAccreditationUpload(input: UploadInput, deps: UploadD
   const ext = allowed.get(input.mime);
   if (!ext) throw new AppError("Solo se aceptan PDF, JPG, PNG o texto.");
   const db = getDb();
-  const carrier = db.prepare(`SELECT id, rut FROM transportistas WHERE id = ?`).get(input.transportistaId) as { id: string; rut: string | null } | undefined;
-  if (!carrier) throw new AppError("Transportista no encontrado.", 404);
+  let rutCuenta = "";
+  if (cliente === "transportista") {
+    const carrier = db.prepare(`SELECT id, rut FROM transportistas WHERE id = ?`).get(input.transportistaId) as { id: string; rut: string | null } | undefined;
+    if (!carrier) throw new AppError("Transportista no encontrado.", 404);
+    rutCuenta = carrier.rut ?? "";
+  } else {
+    rutCuenta = input.rutCuenta ?? "";
+  }
   const id = randomUUID();
   const relative = path.join("acreditacion", `${id}${ext}`);
   const full = path.join(uploadRoot(), relative);
@@ -166,13 +178,13 @@ export async function storeAccreditationUpload(input: UploadInput, deps: UploadD
     }
   }
   const today = deps.today ?? new Date().toISOString().slice(0, 10);
-  const reading = text ? reviewText(text, carrier.rut ?? "", today) : { comentario: "Revisión IA: ILEGIBLE.", estadoIa: "ILEGIBLE", fecha: null as string | null };
+  const reading = text ? reviewText(text, rutCuenta, today, cliente) : { comentario: `${prefijoRevision(cliente)}: ILEGIBLE.`, estadoIa: "ILEGIBLE", fecha: null as string | null };
   db.transaction(() => {
     db.prepare(
       `INSERT INTO documentos_acreditacion (
-         id, transportista_id, tipo, archivo, vencimiento, estado_admin, estado_ia, comentario_ia, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, 'pendiente_ok', ?, ?, ?, ?)`,
-    ).run(id, input.transportistaId, tipo, relative, reading.fecha, reading.estadoIa, reading.comentario, stamp, stamp);
+         id, tipo_cliente, transportista_id, user_id, tipo, archivo, vencimiento, estado_admin, estado_ia, comentario_ia, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente_ok', ?, ?, ?, ?)`,
+    ).run(id, cliente, cliente === "transportista" ? input.transportistaId : null, input.userId ?? null, tipo, relative, reading.fecha, reading.estadoIa, reading.comentario, stamp, stamp);
     db.prepare(
       `INSERT INTO admin_bassam_360 (id, created_at, origen, tabla, registro_id, comentario, accion, estado_ia, actor_id)
        VALUES (?, ?, 'agente', 'documentos_acreditacion', ?, ?, 'lectura', ?, NULL)`,
@@ -183,24 +195,28 @@ export async function storeAccreditationUpload(input: UploadInput, deps: UploadD
 }
 
 /** Subida desde la cuenta del transportista. Usa sus datos reales y no aprueba el documento. */
-export async function uploadAccountDocument(user: PublicUser, input: Omit<UploadInput, "transportistaId">, deps: UploadDeps = {}) {
+export async function uploadAccountDocument(user: PublicUser, input: Omit<UploadInput, "transportistaId" | "tipoCliente" | "userId" | "rutCuenta">, deps: UploadDeps = {}) {
   if (!input.bytes.length) throw new AppError("Adjunta el documento.");
-  if (user.role !== "transportista") throw new AppError("Solo un transportista puede subir esta acreditación.", 403);
+  if (user.role !== "transportista" && user.role !== "mandante") throw new AppError("Esta cuenta no sube acreditación.", 403);
+  const cliente: TipoCliente = user.role === "mandante" ? "mandante" : "transportista";
   const db = getDb();
   const stamp = new Date().toISOString();
-  let row = db.prepare(`SELECT id FROM transportistas WHERE user_id = ?`).get(user.id) as { id: string } | undefined;
-  if (!row && user.rut) row = db.prepare(`SELECT id FROM transportistas WHERE rut = ?`).get(user.rut) as { id: string } | undefined;
-  let carrierId = row?.id;
-  if (!carrierId) {
-    carrierId = randomUUID();
-    db.prepare(
-      `INSERT INTO transportistas (id, user_id, nombre, rut, telefono, correo, ciudad, mensaje, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
-    ).run(carrierId, user.id, user.razonSocial || user.contactName, user.rut, user.whatsapp, user.email, user.city, stamp, stamp);
-  } else {
-    db.prepare(`UPDATE transportistas SET user_id = COALESCE(user_id, ?) WHERE id = ?`).run(user.id, carrierId);
+  let carrierId: string | null = null;
+  if (cliente === "transportista") {
+    let row = db.prepare(`SELECT id FROM transportistas WHERE user_id = ?`).get(user.id) as { id: string } | undefined;
+    if (!row && user.rut) row = db.prepare(`SELECT id FROM transportistas WHERE rut = ?`).get(user.rut) as { id: string } | undefined;
+    carrierId = row?.id ?? null;
+    if (!carrierId) {
+      carrierId = randomUUID();
+      db.prepare(
+        `INSERT INTO transportistas (id, user_id, nombre, rut, telefono, correo, ciudad, mensaje, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+      ).run(carrierId, user.id, user.razonSocial || user.contactName, user.rut, user.whatsapp, user.email, user.city, stamp, stamp);
+    } else {
+      db.prepare(`UPDATE transportistas SET user_id = COALESCE(user_id, ?) WHERE id = ?`).run(user.id, carrierId);
+    }
   }
-  return storeAccreditationUpload({ ...input, transportistaId: carrierId }, deps);
+  return storeAccreditationUpload({ ...input, tipoCliente: cliente, transportistaId: carrierId, userId: user.id, rutCuenta: user.rut }, deps);
 }
 
 export function alertWindow(days: number): AlertDay | null {
@@ -242,7 +258,7 @@ export function reviewDocument(user: PublicUser, documentId: string, action: Hum
   const comment = action === "aprobar" ? "Aprobado por una persona." : action === "rechazar" ? "Rechazado por una persona." : "Se pidió renovación.";
   db.transaction(() => {
     db.prepare(`UPDATE documentos_acreditacion SET estado_admin = ?, updated_at = ? WHERE id = ?`).run(next, stamp, doc.id);
-    if (action === "aprobar") {
+    if (action === "aprobar" && doc.transportistaId) {
       db.prepare(`UPDATE transportistas SET estado = 'activo', updated_at = ? WHERE id = ?`).run(stamp, doc.transportistaId);
     }
     db.prepare(
@@ -250,23 +266,27 @@ export function reviewDocument(user: PublicUser, documentId: string, action: Hum
        VALUES (?, ?, 'humano', 'documentos_acreditacion', ?, ?, ?, NULL, ?)`,
     ).run(randomUUID(), stamp, doc.id, comment, action, user.id);
   })();
-  return { id: doc.id, estadoAdmin: next, transportistaActivo: action === "aprobar" };
+  return { id: doc.id, estadoAdmin: next, transportistaActivo: action === "aprobar" && Boolean(doc.transportistaId) };
 }
 
-export function listPendingDocuments(): PendingDocument[] {
-  return getDb()
-    .prepare(
-      `SELECT d.id, d.tipo, d.vencimiento, d.comentario_ia AS comentarioIa, d.estado_ia AS estadoIa, d.estado_admin AS estadoAdmin,
-              d.transportista_id AS transportistaId, t.nombre AS transportistaNombre, t.estado AS transportistaEstado
-       FROM documentos_acreditacion d JOIN transportistas t ON t.id = d.transportista_id
+export function listPendingDocuments(tipoCliente?: TipoCliente): PendingDocument[] {
+  const sql = tipoCliente
+    ? `SELECT d.id, d.tipo, d.tipo_cliente AS tipoCliente, d.vencimiento, d.comentario_ia AS comentarioIa, d.estado_ia AS estadoIa, d.estado_admin AS estadoAdmin,
+              d.transportista_id AS transportistaId, COALESCE(t.nombre, u.razon_social) AS transportistaNombre, COALESCE(t.estado, '') AS transportistaEstado
+       FROM documentos_acreditacion d
+       LEFT JOIN transportistas t ON t.id = d.transportista_id
+       LEFT JOIN users u ON u.id = d.user_id
+       WHERE d.estado_admin = 'pendiente_ok' AND d.tipo_cliente = ?
+       ORDER BY d.vencimiento IS NULL, d.vencimiento, d.created_at`
+    : `SELECT d.id, d.tipo, d.tipo_cliente AS tipoCliente, d.vencimiento, d.comentario_ia AS comentarioIa, d.estado_ia AS estadoIa, d.estado_admin AS estadoAdmin,
+              d.transportista_id AS transportistaId, COALESCE(t.nombre, u.razon_social) AS transportistaNombre, COALESCE(t.estado, '') AS transportistaEstado
+       FROM documentos_acreditacion d
+       LEFT JOIN transportistas t ON t.id = d.transportista_id
+       LEFT JOIN users u ON u.id = d.user_id
        WHERE d.estado_admin = 'pendiente_ok'
-       ORDER BY d.vencimiento IS NULL, d.vencimiento, d.created_at`,
-    )
-    .all()
-    .map((row) => {
-      const item = row as PendingDocument;
-      return { ...item, transportistaNombre: item.transportistaNombre?.trim() || "sin datos" };
-    });
+       ORDER BY d.tipo_cliente, d.vencimiento IS NULL, d.vencimiento, d.created_at`;
+  const rows = tipoCliente ? getDb().prepare(sql).all(tipoCliente) : getDb().prepare(sql).all();
+  return (rows as PendingDocument[]).map((item) => ({ ...item, transportistaNombre: item.transportistaNombre?.trim() || "sin datos" }));
 }
 
 /** Avisa a 30, 15 y 7 días. Solo comentario y fila de historial. No aprueba ni avisa por correo o WhatsApp. */
@@ -276,8 +296,9 @@ export function runExpiryAlerts(today: string): { written: number } {
   const docs = db
     .prepare(
       `SELECT d.id, d.vencimiento, d.tipo
-       FROM documentos_acreditacion d JOIN transportistas t ON t.id = d.transportista_id
-       WHERE d.vencimiento IS NOT NULL`,
+       FROM documentos_acreditacion d
+       LEFT JOIN transportistas t ON t.id = d.transportista_id
+       WHERE d.vencimiento IS NOT NULL AND (d.tipo_cliente = 'mandante' OR t.id IS NOT NULL)`,
     )
     .all() as { id: string; vencimiento: string; tipo: string }[];
   let written = 0;

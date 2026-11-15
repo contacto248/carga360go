@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { MIGRATION_17_SQL } from "./bassam/schema";
+import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "./bassam/schema";
 import { seedTolls } from "./costos/tolls-seed";
 import Database from "better-sqlite3";
 import { addDaysIso, FREE_DAYS, freeUntilFrom } from "./campaign";
@@ -711,6 +711,19 @@ function migrate(db: Database.Database) {
     apply();
   }
   if (!hasColumn(db, "transportistas", "user_id")) db.exec(`ALTER TABLE transportistas ADD COLUMN user_id TEXT`);
+  if (!hasMigration(db, 18)) {
+    db.pragma("foreign_keys = OFF");
+    try {
+      const apply = db.transaction(() => {
+        // tipo_cliente transportista o mandante. El SELECT copia filas ya guardadas y no agrega ejemplos.
+        db.exec(MIGRATION_18_SQL);
+        db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (18, ?)`).run(new Date().toISOString());
+      });
+      apply();
+    } finally {
+      db.pragma("foreign_keys = ON");
+    }
+  }
 }
 
 export function closeDb() {

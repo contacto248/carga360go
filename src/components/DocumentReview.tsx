@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { PendingDocument } from "@/lib/bassam/types";
 import styles from "./bassam-panel.module.css";
@@ -11,7 +12,7 @@ const ACTIONS = [
   { action: "pedir_renovacion", label: "Pedir renovación" },
 ] as const;
 
-export function DocumentReview({ docs }: { docs: PendingDocument[] }) {
+export function DocumentReview({ docs, filtro }: { docs: PendingDocument[]; filtro?: "transportista" | "mandante" }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -37,13 +38,21 @@ export function DocumentReview({ docs }: { docs: PendingDocument[] }) {
   return (
     <section className={styles.card}>
       <h2>Documentos pendientes</h2>
+      <p className={styles.meta}>
+        <Link href="/admin/bassam">Todos</Link>
+        {" · "}
+        <Link href="/admin/bassam?tipo=transportista">Transportista</Link>
+        {" · "}
+        <Link href="/admin/bassam?tipo=mandante">Mandante</Link>
+        {filtro ? ` · viendo ${filtro}` : ""}
+      </p>
       {docs.length === 0 ? (
         <p>sin datos</p>
       ) : (
         docs.map((doc) => (
           <article className={styles.trip} key={doc.id}>
             <h3>
-              {doc.tipo} · {doc.transportistaNombre}
+              {doc.tipoCliente} · {doc.tipo} · {doc.transportistaNombre}
             </h3>
             <p className={styles.meta}>
               {doc.comentarioIa?.trim() || "sin datos"}
