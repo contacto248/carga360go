@@ -26,6 +26,7 @@ import {
 } from "../src/lib/manual-readonly-notify";
 import {
   MANUAL_READONLY_GRANT_SUBJECT_PREFIX,
+  MANUAL_READONLY_MAX_DAYS,
   MANUAL_READONLY_REVOKE_SUBJECT,
   WA_TEMPLATE_READONLY_GRANTED,
   WA_TEMPLATE_READONLY_REVOKED,
@@ -33,8 +34,10 @@ import {
   accreditationMissingShort,
   buildManualReadonlyGrantedEmail,
   buildManualReadonlyRevokedEmail,
+  formalMissingItems,
   formatUntilDateCL,
   manualReadonlyGrantedWhatsapp,
+  manualReadonlyPendingBrief,
   manualReadonlyRevokedWhatsapp,
 } from "../src/lib/onboarding/messages";
 import { setWhatsappOutboundSender, type WhatsappOutboundPayload } from "../src/lib/whatsapp/send";
@@ -98,29 +101,45 @@ function assertClean(text: string) {
   assert.doesNotMatch(text, BANNED);
 }
 
-const LIMITS = [
-  /solamente para ver la plataforma|solo para ver la plataforma/,
-  /no puedes publicar ni tomar cargas, ofertar, editar ni operar/i,
-  /acreditar/i,
-  /\/panel/,
-];
+const PLAZO = new RegExp(`plazo máximo de ${MANUAL_READONLY_MAX_DAYS} días, hasta el`);
+const RESTRICTION = /no podrá publicar cargas, ofertar ni tomar cargas/i;
 
-test("textos: el correo y el WhatsApp de otorgamiento incluyen límite, vencimiento, pendientes y panel", () => {
+test("textos: el correo formal y el WhatsApp corto confirman la verificación provisional", () => {
   const until = "2026-12-14T11:57:00.000Z";
   const missing = ["confirmar tu correo", "subir los documentos que faltan (cédula de identidad, licencia; van 0 de 6)"];
   const mail = buildManualReadonlyGrantedEmail({ contactName: "Camila Soto", untilIso: until, missing });
   const wa = manualReadonlyGrantedWhatsapp({ contactName: "Camila Soto", untilIso: until, missing });
   const date = formatUntilDateCL(until);
   assert.match(mail.subject, new RegExp(MANUAL_READONLY_GRANT_SUBJECT_PREFIX));
+  assert.match(mail.subject, PLAZO);
   assert.match(mail.subject, new RegExp(date));
-  for (const text of [mail.text, mail.html, wa]) {
-    assert.match(text, /Camila Soto/);
+  for (const text of [mail.text, mail.html]) {
+    assert.match(text, /Estimado\/a Camila Soto/);
+    assert.match(text, /verificación provisional/);
+    assert.match(text, PLAZO);
     assert.match(text, new RegExp(date));
-    assert.match(text, /confirmar tu correo/);
+    assert.match(text, RESTRICTION);
+    assert.match(text, /Documentación pendiente/);
+    assert.match(text, /confirmar su correo/);
     assert.match(text, /cédula de identidad/);
-    for (const re of LIMITS) assert.match(text, re);
+    assert.match(text, /caducará de forma automática/);
+    assert.match(text, /\/panel/);
+    assert.match(text, /Equipo Carga360go/);
+    assert.doesNotMatch(text, /\bHola\b/);
+    assert.doesNotMatch(text, /\bno puedes\b/i);
+    assert.doesNotMatch(text, /confirmar tu correo/);
     assertClean(text);
   }
+  assert.match(mail.text, /Atentamente,/);
+  assert.match(mail.text, /www\.carga360go\.cl/);
+  assert.ok(wa.length <= 400, `WhatsApp tiene ${wa.length} caracteres`);
+  assert.match(wa, /Estimado\/a Camila Soto/);
+  assert.match(wa, /verificación provisional/);
+  assert.match(wa, PLAZO);
+  assert.match(wa, new RegExp(date));
+  assert.match(wa, /Documentación pendiente|pendiente documentación/);
+  assert.match(wa, /\/panel/);
+  assertClean(wa);
   const revokedMail = buildManualReadonlyRevokedEmail("Camila Soto");
   const revokedWa = manualReadonlyRevokedWhatsapp("Camila Soto");
   assert.equal(revokedMail.subject, MANUAL_READONLY_REVOKE_SUBJECT);
@@ -131,8 +150,15 @@ test("textos: el correo y el WhatsApp de otorgamiento incluyen límite, vencimie
   }
   assert.equal(WA_TEMPLATE_READONLY_GRANTED.status, "pendiente_aprobacion_meta");
   assert.equal(WA_TEMPLATE_READONLY_REVOKED.status, "pendiente_aprobacion_meta");
-  assert.match(WA_TEMPLATE_READONLY_GRANTED.body, /solo para ver la plataforma/);
+  assert.match(WA_TEMPLATE_READONLY_GRANTED.body, /verificación provisional/);
+  assert.match(WA_TEMPLATE_READONLY_GRANTED.body, /plazo máximo de 30 días, hasta el \{\{2\}\}/);
+  assert.match(WA_TEMPLATE_READONLY_GRANTED.body, /Documentación pendiente: \{\{3\}\}/);
+  assert.deepEqual(formalMissingItems(missing), [
+    "confirmar su correo",
+    "subir los documentos que faltan (cédula de identidad, licencia; van 0 de 6)",
+  ]);
   assert.match(accreditationMissingShort(missing), /confirmar tu correo/);
+  assert.match(manualReadonlyPendingBrief(missing), /confirmar su correo/);
 });
 
 test("aviso: sin SMTP ni WhatsApp configurados se guarda en outbox y no se marca enviado", async () => {
@@ -150,15 +176,17 @@ test("aviso: sin SMTP ni WhatsApp configurados se guarda en outbox y no se marca
   assert.equal(result.whatsapp.source, "principal");
 
   const mail = readOutbox(mailOutboxDir(), `To: ${user.email}`);
-  assert.match(mail, /solamente para ver la plataforma/);
-  assert.match(mail, /No puedes publicar ni tomar cargas/);
+  assert.match(mail, /verificación provisional/);
+  assert.match(mail, PLAZO);
+  assert.match(mail, /No podrá publicar cargas, ofertar ni tomar cargas/);
   assert.match(mail, new RegExp(formatUntilDateCL(until)));
   assert.match(mail, /\/panel/);
   assertClean(mail);
 
   const wa = readOutbox(whatsappOutboxDir(), `To: ${user.whatsapp}`);
   assert.match(wa, /Status: no enviado: canal no configurado/);
-  assert.match(wa, /solamente para ver la plataforma/);
+  assert.match(wa, /verificación provisional/);
+  assert.match(wa, PLAZO);
   assert.match(wa, /\/panel/);
   assertClean(wa);
 
@@ -213,7 +241,8 @@ test("aviso: si falta el correo o el WhatsApp principal se usa el contacto de re
   assert.equal(result.email.to, "otra.caja@otro.cl");
   assert.equal(result.email.status, "no_configurado");
   const mail = readOutbox(mailOutboxDir(), "To: otra.caja@otro.cl");
-  assert.match(mail, /solamente para ver la plataforma/);
+  assert.match(mail, /verificación provisional/);
+  assert.match(mail, PLAZO);
 });
 
 test("aviso: un fallo de envío no deshace la verificación y queda registrado como no enviado", async () => {
@@ -287,7 +316,9 @@ test("aviso: dentro de la ventana de 24 h se envía texto de sesión; con planti
     assert.equal(session.whatsapp.status, "whatsapp_sesion");
     assert.equal(sent[0]?.kind, "text");
     if (sent[0] && sent[0].kind === "text") {
-      assert.match(sent[0].text, /solamente para ver la plataforma/);
+      assert.match(sent[0].text, /verificación provisional/);
+      assert.match(sent[0].text, PLAZO);
+      assert.ok(sent[0].text.length <= 400);
       assert.match(sent[0].text, /\/panel/);
     }
 
@@ -332,39 +363,62 @@ test("aviso: al revocar se envía un aviso corto, también sin marcar enviado si
   assert.match(wa, /fue revocado/);
 });
 
-test("aviso: PATCH /api/admin/usuarios/:id otorga y dispara el aviso, aunque el canal no esté configurado", async () => {
+test("aviso: PATCH /api/admin/usuarios/:id otorga y avisa a transportista y mandante, con resultado por canal", async () => {
   const root = admin();
-  const user = newUser("transportista", "api-aviso", { backupContact: "api.aviso@otro.cl" });
   const token = createSession(root.id, { mfa: true });
-  const response = await patchUsuario(
-    new Request(`http://127.0.0.1:4317/api/admin/usuarios/${user.id}`, {
-      method: "PATCH",
-      headers: new Headers({
-        "content-type": "application/json",
-        "x-real-ip": "203.0.113.88",
-        "sec-fetch-site": "same-origin",
-        host: "127.0.0.1:4317",
-        cookie: `c360_session=${token}`,
+  for (const role of ["transportista", "mandante"] as const) {
+    const user = newUser(role, `api-aviso-${role.slice(0, 3)}`, { backupContact: `api.aviso.${role}@otro.cl` });
+    const response = await patchUsuario(
+      new Request(`http://127.0.0.1:4317/api/admin/usuarios/${user.id}`, {
+        method: "PATCH",
+        headers: new Headers({
+          "content-type": "application/json",
+          "x-real-ip": "203.0.113.88",
+          "sec-fetch-site": "same-origin",
+          host: "127.0.0.1:4317",
+          cookie: `c360_session=${token}`,
+        }),
+        body: JSON.stringify({ manualReadonly: "otorgar" }),
       }),
-      body: JSON.stringify({ manualReadonly: "otorgar" }),
-    }),
-    { params: Promise.resolve({ id: user.id }) },
-  );
-  assert.equal(response.status, 200);
-  const body = (await response.json()) as { ok?: boolean };
-  assert.equal(body.ok, true);
-  const row = getDb()
-    .prepare(`SELECT manual_readonly_until FROM users WHERE id = ?`)
-    .get(user.id) as { manual_readonly_until: string | null };
-  assert.ok(row.manual_readonly_until);
-  const notices = listManualReadonlyNotifications(user.id);
-  assert.equal(notices.length, 1);
-  assert.equal(notices[0].kind, "otorgar");
-  assert.equal(notices[0].emailStatus, "no_configurado");
-  assert.equal(audits(user.id, "usuario.solo_lectura_otorgada").length, 1);
-  assert.equal(audits(user.id, "usuario.solo_lectura_avisada").length, 1);
-  const mail = readOutbox(mailOutboxDir(), `To: ${user.email}`);
-  assert.match(mail, /solamente para ver la plataforma/);
+      { params: Promise.resolve({ id: user.id }) },
+    );
+    assert.equal(response.status, 200);
+    const body = (await response.json()) as {
+      ok?: boolean;
+      notice?: {
+        kind: string;
+        skipped: boolean;
+        email: { status: string; label: string; to: string | null };
+        whatsapp: { status: string; label: string; to: string | null };
+      };
+    };
+    assert.equal(body.ok, true, role);
+    assert.ok(body.notice, role);
+    assert.equal(body.notice?.kind, "otorgar", role);
+    assert.equal(body.notice?.skipped, false, role);
+    assert.equal(body.notice?.email.status, "no_configurado", role);
+    assert.equal(body.notice?.email.to, user.email, role);
+    assert.match(body.notice?.email.label ?? "", /no enviado: canal no configurado/);
+    assert.equal(body.notice?.whatsapp.status, "no_configurado", role);
+    assert.match(body.notice?.whatsapp.label ?? "", /no enviado: canal no configurado/);
+    const row = getDb()
+      .prepare(`SELECT manual_readonly_until FROM users WHERE id = ?`)
+      .get(user.id) as { manual_readonly_until: string | null };
+    assert.ok(row.manual_readonly_until, role);
+    const notices = listManualReadonlyNotifications(user.id);
+    assert.equal(notices.length, 1, role);
+    assert.equal(notices[0].kind, "otorgar", role);
+    assert.equal(notices[0].emailStatus, "no_configurado", role);
+    assert.equal(audits(user.id, "usuario.solo_lectura_otorgada").length, 1, role);
+    assert.equal(audits(user.id, "usuario.solo_lectura_avisada").length, 1, role);
+    const mail = readOutbox(mailOutboxDir(), `To: ${user.email}`);
+    assert.match(mail, /verificación provisional/);
+    assert.match(mail, PLAZO);
+    assert.match(mail, /No podrá publicar cargas, ofertar ni tomar cargas/);
+    const wa = readOutbox(whatsappOutboxDir(), `To: ${user.whatsapp}`);
+    assert.match(wa, /verificación provisional/);
+    assert.match(wa, /\/panel/);
+  }
 });
 
 test("aviso: accreditationMissingItems cubre documentos, correo y revisión final", () => {

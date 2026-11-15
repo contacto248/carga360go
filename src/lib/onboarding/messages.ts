@@ -252,53 +252,87 @@ export type ManualReadonlyNoticeInput = {
   missing: string[];
 };
 
-export const MANUAL_READONLY_GRANT_SUBJECT_PREFIX = "Acceso de solo lectura en Carga360go";
+export const MANUAL_READONLY_GRANT_SUBJECT_PREFIX = "Verificación provisional en Carga360go";
 export const MANUAL_READONLY_REVOKE_SUBJECT = "Se revocó el acceso de solo lectura en Carga360go";
+export const MANUAL_READONLY_MAX_DAYS = 30;
+const WA_GRANTED_MAX_CHARS = 400;
+
+/** Pasa a trato de usted los pendientes armados con «tu» en el onboarding. */
+export function formalMissingItems(items: string[]): string[] {
+  return items.map((item) =>
+    item
+      .replace(/\btu correo\b/gi, "su correo")
+      .replace(/\btu WhatsApp\b/g, "su WhatsApp")
+      .replace(/\ben tu panel\b/g, "en su panel")
+      .replace(/\btu inscripción\b/g, "su inscripción")
+      .replace(/\btu acreditación\b/g, "su acreditación")
+      .replace(/\btu cuenta\b/g, "su cuenta")
+      .replace(/\btu registro\b/g, "su registro")
+      .replace(/por si no alcanzas a terminar/, "por si no alcanza a terminar"),
+  );
+}
+
+/** Resumen corto de documentación pendiente para WhatsApp o variable {{3}} de la plantilla. */
+export function manualReadonlyPendingBrief(items: string[]): string {
+  const formal = formalMissingItems(items);
+  if (formal.length === 0) return "queda documentación pendiente";
+  const short = accreditationMissingShort(formal);
+  if (short.length <= 160) return short;
+  const n = formal.length;
+  return `${n} ${n === 1 ? "pendiente" : "pendientes"}`;
+}
 
 export function buildManualReadonlyGrantedEmail(input: ManualReadonlyNoticeInput): BuiltEmail {
   const until = formatUntilDateCL(input.untilIso);
-  const subject = `${MANUAL_READONLY_GRANT_SUBJECT_PREFIX} — hasta el ${until}`;
-  const missing = input.missing.map((item) => `• ${item}`);
-  const missingHtml = input.missing.map((item) => `<li>${esc(item)}</li>`).join("");
+  const subject = `${MANUAL_READONLY_GRANT_SUBJECT_PREFIX} — plazo máximo de ${MANUAL_READONLY_MAX_DAYS} días, hasta el ${until}`;
+  const missing = formalMissingItems(input.missing);
+  const missingLines = missing.map((item) => `• ${item}`);
+  const missingHtml = missing.map((item) => `<li>${esc(item)}</li>`).join("");
   const text = [
-    `Hola ${input.contactName}:`,
+    `Estimado/a ${input.contactName}:`,
     "",
-    `Un administrador habilitó tu cuenta en Carga360go con acceso de solo lectura hasta el ${until}.`,
+    "Le informamos que un administrador de Carga360go ha otorgado a su cuenta una verificación provisional.",
     "",
-    "Importante: tu cuenta quedó habilitada solamente para ver la plataforma. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación.",
+    `Esta verificación provisional tiene un plazo máximo de ${MANUAL_READONLY_MAX_DAYS} días, hasta el ${until}.`,
     "",
-    "Para acreditarse te falta:",
-    ...missing,
+    "Durante este período, usted podrá ingresar a la plataforma y consultar las cargas y los camiones publicados. No podrá publicar cargas, ofertar ni tomar cargas hasta completar su acreditación y quedar verificada por completo.",
     "",
-    "Entra a tu panel para continuar:",
+    "Documentación pendiente:",
+    ...missingLines,
+    "",
+    "Al vencer el plazo máximo, si la documentación sigue incompleta, la verificación provisional caducará de forma automática y su cuenta volverá a quedar pendiente, sin acceso a los movimientos de la plataforma, hasta que complete su acreditación.",
+    "",
+    "Para continuar, ingrese a su panel:",
     panelUrl(),
     "",
+    "Atentamente,",
     "Equipo Carga360go",
     "www.carga360go.cl",
   ].join("\n");
   const htmlBody = `
-    <p>Hola ${esc(input.contactName)}:</p>
-    <p>Un administrador habilitó tu cuenta en Carga360go con acceso de solo lectura hasta el ${esc(until)}.</p>
-    <p><strong>Importante:</strong> tu cuenta quedó habilitada solamente para ver la plataforma. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación.</p>
-    <p><strong>Para acreditarse te falta:</strong></p>
+    <p>Estimado/a ${esc(input.contactName)}:</p>
+    <p>Le informamos que un administrador de Carga360go ha otorgado a su cuenta una verificación provisional.</p>
+    <p>Esta verificación provisional tiene un <strong>plazo máximo de ${MANUAL_READONLY_MAX_DAYS} días, hasta el ${esc(until)}</strong>.</p>
+    <p>Durante este período, usted podrá ingresar a la plataforma y consultar las cargas y los camiones publicados. <strong>No podrá publicar cargas, ofertar ni tomar cargas</strong> hasta completar su acreditación y quedar verificada por completo.</p>
+    <p><strong>Documentación pendiente:</strong></p>
     <ul style="padding-left:20px;margin:0 0 16px;">${missingHtml}</ul>
-    <p>Entra a tu panel para continuar.</p>
+    <p>Al vencer el plazo máximo, si la documentación sigue incompleta, la verificación provisional caducará de forma automática y su cuenta volverá a quedar pendiente, sin acceso a los movimientos de la plataforma, hasta que complete su acreditación.</p>
+    <p>Para continuar, ingrese a su panel.</p>
   `;
   return { subject, text, html: wrapHtml(subject, htmlBody, "Ir a mi panel") };
 }
 
 export function manualReadonlyGrantedWhatsapp(input: ManualReadonlyNoticeInput): string {
   const until = formatUntilDateCL(input.untilIso);
-  return [
-    `Hola ${input.contactName}: un administrador habilitó tu cuenta en Carga360go con acceso de solo lectura hasta el ${until}.`,
-    "",
-    "Tu cuenta quedó habilitada solamente para ver la plataforma. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación.",
-    "",
-    "Para acreditarse te falta:",
-    ...input.missing.map((item) => `• ${item}`),
-    "",
-    `Entra a tu panel: ${panelUrl()}`,
-  ].join("\n");
+  const prefix = `Estimado/a ${input.contactName}: se aprobó su verificación provisional en Carga360go por un plazo máximo de ${MANUAL_READONLY_MAX_DAYS} días, hasta el ${until}.`;
+  const suffix = `Ingrese a su panel: ${panelUrl()}`;
+  const brief = manualReadonlyPendingBrief(input.missing);
+  const withList = `${prefix} Documentación pendiente: ${brief}. ${suffix}`;
+  if (withList.length <= WA_GRANTED_MAX_CHARS) return withList;
+  const n = Math.max(input.missing.length, 1);
+  const counted = `${prefix} Queda pendiente documentación (${n} ${n === 1 ? "pendiente" : "pendientes"}). ${suffix}`;
+  if (counted.length <= WA_GRANTED_MAX_CHARS) return counted;
+  return `${prefix} Queda pendiente documentación. ${suffix}`.slice(0, WA_GRANTED_MAX_CHARS);
 }
 
 export function buildManualReadonlyRevokedEmail(contactName: string): BuiltEmail {
@@ -336,7 +370,7 @@ export const WA_TEMPLATE_READONLY_GRANTED = {
   language: "es",
   category: "UTILITY",
   status: "pendiente_aprobacion_meta",
-  body: "Hola {{1}}: tu cuenta en Carga360go quedó habilitada solo para ver la plataforma hasta el {{2}}. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación. Para acreditarse te falta: {{3}}.",
+  body: "Estimado/a {{1}}: se aprobó su verificación provisional en Carga360go por un plazo máximo de 30 días, hasta el {{2}}. Documentación pendiente: {{3}}.",
   button: { type: "URL", text: "Ir al panel", url: "https://www.carga360go.cl/panel" },
 } as const;
 

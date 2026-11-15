@@ -15,14 +15,14 @@ Idioma: español (`es`). Categoría: **UTILITY**. Botón de URL estático (sin v
 Cuerpo propuesto:
 
 ```
-Hola {{1}}: tu cuenta en Carga360go quedó habilitada solo para ver la plataforma hasta el {{2}}. No puedes publicar ni tomar cargas, ofertar, editar ni operar hasta completar tu acreditación. Para acreditarse te falta: {{3}}.
+Estimado/a {{1}}: se aprobó su verificación provisional en Carga360go por un plazo máximo de 30 días, hasta el {{2}}. Documentación pendiente: {{3}}.
 ```
 
 | Variable | Contenido |
 | --- | --- |
 | {{1}} | Nombre de contacto |
 | {{2}} | Fecha de vencimiento (dd-mm-aaaa, calendario de Chile) |
-| {{3}} | Resumen corto de lo que falta para acreditarse (máx. 200 caracteres) |
+| {{3}} | Resumen corto de la documentación pendiente (lista breve o cantidad; máx. 200 caracteres) |
 
 Botón: «Ir al panel» → `https://www.carga360go.cl/panel`
 

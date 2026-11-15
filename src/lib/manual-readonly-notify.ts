@@ -11,8 +11,8 @@ import {
   WA_TEMPLATE_READONLY_GRANTED,
   WA_TEMPLATE_READONLY_REVOKED,
   accreditationMissingItems,
-  accreditationMissingShort,
   buildManualReadonlyGrantedEmail,
+  manualReadonlyPendingBrief,
   buildManualReadonlyRevokedEmail,
   formatUntilDateCL,
   manualReadonlyGrantedWhatsapp,
@@ -481,7 +481,7 @@ async function deliver(
     let whatsapp: ChannelResult = channel("sin_destinatario", null, "ninguno");
     if (waTo) {
       const templateName = kind === "otorgar" ? grantedTemplateName() : revokedTemplateName();
-      const bodyParams = kind === "otorgar" && untilIso ? [contactName, untilFmt, accreditationMissingShort(missing)] : [contactName];
+      const bodyParams = kind === "otorgar" && untilIso ? [contactName, untilFmt, manualReadonlyPendingBrief(missing)] : [contactName];
       whatsapp = await sendWhatsappNotice(
         kind,
         waTo.to,

@@ -12,6 +12,7 @@ import { channelStatus } from "@/lib/notify";
 import { lastCodeInfo } from "@/lib/verification";
 import { backupContactOf, verificationPending } from "@/lib/backup-contact";
 import { manualReadonlyOf } from "@/lib/manual-readonly";
+import { deliveryLabel, listManualReadonlyNotifications } from "@/lib/manual-readonly-notify";
 
 export const metadata: Metadata = { title: "Acreditación de cuentas", robots: { index: false, follow: false } };
 
@@ -46,6 +47,17 @@ function deliveryText(delivery: string, createdAt: string): string {
     minute: "2-digit",
   });
   return `${DELIVERY_LABELS[delivery] ?? delivery.replace(/_/g, " ")} · ${when} (hora de Chile)`;
+}
+
+
+function lastManualNotice(userId: string) {
+  const row = listManualReadonlyNotifications(userId).at(-1);
+  if (!row) return null;
+  return {
+    kind: row.kind,
+    email: { label: deliveryLabel(row.emailStatus), to: row.emailTo },
+    whatsapp: { label: deliveryLabel(row.whatsappStatus), to: row.whatsappTo },
+  };
 }
 
 export default async function AdminTransportistasPage({
@@ -88,7 +100,9 @@ export default async function AdminTransportistasPage({
       backup: backupContactOf(item.id),
       backupPending: verificationPending(item.id),
       readonly: manualReadonlyOf(item.id),
+      lastNotice: lastManualNotice(item.id),
     };
+
   });
   const channels = channelStatus();
   const count = (id: string) => carriers.filter((item) => matches(item, id)).length;

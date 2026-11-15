@@ -18,6 +18,13 @@ type Checklist = {
   ready: boolean;
 };
 
+export type ManualReadonlyNoticeView = {
+  kind: "otorgar" | "revocar";
+  skipped?: boolean;
+  email: { label: string; to: string | null };
+  whatsapp: { label: string; to: string | null };
+};
+
 export type CarrierItem = {
   user: PublicUser;
   phoneDisplay: string;
@@ -32,7 +39,17 @@ export type CarrierItem = {
   backupPending: boolean;
   /** Verificación manual: solo lectura por 30 días. */
   readonly: ManualReadonly;
+  /** Último aviso de verificación provisional o de revocación (correo y WhatsApp). */
+  lastNotice?: ManualReadonlyNoticeView | null;
 };
+
+function noticeSummary(notice: ManualReadonlyNoticeView): string {
+  const kind = notice.kind === "otorgar" ? "de la verificación provisional" : "de la revocación";
+  const skip = notice.skipped ? " Ya se había avisado hoy." : "";
+  const emailTo = notice.email.to ? ` a ${notice.email.to}` : "";
+  const waTo = notice.whatsapp.to ? ` a ${notice.whatsapp.to}` : "";
+  return `Aviso ${kind}: correo, ${notice.email.label}${emailTo}; WhatsApp, ${notice.whatsapp.label}${waTo}.${skip}`;
+}
 
 const READONLY_BUTTON = "Verificación manual (solo lectura, 30 días)";
 
@@ -59,6 +76,7 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
   const [error, setError] = useState("");
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState("");
+  const [notices, setNotices] = useState<Record<string, ManualReadonlyNoticeView>>({});
 
   async function call(key: string, url: string, body: unknown) {
     setError("");
@@ -69,10 +87,16 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
       body: JSON.stringify(body),
     });
     setBusy("");
+    const data = (await response.json().catch(() => null)) as
+      | { error?: string; notice?: ManualReadonlyNoticeView }
+      | null;
     if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
       setError(data?.error || "No se pudo guardar.");
       return;
+    }
+    if (data?.notice) {
+      const userId = key.includes(":") ? key.split(":")[1] : "";
+      if (userId) setNotices((current) => ({ ...current, [userId]: data.notice as ManualReadonlyNoticeView }));
     }
     router.refresh();
   }
@@ -87,7 +111,7 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
     const ok = window.confirm(
       `¿Dar a ${user.razonSocial} acceso de SOLO LECTURA por 30 días?\n\n` +
         "Podrá ver la plataforma, pero no publicar, ofertar ni tomar cargas hasta quedar acreditada y verificada por completo. " +
-        "Al vencer sin acreditación, vuelve a pendiente. Quedará registrado que lo aprobaste tú.",
+        "Al vencer sin acreditación, vuelve a pendiente. Quedará registrado que lo aprobaste tú. Se le enviará un aviso formal por correo y un mensaje corto por WhatsApp.",
     );
     if (!ok) return;
     call(`ro:${user.id}`, `/api/admin/usuarios/${user.id}`, { manualReadonly: "otorgar" });
@@ -113,7 +137,7 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
           {error}
         </p>
       ) : null}
-      {items.map(({ user, phoneDisplay, check, acc, docs, lastEmailDelivery, lastPhoneDelivery, backup, backupPending, readonly }) => (
+      {items.map(({ user, phoneDisplay, check, acc, docs, lastEmailDelivery, lastPhoneDelivery, backup, backupPending, readonly, lastNotice }) => (
         <article key={user.id} className="card" style={{ minWidth: 0 }}>
           <div className="row" style={{ justifyContent: "space-between" }}>
             <div>
@@ -334,6 +358,14 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
                   </button>
                 ) : null}
               </div>
+              {(() => {
+                const shown = notices[user.id] ?? lastNotice;
+                return shown ? (
+                  <div className="meta" role="status" style={{ marginTop: 8 }}>
+                    {noticeSummary(shown)}
+                  </div>
+                ) : null;
+              })()}
             </div>
           )}
 
