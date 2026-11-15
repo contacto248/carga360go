@@ -127,6 +127,9 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   assert.equal(load.soloVerificados, true);
   assert.equal(load.matches.length, 0);
   setUserVerification(transportista.id, "verificado", null);
+  // Solo el sello de cuenta no basta: sin documentos verificados al día no hay match (T-008 residual).
+  assert.equal(getLoad(load.id)?.matches.length, 0);
+  setDocumentVerification(padron.id, "verificado", null);
   const after = getLoad(load.id);
   assert.equal(after?.matches.length, 1);
   assert.equal(after?.matches[0]?.truck.ownerVerification, "verificado");

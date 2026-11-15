@@ -322,7 +322,8 @@ function allTrucks(): TruckPublic[] {
 
 function carrierFitsLoad(load: LoadPublic, truck: TruckPublic): boolean {
   if (truck.ownerId === load.ownerId) return false;
-  if (load.soloVerificados && truck.ownerVerification !== "verificado") return false;
+  // Misma regla que el sello público: verificado + documentos al día (T-008 residual).
+  if (load.soloVerificados && !publicVerifiedSeal(truck.ownerVerification, truck.ownerDocsOk)) return false;
   return true;
 }
 

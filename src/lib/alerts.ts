@@ -7,6 +7,7 @@ import { allListings, equipmentList, loadPassesFilters, truckPassesFilters } fro
 import { appUrl } from "./mail";
 import { matchLoadToTruck } from "./match";
 import { type Delivery, sendEmail } from "./notify";
+import { publicVerifiedSeal } from "./public-trust";
 import type { LoadFilters, LoadPublic, PublicUser, TruckFilters, TruckPublic } from "./types";
 
 /** Máximo de correos de alerta por usuario en 24 horas. */
@@ -205,7 +206,7 @@ export async function alertForNewLoad(loadId: string): Promise<AlertOutcome[]> {
   const reasons = new Map<string, { reason: string; line: string }>();
   for (const truck of trucks) {
     if (truck.ownerId === load.ownerId || truck.isDemo) continue;
-    if (load.soloVerificados && truck.ownerVerification !== "verificado") continue;
+    if (load.soloVerificados && !publicVerifiedSeal(truck.ownerVerification, truck.ownerDocsOk)) continue;
     const match = matchLoadToTruck(load, truck);
     if (!match || match.score < MIN_ALERT_SCORE || reasons.has(truck.ownerId)) continue;
     reasons.set(truck.ownerId, {
@@ -239,7 +240,7 @@ export async function alertForNewTruck(truckId: string): Promise<AlertOutcome[]>
   const reasons = new Map<string, { reason: string; line: string }>();
   for (const load of loads) {
     if (load.ownerId === truck.ownerId || load.isDemo) continue;
-    if (load.soloVerificados && truck.ownerVerification !== "verificado") continue;
+    if (load.soloVerificados && !publicVerifiedSeal(truck.ownerVerification, truck.ownerDocsOk)) continue;
     const match = matchLoadToTruck(load, truck);
     if (!match || match.score < MIN_ALERT_SCORE || reasons.has(load.ownerId)) continue;
     reasons.set(load.ownerId, {
