@@ -365,7 +365,10 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.equal(fs.existsSync(new URL("../src/app/acreditacion/page.tsx", import.meta.url)), false);
   assert.equal(fs.existsSync(new URL("../src/app/acreditar/page.tsx", import.meta.url)), false);
   assert.equal(fs.existsSync(new URL("../src/app/upload-old/page.tsx", import.meta.url)), false);
-  assert.match(fs.readFileSync(new URL("../src/app/admin/bassam/page.tsx", import.meta.url), "utf8"), /user\.role !== "admin"/);
+  const bassam = fs.readFileSync(new URL("../src/app/admin/bassam/page.tsx", import.meta.url), "utf8");
+  assert.match(bassam, /user\.role !== "admin"/);
+  assert.doesNotMatch(bassam, /AdminNav/);
+  assert.match(panel, /styles\.glance/);
   assert.match(agente, /Subir documentos en \/mi-cuenta/);
   assert.match(agente, /Soy transportista/);
   assert.match(agente, /Soy mandante/);

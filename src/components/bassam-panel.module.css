@@ -22,6 +22,29 @@
   color: #5b6778;
   font-size: 0.95rem;
 }
+.glance {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.glance p {
+  margin: 0;
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.glance span {
+  display: block;
+  color: #5b6778;
+  font-size: 0.8rem;
+}
+.glance strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.25rem;
+}
 .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -104,8 +127,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-height: 48px;
+  min-height: 44px;
+  padding: 0 14px;
   border: 0;
   border-radius: 12px;
   background: #f26b1d;
@@ -122,16 +145,16 @@
 }
 .actions {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
 }
 .secondary {
-  width: 100%;
-  min-height: 48px;
-  border: 1px solid #ff6d00;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #0b1633;
   border-radius: 12px;
-  background: transparent;
-  color: #ffb07a;
+  background: #fff;
+  color: #0b1633;
   font: inherit;
   font-weight: 800;
   cursor: pointer;

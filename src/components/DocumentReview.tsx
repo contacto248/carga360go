@@ -129,8 +129,16 @@ export function DocumentReview({ panel }: { panel: PanelAcreditacion }) {
     setBusy(false);
   }
 
+  const comentarios = [...panel.transportistas.filas, ...panel.mandantes.filas].filter((fila) => fila.comentarioIa !== "sin datos").length;
+  const eventos = panel.timeline === "sin datos" ? 0 : panel.timeline.length;
   return (
     <>
+      <div className={styles.glance} aria-label="Conteos">
+        <p><span>Transportistas</span><strong>{panel.transportistas.filas.length === 0 ? "sin datos" : panel.transportistas.conteo}</strong></p>
+        <p><span>Mandantes</span><strong>{panel.mandantes.filas.length === 0 ? "sin datos" : panel.mandantes.conteo}</strong></p>
+        <p><span>Comentarios</span><strong>{comentarios === 0 ? "sin datos" : String(comentarios)}</strong></p>
+        <p><span>Línea de tiempo</span><strong>{eventos === 0 ? "sin datos" : String(eventos)}</strong></p>
+      </div>
       <div className={styles.grid}>
         <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} onAct={act} />
         <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} onAct={act} />

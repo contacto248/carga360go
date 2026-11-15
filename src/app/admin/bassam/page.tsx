@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AdminNav } from "@/components/AdminNav";
 import { DocumentReview } from "@/components/DocumentReview";
 import styles from "@/components/bassam-panel.module.css";
 import { panelAcreditacion } from "@/lib/bassam/acreditacion";
@@ -31,8 +30,7 @@ export default async function BassamPage() {
       <section className={styles.shell}>
         <p className={styles.brand}>CARGA360GO · BASSAM 360</p>
         <h1>Acreditación - Visión General</h1>
-        <p className={styles.lede}>Auditoría de documentos. Región Metropolitana, Chile.</p>
-        <AdminNav current="/admin/bassam" />
+        <p className={styles.lede}>Una sola pantalla. Los conteos salen de los documentos guardados.</p>
         <DocumentReview panel={panel} />
       </section>
     </div>
