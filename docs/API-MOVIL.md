@@ -47,7 +47,7 @@ Cada cuenta es **transportista** o **mandante**. La app usa `kind`:
   "rut": "76.123.456-7",
   "contactName": "Juan Pérez",
   "email": "juan@ejemplo.cl",
-  "password": "mínimo 8 caracteres",
+  "password": "mínimo 10 caracteres",
   "whatsapp": "+56 9 1234 5678",
   "city": "Antofagasta"
 }
@@ -241,7 +241,7 @@ Cada documento queda `pendiente` hasta que el administrador lo revisa. Si un tra
 5. Muestra `contactHidden` como "Ingresa para ver el contacto", sin botón de WhatsApp.
 6. Documentos: sube el archivo real (es obligatorio) con multipart o base64, envía `holderName` (patente o nombre) y `detail` para la licencia, muestra `verificationStatus` y `verificationNote`, y usa el `documentTypes` del catálogo.
 7. Usa ciudades y regiones de `/api/catalog`. La ciudad debe coincidir exactamente.
-8. Contraseña: el servidor exige mínimo 8 caracteres. Puedes mantener 10 en la app.
+8. Contraseña: el servidor exige mínimo 10 caracteres, igual que el registro y el restablecimiento en la web.
 9. Al hacer `logout`, llama a `POST /api/auth/logout` antes de `clearSession()`. Hoy el botón solo borra la sesión local.
 10. Oculta "Copiar mis publicaciones locales al servidor", que responde 501.
 11. Ajusta los textos legales y la marca según la sección 8.
