@@ -55,10 +55,8 @@ export function PrivacyGate({
         </h1>
         <p>
           Hola {name}. Para seguir usando Carga360go necesitamos que leas y aceptes la Política de Privacidad (versión {version}) y los
-          Términos de uso (versión {termsVersion}). Entre otras cosas: los datos de contacto se comparten solo entre el mandante y el
-          transportista elegido cuando se adjudica una oferta, y cada cuenta tiene 30 días gratis desde su inscripción; luego se cobrará una
-          membresía (valores por definir) con beneficios y convenios. Te avisaremos antes de cualquier cobro y no se cobra nada sin tu
-          aceptación.
+          Términos de uso (versión {termsVersion}). Entre otras cosas, los datos de contacto se comparten solo entre el mandante y el
+          transportista elegido cuando se adjudica una oferta.
         </p>
         <h2 style={{ fontSize: "1.1rem" }}>Política de Privacidad</h2>
         <div className="legal privacy-gate-text" tabIndex={0} aria-label="Texto de la Política de Privacidad">

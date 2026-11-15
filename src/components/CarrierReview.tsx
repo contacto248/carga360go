@@ -144,7 +144,6 @@ export function CarrierReview({ items, today }: { items: CarrierItem[]; today: s
               <h3 style={{ margin: 0 }}>{user.razonSocial}</h3>
               <div className="meta">
                 RUT {user.rut} · {user.city} · {user.contactName} · registrado {formatDateCL(user.createdAt.slice(0, 10))}
-                {user.freeUntil ? ` · gratis hasta ${formatDateCL(user.freeUntil)}` : ""}
               </div>
             </div>
             <span className={`pill ${readonly.active ? "warn" : PILL[user.verificationStatus]}`}>
