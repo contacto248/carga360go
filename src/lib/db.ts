@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { MIGRATION_17_SQL } from "./bassam/schema";
 import { seedTolls } from "./costos/tolls-seed";
 import Database from "better-sqlite3";
 import { addDaysIso, FREE_DAYS, freeUntilFrom } from "./campaign";
@@ -697,6 +698,15 @@ function migrate(db: Database.Database) {
       db.exec(MIGRATION_16_SQL);
       seedTolls(db);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (16, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 17)) {
+    const apply = db.transaction(() => {
+      // Tablas de solicitudes, transportistas, documentos y el historial BASSAM 360.
+      // Solo crea tablas nuevas. No inserta personas. Copia en docs/migrations/017-bassam-tablas.sql.
+      db.exec(MIGRATION_17_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (17, ?)`).run(new Date().toISOString());
     });
     apply();
   }

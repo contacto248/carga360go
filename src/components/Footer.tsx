@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HelpLauncher } from "@/components/ChatWidget";
+import { FleteButton } from "@/components/FleteButton";
 import { VoiceAgentLauncher } from "@/components/VoiceAgent";
 import { agentEnabled } from "@/lib/agent/config";
 import { webChatEnabled } from "@/lib/chat/config";
@@ -65,6 +66,7 @@ export function Footer() {
           con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
+      <FleteButton />
       {agentEnabled() ? <VoiceAgentLauncher waHref={href} /> : <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />}
     </>
   );

@@ -55,6 +55,18 @@ export type BassamSnapshot = {
 
 export type QrSide = { point: "origen" | "destino"; url: string; svg: string };
 
+export type PendingDocument = {
+  id: string;
+  tipo: string;
+  vencimiento: string | null;
+  comentarioIa: string | null;
+  estadoIa: string | null;
+  estadoAdmin: string;
+  transportistaId: string;
+  transportistaNombre: string;
+  transportistaEstado: string;
+};
+
 export type PublicCheckpoint = {
   point: "origen" | "destino";
   pointLabel: "Origen" | "Destino";

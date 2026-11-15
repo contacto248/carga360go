@@ -105,9 +105,26 @@
   cursor: pointer;
   text-decoration: none;
 }
-.approve:disabled {
+.approve:disabled,
+.secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.secondary {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #ff6d00;
+  border-radius: 12px;
+  background: transparent;
+  color: #ffb07a;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
 }
 .auto {
   margin: 0;

@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminNav } from "@/components/AdminNav";
 import { BassamPanel } from "@/components/BassamPanel";
+import { DocumentReview } from "@/components/DocumentReview";
 import styles from "@/components/bassam-panel.module.css";
+import { listPendingDocuments, runExpiryAlerts } from "@/lib/bassam/acreditacion";
 import { bassamSnapshot } from "@/lib/bassam/ops";
 import { getCurrentUser } from "@/lib/current-user";
+import { todayChile } from "@/lib/format";
 
 export const metadata: Metadata = { title: "BASSAM 360", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -25,7 +28,9 @@ export default async function BassamPage() {
       </div>
     );
   }
+  runExpiryAlerts(todayChile());
   const data = bassamSnapshot(user);
+  const docs = listPendingDocuments();
   return (
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <section className={styles.shell}>
@@ -38,6 +43,7 @@ export default async function BassamPage() {
           </Link>
         </p>
         <AdminNav current="/admin/bassam" />
+        <DocumentReview docs={docs} />
         <BassamPanel initial={data} />
       </section>
     </div>
