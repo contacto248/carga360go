@@ -55,6 +55,27 @@ export type BassamSnapshot = {
 
 export type QrSide = { point: "origen" | "destino"; url: string; svg: string };
 
+export type FilaAcreditacion = {
+  id: string;
+  tipoCliente: "transportista" | "mandante";
+  fecha: string;
+  tipo: string;
+  rut: string;
+  vencimiento: string;
+  comentarioIa: string;
+  estado: "pendiente" | "aprobado" | "rechazado" | "renovacion";
+  estadoAdmin: string;
+};
+
+export type EventoTimeline = { id: string; fecha: string; origen: string; accion: string; comentario: string };
+
+export type PanelAcreditacion = {
+  transportistas: { conteo: string; filas: FilaAcreditacion[] };
+  mandantes: { conteo: string; filas: FilaAcreditacion[] };
+  timeline: EventoTimeline[] | "sin datos";
+  kyc: string;
+};
+
 export type PendingDocument = {
   id: string;
   tipo: string;

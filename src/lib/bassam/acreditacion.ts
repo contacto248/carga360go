@@ -3,9 +3,10 @@ import fs from "fs";
 import path from "path";
 import { getDb } from "../db";
 import { AppError } from "../errors";
-import { daysBetween } from "../format";
+import { daysBetween, formatDateCL } from "../format";
+import { kycEnabled } from "../kyc/config";
 import type { PublicUser } from "../types";
-import type { PendingDocument } from "./types";
+import type { FilaAcreditacion, PanelAcreditacion, PendingDocument } from "./types";
 import { prefijoRevision, tiposDe, type TipoCliente } from "./tipos-cliente";
 
 export type { PendingDocument };
@@ -116,7 +117,7 @@ function rutKey(value: string): string {
   return value.replace(/\./g, "").replace(/\s/g, "").toUpperCase();
 }
 
-export function reviewText(text: string, carrierRut: string, today: string, cliente: TipoCliente = "transportista"): { comentario: string; estadoIa: string; fecha: string | null } {
+export function reviewText(text: string, carrierRut: string, today: string, cliente: TipoCliente = "transportista"): { comentario: string; estadoIa: string; fecha: string | null; rut: string | null } {
   const found = readRutAndDate(text);
   const rutLine = !found.rut ? "RUT sin datos." : rutKey(found.rut) === rutKey(carrierRut) ? "RUT coincide." : "RUT no coincide.";
   let vigencia = "Vigencia sin datos.";
@@ -135,7 +136,7 @@ export function reviewText(text: string, carrierRut: string, today: string, clie
     }
   }
   if (found.rut && rutKey(found.rut) !== rutKey(carrierRut)) estadoIa = "rut_no_coincide";
-  return { comentario: `${prefijoRevision(cliente)}: ${rutLine} ${vigencia}`, estadoIa, fecha: found.fecha };
+  return { comentario: `${prefijoRevision(cliente)}: ${rutLine} ${vigencia}`, estadoIa, fecha: found.fecha, rut: found.rut };
 }
 
 /** Guarda el archivo fuera de la web. No aprueba. Sin clave de Vision marca ILEGIBLE y no llama a Google. */
@@ -178,13 +179,15 @@ export async function storeAccreditationUpload(input: UploadInput, deps: UploadD
     }
   }
   const today = deps.today ?? new Date().toISOString().slice(0, 10);
-  const reading = text ? reviewText(text, rutCuenta, today, cliente) : { comentario: `${prefijoRevision(cliente)}: ILEGIBLE.`, estadoIa: "ILEGIBLE", fecha: null as string | null };
+  const reading = text
+    ? reviewText(text, rutCuenta, today, cliente)
+    : { comentario: `${prefijoRevision(cliente)}: ILEGIBLE.`, estadoIa: "ILEGIBLE", fecha: null as string | null, rut: null as string | null };
   db.transaction(() => {
     db.prepare(
       `INSERT INTO documentos_acreditacion (
-         id, tipo_cliente, transportista_id, user_id, tipo, archivo, vencimiento, estado_admin, estado_ia, comentario_ia, created_at, updated_at
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pendiente_ok', ?, ?, ?, ?)`,
-    ).run(id, cliente, cliente === "transportista" ? input.transportistaId : null, input.userId ?? null, tipo, relative, reading.fecha, reading.estadoIa, reading.comentario, stamp, stamp);
+         id, tipo_cliente, transportista_id, user_id, tipo, archivo, vencimiento, rut_extraido, estado_admin, estado_ia, comentario_ia, created_at, updated_at
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendiente_ok', ?, ?, ?, ?)`,
+    ).run(id, cliente, cliente === "transportista" ? input.transportistaId : null, input.userId ?? null, tipo, relative, reading.fecha, reading.rut, reading.estadoIa, reading.comentario, stamp, stamp);
     db.prepare(
       `INSERT INTO admin_bassam_360 (id, created_at, origen, tabla, registro_id, comentario, accion, estado_ia, actor_id)
        VALUES (?, ?, 'agente', 'documentos_acreditacion', ?, ?, 'lectura', ?, NULL)`,
@@ -217,6 +220,71 @@ export async function uploadAccountDocument(user: PublicUser, input: Omit<Upload
     }
   }
   return storeAccreditationUpload({ ...input, tipoCliente: cliente, transportistaId: carrierId, userId: user.id, rutCuenta: user.rut }, deps);
+}
+
+function fechaVisible(value: string | null | undefined): string {
+  if (!value) return "sin datos";
+  const day = value.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return "sin datos";
+  return formatDateCL(day);
+}
+
+function estadoVisible(estado: string): "pendiente" | "aprobado" | "rechazado" | "renovacion" {
+  if (estado === "aprobado" || estado === "rechazado" || estado === "renovacion") return estado;
+  return "pendiente";
+}
+
+export function conteoRegistrados(n: number): string {
+  if (!Number.isInteger(n) || n < 0) return "sin datos";
+  return n === 0 ? "0 registrados" : String(n);
+}
+
+function kycLine(): string {
+  if (!kycEnabled()) return "KYC: sin verificar";
+  const db = getDb();
+  const table = db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'kyc_verifications'`).get();
+  if (!table) return "KYC: sin verificar";
+  const n = (db.prepare(`SELECT COUNT(*) AS n FROM kyc_verifications WHERE status = 'aprobado'`).get() as { n: number }).n;
+  return n > 0 ? `KYC: ${n} verificados` : "KYC: sin verificar";
+}
+
+/** Listas y timeline armados solo con filas guardadas. */
+export function panelAcreditacion(): PanelAcreditacion {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      `SELECT id, tipo_cliente AS tipoCliente, tipo, created_at AS createdAt, vencimiento, rut_extraido AS rutExtraido,
+              comentario_ia AS comentarioIa, estado_admin AS estadoAdmin
+       FROM documentos_acreditacion ORDER BY created_at DESC`,
+    )
+    .all() as { id: string; tipoCliente: TipoCliente; tipo: string; createdAt: string; vencimiento: string | null; rutExtraido: string | null; comentarioIa: string | null; estadoAdmin: string }[];
+  const filas = (cliente: TipoCliente): FilaAcreditacion[] =>
+    rows
+      .filter((row) => row.tipoCliente === cliente)
+      .map((row) => ({
+        id: row.id,
+        tipoCliente: row.tipoCliente,
+        fecha: fechaVisible(row.createdAt),
+        tipo: row.tipo,
+        rut: row.rutExtraido?.trim() || "sin datos",
+        vencimiento: row.vencimiento ? fechaVisible(row.vencimiento) : "sin datos",
+        comentarioIa: row.comentarioIa?.trim() || "sin datos",
+        estado: estadoVisible(row.estadoAdmin),
+        estadoAdmin: row.estadoAdmin,
+      }));
+  const transportista = filas("transportista");
+  const mandante = filas("mandante");
+  const events = db
+    .prepare(`SELECT id, created_at AS createdAt, origen, accion, comentario FROM admin_bassam_360 ORDER BY created_at DESC LIMIT 80`)
+    .all() as { id: string; createdAt: string; origen: string; accion: string; comentario: string }[];
+  return {
+    transportistas: { conteo: conteoRegistrados(transportista.length), filas: transportista },
+    mandantes: { conteo: conteoRegistrados(mandante.length), filas: mandante },
+    timeline: events.length
+      ? events.map((event) => ({ id: event.id, fecha: fechaVisible(event.createdAt), origen: event.origen, accion: event.accion, comentario: event.comentario }))
+      : "sin datos",
+    kyc: kycLine(),
+  };
 }
 
 export function alertWindow(days: number): AlertDay | null {

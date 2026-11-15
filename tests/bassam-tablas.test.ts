@@ -8,6 +8,7 @@ import { FLETE_EMPRESA, FLETE_TRANSPORTISTA } from "../src/lib/bassam/flete";
 import { COOKIE_NAME, createSession, upsertAdmin } from "../src/lib/auth";
 import {
   listPendingDocuments,
+  panelAcreditacion,
   readRutAndDate,
   recordAgentComment,
   reviewDocument,
@@ -58,6 +59,12 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
     assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n, 0);
   }
   assert.equal(listPendingDocuments().length, 0);
+  const vacio = panelAcreditacion();
+  assert.equal(vacio.transportistas.conteo, "0 registrados");
+  assert.equal(vacio.mandantes.conteo, "0 registrados");
+  assert.equal(vacio.timeline, "sin datos");
+  assert.equal(vacio.kyc, "KYC: sin verificar");
+  assert.doesNotMatch(JSON.stringify(vacio), /SOC2|facial|saldo|ISO 9001|%/i);
   const cols = getDb().prepare(`PRAGMA table_info(documentos_acreditacion)`).all() as { name: string }[];
   assert.ok(cols.some((col) => col.name === "tipo_cliente"));
   assert.doesNotMatch(MIGRATION_18_SQL, /VALUES\s*\(/i);
@@ -166,6 +173,15 @@ test("la subida guarda el archivo privado, lee RUT y fecha, y no aprueba", async
   const row = getDb().prepare(`SELECT estado_admin, vencimiento FROM documentos_acreditacion WHERE id = ?`).get(saved.id) as { estado_admin: string; vencimiento: string };
   assert.equal(row.estado_admin, "pendiente_ok");
   assert.equal(row.vencimiento, "2026-12-15");
+  const panel = panelAcreditacion();
+  const fila = panel.transportistas.filas.find((item) => item.id === saved.id);
+  assert.equal(fila?.tipo, "licencia");
+  assert.equal(fila?.rut, "15.432.109-K");
+  assert.equal(fila?.vencimiento, "15-12-2026");
+  assert.equal(fila?.estado, "pendiente");
+  assert.match(fila?.comentarioIa ?? "", /^Revisión IA:/);
+  assert.notEqual(panel.timeline, "sin datos");
+  if (panel.timeline !== "sin datos") assert.ok(panel.timeline.some((event) => event.comentario === saved.comentarioIa));
   assert.equal(readRutAndDate("sin numeros").rut, null);
 });
 
@@ -181,6 +197,9 @@ test("sin GOOGLE_VISION_KEY una imagen queda ILEGIBLE y no llama a Google", asyn
   assert.equal(saved.estadoIa, "ILEGIBLE");
   assert.equal(saved.estadoAdmin, "pendiente_ok");
   assert.equal(saved.comentarioIa, "Revisión IA: ILEGIBLE.");
+  const ilegible = panelAcreditacion().transportistas.filas.find((item) => item.id === saved.id);
+  assert.equal(ilegible?.rut, "sin datos");
+  assert.equal(ilegible?.vencimiento, "sin datos");
   process.env.GOOGLE_VISION_KEY = "clave-de-prueba";
   let seenKey = false;
   const read = await storeAccreditationUpload(
@@ -276,6 +295,11 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.equal(waLink(BRAND.whatsapp, FLETE_EMPRESA), `https://wa.me/56958428693?text=${encodeURIComponent(FLETE_EMPRESA)}`);
   assert.equal(decodeURIComponent(waLink(BRAND.whatsapp, FLETE_TRANSPORTISTA).split("text=")[1]), FLETE_TRANSPORTISTA);
   const panel = fs.readFileSync(new URL("../src/components/DocumentReview.tsx", import.meta.url), "utf8");
+  const admin = fs.readFileSync(new URL("../src/app/admin/bassam/page.tsx", import.meta.url), "utf8");
+  assert.match(panel, /Transportistas/);
+  assert.match(panel, /Mandantes/);
+  assert.match(panel, /Timeline/);
+  assert.doesNotMatch(panel + admin, /SOC2|facial|saldo|ISO 9001/);
   assert.match(panel, /Aprobar/);
   assert.match(panel, /Rechazar/);
   assert.match(panel, /Pedir renovación/);

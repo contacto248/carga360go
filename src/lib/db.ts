@@ -724,6 +724,14 @@ function migrate(db: Database.Database) {
       db.pragma("foreign_keys = ON");
     }
   }
+  if (!hasMigration(db, 19)) {
+    const apply = db.transaction(() => {
+      // Columna para el RUT leído del archivo. No inserta filas.
+      if (!hasColumn(db, "documentos_acreditacion", "rut_extraido")) db.exec(`ALTER TABLE documentos_acreditacion ADD COLUMN rut_extraido TEXT`);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (19, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
 }
 
 export function closeDb() {
