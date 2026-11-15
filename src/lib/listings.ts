@@ -3,6 +3,7 @@ import { cityByName, equipmentById, isEquipmentId, isKnownCity } from "./catalog
 import { getDb } from "./db";
 import { AppError } from "./errors";
 import { todayChile } from "./format";
+import { publicVerifiedSeal } from "./public-trust";
 import { matchLoadsForTruck, matchTrucksForLoad } from "./match";
 import { canPublishLoad, canPublishTruck } from "./roles";
 import { cleanClp } from "./security";
@@ -388,7 +389,7 @@ export function loadPassesFilters(load: LoadPublic, filters: LoadFilters): boole
   if (filters.destino && load.destination !== filters.destino) return false;
   if (filters.desde && load.pickupDate < filters.desde) return false;
   if (filters.pesoMin && load.weightT < Number(filters.pesoMin)) return false;
-  if (filters.verificados === "1" && load.ownerVerification !== "verificado") return false;
+  if (filters.verificados === "1" && !publicVerifiedSeal(load.ownerVerification, load.ownerDocsOk)) return false;
   if (filters.inmediata === "1" && !load.inmediata) return false;
   if (filters.q) {
     const needle = filters.q.toLowerCase();
@@ -407,7 +408,7 @@ export function truckPassesFilters(truck: TruckPublic, filters: TruckFilters): b
   if (filters.destino && truck.destination !== filters.destino) return false;
   if (filters.dia && (truck.availableFrom > filters.dia || truck.availableTo < filters.dia)) return false;
   if (filters.capacidadMin && truck.tonnage < Number(filters.capacidadMin)) return false;
-  if (filters.verificados === "1" && truck.ownerVerification !== "verificado") return false;
+  if (filters.verificados === "1" && !publicVerifiedSeal(truck.ownerVerification, truck.ownerDocsOk)) return false;
   return true;
 }
 

@@ -3,6 +3,7 @@ import { getDb } from "./db";
 import { todayChile } from "./format";
 import { allListings } from "./listings";
 import { matchLoadToTruck } from "./match";
+import { publicVerifiedSeal } from "./public-trust";
 import type { LoadPublic, TruckPublic } from "./types";
 
 export type LiveStats = {
@@ -88,7 +89,7 @@ export function recentListings(limit = 5, today = todayChile()): RecentItem[] {
       amount: `${load.weightT} t`,
       date: load.pickupDate,
       createdAt: load.createdAt,
-      verified: load.ownerVerification === "verificado",
+      verified: publicVerifiedSeal(load.ownerVerification, load.ownerDocsOk),
     })),
     ...trucks.map((truck) => ({
       kind: "camion" as const,
@@ -99,7 +100,7 @@ export function recentListings(limit = 5, today = todayChile()): RecentItem[] {
       amount: `${truck.tonnage} t`,
       date: truck.availableFrom,
       createdAt: truck.createdAt,
-      verified: truck.ownerVerification === "verificado",
+      verified: publicVerifiedSeal(truck.ownerVerification, truck.ownerDocsOk),
     })),
   ];
   return items.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);

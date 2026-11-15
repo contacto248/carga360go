@@ -10,6 +10,7 @@ import { roadKm } from "@/lib/geo";
 import { TruckArt } from "./TruckArt";
 import { REFERENCE_NOTICE } from "@/lib/costos/notice";
 import type { CostHint } from "@/lib/costos/hint";
+import { publicVerifiedSeal } from "@/lib/public-trust";
 import type { LoadListItem, MatchResult, TruckListItem } from "@/lib/types";
 
 function WhatsApp({ number, text, label = "WhatsApp" }: { number: string; text: string; label?: string }) {
@@ -38,7 +39,7 @@ function RegionLine({ origin, destination }: { origin: string; destination: stri
 function TrustBadges({ status, docsOk }: { status: string; docsOk?: boolean }) {
   return (
     <>
-      {status === "verificado" ? <span className="pill ok" title="Cuenta revisada por un administrador">✔ Verificado</span> : null}
+      {publicVerifiedSeal(status, docsOk) ? <span className="pill ok" title="Cuenta revisada por un administrador y con documentos al día">✔ Verificado</span> : null}
       {status === "rechazado" ? <span className="pill bad">Cuenta rechazada</span> : null}
       {status === "pendiente" ? (
         <span className="pill gray" title="Un administrador aún no revisa la cuenta de quien publica">
