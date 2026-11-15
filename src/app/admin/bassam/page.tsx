@@ -3,9 +3,8 @@ import Link from "next/link";
 import { AdminNav } from "@/components/AdminNav";
 import { DocumentReview } from "@/components/DocumentReview";
 import styles from "@/components/bassam-panel.module.css";
-import { panelAcreditacion, runExpiryAlerts } from "@/lib/bassam/acreditacion";
+import { panelAcreditacion } from "@/lib/bassam/acreditacion";
 import { getCurrentUser } from "@/lib/current-user";
-import { todayChile } from "@/lib/format";
 
 export const metadata: Metadata = { title: "BASSAM 360", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -16,9 +15,9 @@ export default async function BassamPage() {
     return (
       <div className="wrap" style={{ paddingBottom: 30 }}>
         <section className={styles.shell}>
-          <p className={styles.brand}>CARGA360GO</p>
-          <h1>BASSAM 360</h1>
-          <p className={styles.lede}>Esta sección es solo para administradores de Carga360go.</p>
+          <p className={styles.brand}>CARGA360GO · BASSAM 360</p>
+          <h1>Acreditación - Visión General</h1>
+          <p className={styles.lede}>Auditoría de documentos. Región Metropolitana, Chile.</p>
           <Link className={styles.approve} href="/ingreso?next=/admin/bassam">
             Ingresar
           </Link>
@@ -26,14 +25,13 @@ export default async function BassamPage() {
       </div>
     );
   }
-  runExpiryAlerts(todayChile());
   const panel = panelAcreditacion();
   return (
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <section className={styles.shell}>
-        <p className={styles.brand}>CARGA360GO</p>
-        <h1>BASSAM 360</h1>
-        <p className={styles.lede}>Dos listas con los documentos guardados. La línea de tiempo sale solo de admin_bassam_360.</p>
+        <p className={styles.brand}>CARGA360GO · BASSAM 360</p>
+        <h1>Acreditación - Visión General</h1>
+        <p className={styles.lede}>Auditoría de documentos. Región Metropolitana, Chile.</p>
         <AdminNav current="/admin/bassam" />
         <DocumentReview panel={panel} />
       </section>

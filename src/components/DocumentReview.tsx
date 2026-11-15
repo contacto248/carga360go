@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { FilaAcreditacion, PanelAcreditacion } from "@/lib/bassam/types";
+import type { EventoTimeline, FilaAcreditacion, PanelAcreditacion } from "@/lib/bassam/types";
 import styles from "./bassam-panel.module.css";
 
 const ACTIONS = [
@@ -18,13 +18,22 @@ const ESTADO: Record<FilaAcreditacion["estado"], string> = {
   renovacion: "renovación",
 };
 
+function Vacio() {
+  return (
+    <>
+      <p>Sin datos</p>
+      <p className={styles.meta}>0 registrados</p>
+    </>
+  );
+}
+
 function Lista({ titulo, conteo, filas, busy, onAct }: { titulo: string; conteo: string; filas: FilaAcreditacion[]; busy: boolean; onAct: (id: string, action: (typeof ACTIONS)[number]["action"]) => void }) {
   return (
     <section className={styles.card}>
       <h2>{titulo}</h2>
       <p className={styles.meta}>{conteo}</p>
       {filas.length === 0 ? (
-        <p>sin datos</p>
+        <Vacio />
       ) : (
         filas.map((doc) => (
           <article className={styles.trip} key={doc.id}>
@@ -52,10 +61,55 @@ function Lista({ titulo, conteo, filas, busy, onAct }: { titulo: string; conteo:
   );
 }
 
+function Comentarios({ filas }: { filas: FilaAcreditacion[] }) {
+  const comentarios = filas.filter((fila) => fila.comentarioIa !== "sin datos");
+  return (
+    <section className={styles.card}>
+      <h2>Comentarios</h2>
+      <p className={styles.meta}>{comentarios.length === 0 ? "0 registrados" : String(comentarios.length)}</p>
+      {comentarios.length === 0 ? (
+        <Vacio />
+      ) : (
+        comentarios.map((fila) => (
+          <article className={styles.trip} key={fila.id}>
+            <p>
+              {fila.fecha} · {fila.tipoCliente} · {fila.tipo}
+            </p>
+            <p>{fila.comentarioIa}</p>
+          </article>
+        ))
+      )}
+    </section>
+  );
+}
+
+function Timeline({ eventos }: { eventos: PanelAcreditacion["timeline"] }) {
+  const filas: EventoTimeline[] = eventos === "sin datos" ? [] : eventos;
+  return (
+    <section className={styles.card}>
+      <h2>Línea de tiempo</h2>
+      <p className={styles.meta}>{filas.length === 0 ? "0 registrados" : String(filas.length)}</p>
+      {filas.length === 0 ? (
+        <Vacio />
+      ) : (
+        filas.map((event) => (
+          <article className={styles.trip} key={event.id}>
+            <p>
+              {event.fecha} · {event.origen} · {event.accion}
+            </p>
+            <p>{event.comentario}</p>
+          </article>
+        ))
+      )}
+    </section>
+  );
+}
+
 export function DocumentReview({ panel }: { panel: PanelAcreditacion }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const documentos = panel.transportistas.filas.length + panel.mandantes.filas.length;
 
   async function act(id: string, action: (typeof ACTIONS)[number]["action"]) {
     setBusy(true);
@@ -78,23 +132,13 @@ export function DocumentReview({ panel }: { panel: PanelAcreditacion }) {
   return (
     <>
       <p className={styles.meta}>{panel.kyc}</p>
-      <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} onAct={act} />
-      <Lista titulo="Mandantes" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} onAct={act} />
-      <section className={styles.card}>
-        <h2>Timeline</h2>
-        {panel.timeline === "sin datos" ? (
-          <p>sin datos</p>
-        ) : (
-          panel.timeline.map((event) => (
-            <article className={styles.trip} key={event.id}>
-              <p>
-                {event.fecha} · {event.origen} · {event.accion}
-              </p>
-              <p>{event.comentario}</p>
-            </article>
-          ))
-        )}
-      </section>
+      <div className={styles.grid}>
+        <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} onAct={act} />
+        <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} onAct={act} />
+        <Comentarios filas={[...panel.transportistas.filas, ...panel.mandantes.filas]} />
+        <Timeline eventos={panel.timeline} />
+      </div>
+      <footer className={styles.footer}>{documentos === 0 ? "Sin datos. 0 registrados." : `Total: ${documentos} documentos registrados.`}</footer>
       {error ? <p className={styles.error}>{error}</p> : null}
     </>
   );

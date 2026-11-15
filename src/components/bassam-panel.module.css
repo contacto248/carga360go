@@ -1,37 +1,39 @@
 .shell {
-  background: #0b1220;
-  color: #e8eef7;
-  border: 1px solid #243049;
-  border-radius: 20px;
+  background: #f5f7fa;
+  color: #0f1b2d;
+  border-radius: 12px;
   padding: 16px;
   margin: 8px 0 32px;
 }
 .brand {
   margin: 0;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   font-size: 0.75rem;
   font-weight: 800;
-  color: #f26b1d;
+  color: #5b6778;
 }
 .shell h1 {
   margin: 4px 0 6px;
-  font-size: clamp(1.7rem, 6vw, 2.3rem);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: #0f1b2d;
 }
 .lede {
   margin: 0 0 12px;
-  color: #b7c3d6;
+  color: #5b6778;
   font-size: 0.95rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 800px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 .shell :global(.admin-nav) {
   margin-top: 4px;
-}
-.shell :global(.admin-nav a) {
-  background: #17233a;
-  color: #e8eef7;
-}
-.shell :global(.admin-nav a.on) {
-  background: #f26b1d;
-  color: #1a0d05;
 }
 .metrics {
   display: grid;
@@ -40,11 +42,11 @@
   margin: 12px 0;
 }
 .card {
-  background: #121b2e;
-  border: 1px solid #243049;
-  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
   padding: 14px;
-  margin-bottom: 12px;
+  margin: 0;
 }
 .card h2 {
   font-size: 1.05rem;
@@ -61,7 +63,7 @@
   font-size: 1.35rem;
 }
 .trip {
-  border-top: 1px solid #243049;
+  border-top: 1px solid #dde3ec;
   padding-top: 12px;
   margin-top: 12px;
 }
@@ -69,8 +71,16 @@
   font-size: 1.05rem;
 }
 .meta {
-  color: #93a0b5;
+  color: #5b6778;
   margin: 4px 0 8px;
+}
+.footer {
+  margin-top: 12px;
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 700;
 }
 .list {
   margin: 0 0 10px;
