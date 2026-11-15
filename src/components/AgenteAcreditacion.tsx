@@ -2,8 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import { usePathname } from "next/navigation";
+import { ENLACE_MI_CUENTA, SIN_DATOS } from "@/lib/bassam/agente-copia";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string };
+
+const BOTONES = [
+  { label: "Soy transportista", message: "Soy transportista" },
+  { label: "Soy mandante", message: "Soy mandante" },
+] as const;
 
 export function AgenteAcreditacion() {
   const pathname = usePathname();
@@ -11,12 +17,12 @@ export function AgenteAcreditacion() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([{ id: "hola", role: "assistant", text: "Puedo revisar los documentos guardados en carga360go.cl y en /admin/bassam. Si no hay registros, digo Sin datos." }]);
+  const [messages, setMessages] = useState<Msg[]>([
+    { id: "hola", role: "assistant", text: `Puedo revisar los documentos guardados en carga360go.cl y en /admin/bassam. Si no hay registros, digo ${SIN_DATOS}` },
+  ]);
   if (pathname.startsWith("/admin") && !onBassam) return null;
 
-  async function send(event: FormEvent) {
-    event.preventDefault();
-    const message = text.trim();
+  async function ask(message: string) {
     if (!message || busy) return;
     setBusy(true);
     setText("");
@@ -28,11 +34,16 @@ export function AgenteAcreditacion() {
         body: JSON.stringify({ message }),
       });
       const data = (await response.json().catch(() => null)) as { reply?: string; error?: string } | null;
-      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: data?.reply || data?.error || "sin datos" }]);
+      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: data?.reply || data?.error || SIN_DATOS }]);
     } catch {
-      setMessages((prev) => [...prev, { id: `e-${Date.now()}`, role: "assistant", text: "sin datos" }]);
+      setMessages((prev) => [...prev, { id: `e-${Date.now()}`, role: "assistant", text: SIN_DATOS }]);
     }
     setBusy(false);
+  }
+
+  function send(event: FormEvent) {
+    event.preventDefault();
+    void ask(text.trim());
   }
 
   return (
@@ -53,6 +64,16 @@ export function AgenteAcreditacion() {
               <div key={msg.id} className={`chat-bubble ${msg.role === "user" ? "from-me" : "from-bot"}`}>
                 {msg.text}
               </div>
+            ))}
+          </div>
+          <div className="chat-quick">
+            <a className="chat-chip" href={ENLACE_MI_CUENTA}>
+              Subir documentos en /mi-cuenta
+            </a>
+            {BOTONES.map((item) => (
+              <button key={item.message} type="button" className="chat-chip" disabled={busy} onClick={() => void ask(item.message)}>
+                {item.label}
+              </button>
             ))}
           </div>
           <form className="chat-form" onSubmit={send}>

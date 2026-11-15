@@ -16,7 +16,7 @@ import {
   storeAccreditationUpload,
   uploadAccountDocument,
 } from "../src/lib/bassam/acreditacion";
-import { responderAgente } from "../src/lib/bassam/agente-respuesta";
+import { GUIA_ACREDITACION, SIN_DATOS, responderAgente } from "../src/lib/bassam/agente-respuesta";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "../src/lib/bassam/schema";
 import { waLink } from "../src/lib/format";
 import { BRAND } from "../src/lib/catalog";
@@ -65,14 +65,17 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(vacio.mandantes.conteo, "0 registrados");
   assert.equal(vacio.timeline, "sin datos");
   assert.equal(vacio.kyc, "KYC: sin verificar");
-  assert.equal(responderAgente("hay documentos", false), "Sin datos");
+  assert.equal(responderAgente("hay documentos", false), SIN_DATOS);
+  assert.match(SIN_DATOS, /^Sin datos https:\/\/www\.carga360go\.cl\/mi-cuenta$/);
   const guia = responderAgente("quiero acreditarme", false);
-  assert.match(guia, /\/mi-cuenta/);
-  assert.match(guia, /licencia, padrón y SOAP/);
-  assert.match(guia, /RUT empresa/);
-  assert.match(guia, /e-RUT/);
-  assert.match(guia, /escritura/);
-  assert.match(guia, /cuenta bancaria a nombre de la empresa/);
+  assert.equal(guia, GUIA_ACREDITACION);
+  assert.equal(responderAgente("dónde adjuntar", false), GUIA_ACREDITACION);
+  assert.equal(responderAgente("dónde subir", true), GUIA_ACREDITACION);
+  assert.equal(responderAgente("Soy transportista", false), GUIA_ACREDITACION);
+  assert.equal(responderAgente("Soy mandante", false), GUIA_ACREDITACION);
+  assert.match(guia, /^Sin datos aún\. 1\. Datos\. 2\. Subir documentos\. 3\. Estado\. https:\/\/www\.carga360go\.cl\/mi-cuenta/);
+  assert.match(guia, /Transportista: licencia, padrón, SOAP/);
+  assert.match(guia, /Mandante: RUT empresa, e-RUT, escritura, certificado de cuenta/);
   assert.doesNotMatch(guia, /token de WhatsApp|WA_ACCESS_TOKEN/);
   assert.doesNotMatch(JSON.stringify(vacio), /SOC2|facial|saldo|ISO 9001|%/i);
   const cols = getDb().prepare(`PRAGMA table_info(documentos_acreditacion)`).all() as { name: string }[];
@@ -321,9 +324,15 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(panel, /0 registrados/);
   assert.doesNotMatch(panel + admin, /SOC2|facial|saldo|ISO 9001/);
   const agente = fs.readFileSync(new URL("../src/components/AgenteAcreditacion.tsx", import.meta.url), "utf8");
+  const copia = fs.readFileSync(new URL("../src/lib/bassam/agente-copia.ts", import.meta.url), "utf8");
   const respuesta = fs.readFileSync(new URL("../src/lib/bassam/agente-respuesta.ts", import.meta.url), "utf8");
   assert.match(agente, /\/api\/bassam\/agente/);
   assert.match(agente, /admin\/bassam/);
+  assert.match(agente, /Subir documentos en \/mi-cuenta/);
+  assert.match(agente, /Soy transportista/);
+  assert.match(agente, /Soy mandante/);
+  assert.match(copia, /https:\/\/www\.carga360go\.cl\/mi-cuenta/);
+  assert.equal(fs.existsSync(new URL("../src/app/api/agente/chat/route.ts", import.meta.url)), false);
   assert.doesNotMatch(respuesta, /INSERT\s+INTO|whatsapp\/send/i);
   assert.match(panel, /Aprobar/);
   assert.match(panel, /Rechazar/);
