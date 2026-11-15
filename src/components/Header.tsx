@@ -28,10 +28,11 @@ export function Header({ user }: { user: PublicUser | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const locked = user?.role === "transportista" && user.verificationStatus !== "verificado";
+  const tabs = user?.role === "admin" ? [...TABS.slice(0, -1), { href: "/admin/control", label: "BASSAM 360", icon: "◈" }] : TABS;
   const links = locked
     ? [{ href: "/cuenta-en-revision", label: "Mi cuenta (en revisión)" }]
     : user?.role === "admin"
-      ? [...LINKS.filter((link) => link.href !== "/herramientas/calculadora"), { href: "/admin", label: "Admin" }]
+      ? [...LINKS.filter((link) => link.href !== "/herramientas/calculadora"), { href: "/admin/control", label: "BASSAM 360" }, { href: "/admin", label: "Admin" }]
       : LINKS;
 
   async function salir() {
@@ -115,7 +116,7 @@ export function Header({ user }: { user: PublicUser | null }) {
       </header>
       {locked ? null : (
         <nav className="tabbar" aria-label="Accesos rápidos">
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <Link key={tab.label} href={tab.href} className={pathname === tab.href.split("#")[0] && tab.label !== "Alertas" ? "on" : ""}>
               <span aria-hidden="true">{tab.icon}</span>
               {tab.label}

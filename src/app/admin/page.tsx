@@ -45,6 +45,11 @@ export default async function AdminPage() {
         <p>Filtra por estado, aprueba o rechaza con motivo y abre el archivo. Los documentos que vencen en 30 días o menos quedan marcados.</p>
       </div>
       <AdminNav current="/admin" />
+      <div className="card" style={{ margin: "12px 0" }}>
+        <h2>BASSAM 360 · Centro de control inteligente</h2>
+        <p>Espacios de BASSAM SPA y CARGA360GO: operaciones, tareas, responsables y conexiones.</p>
+        <Link className="btn" href="/admin/control">Abrir centro de control →</Link>
+      </div>
       <div className="notice" style={{ marginBottom: 12 }}>
         Las cuentas nuevas (mandantes y transportistas) no publican ni ofertan hasta quedar 100% acreditadas.{" "}
         <Link href="/admin/transportistas">Revisar acreditación pendiente →</Link>{" "}

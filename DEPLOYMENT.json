@@ -1,0 +1,11 @@
+{
+  "commit": "bc8b2086c95e382cc7b9ebe39465026663df939f",
+  "baseCommit": "b7e11a4a168a7aae24b5f038f766880fca619fc5",
+  "environment": "production",
+  "authorizedBy": "Gerencia in this chat",
+  "controlModule": "BASSAM360-20261115",
+  "controlRoute": "/admin/control",
+  "controlValidatedTests": "202/202",
+  "controlVisualQA": true,
+  "controlPublishedAt": "2026-11-15T13:58:27.386805+00:00"
+}
