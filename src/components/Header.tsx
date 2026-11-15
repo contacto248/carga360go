@@ -10,11 +10,6 @@ const LINKS = [
   { href: "/mi-cuenta", label: "Mi cuenta" },
 ];
 
-function abrirAgente(event: { preventDefault(): void }) {
-  event.preventDefault();
-  window.dispatchEvent(new Event("c360-abrir-agente"));
-}
-
 export function Header({ user }: { user: PublicUser | null }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -45,9 +40,6 @@ export function Header({ user }: { user: PublicUser | null }) {
                 {link.label}
               </Link>
             ))}
-            <a href="#agente-bassam" onClick={abrirAgente}>
-              Agente
-            </a>
             {user ? (
               <button className="btn sm" type="button" onClick={salir}>
                 Salir
@@ -66,9 +58,6 @@ export function Header({ user }: { user: PublicUser | null }) {
             {link.label}
           </Link>
         ))}
-        <a href="#agente-bassam" onClick={abrirAgente}>
-          Agente
-        </a>
       </nav>
     </>
   );

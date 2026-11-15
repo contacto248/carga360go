@@ -65,7 +65,7 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(vacio.transportistas.conteo, "0 registrados");
   assert.equal(vacio.mandantes.conteo, "0 registrados");
   assert.equal(vacio.timeline, "sin datos");
-  assert.equal(vacio.kyc, "KYC: sin verificar");
+  assert.equal(vacio.kyc, "Sin datos");
   assert.equal(responderAgente("hay documentos", false), SIN_DATOS);
   assert.match(SIN_DATOS, /^Sin datos\. 1\. Datos\. 2\. Subir documentos\. 3\. Estado\. https:\/\/www\.carga360go\.cl\/mi-cuenta/);
   const guia = responderAgente("quiero acreditarme", false);
@@ -340,10 +340,12 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(header, /Publicar carga/);
   assert.match(header, /Buscar camión/);
   assert.match(header, /Mi cuenta/);
-  assert.match(header, />\s*Agente\s*</);
-  assert.doesNotMatch(header, /\/admin\/bassam|Publicar camión|Regiones/);
-  assert.doesNotMatch(footer, /HelpLauncher|VoiceAgentLauncher/);
-  assert.match(footer, /AgenteAcreditacion/);
+  assert.doesNotMatch(header, /agente-bassam|Agente BASSAM|\/admin\/bassam|Publicar camión|Regiones/);
+  assert.doesNotMatch(footer, /HelpLauncher|VoiceAgentLauncher|FleteButton|ChatWidget|VoiceAgent/);
+  assert.equal((footer.match(/<AgenteAcreditacion \/>/g) || []).length, 1);
+  const panelCuenta = fs.readFileSync(new URL("../src/components/AccreditationPanel.tsx", import.meta.url), "utf8");
+  assert.match(panelCuenta, /documentos: \{ href: "\/mi-cuenta"/);
+  assert.doesNotMatch(panelCuenta, /cuenta-en-revision#documentos/);
   assert.match(cuenta, /contactName/);
   assert.match(cuenta, /Estado: \{vista\.estado\}/);
   assert.match(cuenta, /Transportista/);

@@ -4,7 +4,6 @@ import path from "path";
 import { getDb } from "../db";
 import { AppError } from "../errors";
 import { daysBetween, formatDateCL } from "../format";
-import { kycEnabled } from "../kyc/config";
 import type { PublicUser } from "../types";
 import type { EventoTimeline, FilaAcreditacion, PanelAcreditacion, PendingDocument } from "./types";
 import { prefijoRevision, tiposDe, type TipoCliente } from "./tipos-cliente";
@@ -240,12 +239,7 @@ export function conteoRegistrados(n: number): string {
 }
 
 function kycLine(): string {
-  if (!kycEnabled()) return "KYC: sin verificar";
-  const db = getDb();
-  const table = db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'kyc_verifications'`).get();
-  if (!table) return "KYC: sin verificar";
-  const n = (db.prepare(`SELECT COUNT(*) AS n FROM kyc_verifications WHERE status = 'aprobado'`).get() as { n: number }).n;
-  return n > 0 ? `KYC: ${n} verificados` : "KYC: sin verificar";
+  return "Sin datos";
 }
 
 export type EstadoCuenta = "Sin datos" | "En revisión" | "Acreditado";

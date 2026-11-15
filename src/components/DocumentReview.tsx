@@ -131,7 +131,6 @@ export function DocumentReview({ panel }: { panel: PanelAcreditacion }) {
 
   return (
     <>
-      <p className={styles.meta}>{panel.kyc}</p>
       <div className={styles.grid}>
         <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} onAct={act} />
         <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} onAct={act} />

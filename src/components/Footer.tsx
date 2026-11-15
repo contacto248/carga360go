@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
-import { FleteButton } from "@/components/FleteButton";
 import { BRAND } from "@/lib/catalog";
 import { waLink } from "@/lib/format";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
@@ -64,7 +63,6 @@ export function Footer() {
         </div>
       </footer>
       <AgenteAcreditacion />
-      <FleteButton />
     </>
   );
 }
