@@ -6,6 +6,8 @@ export const DOCUMENTOS_POR_CLIENTE = {
     { id: "licencia", label: "Licencia" },
     { id: "padron", label: "Padrón" },
     { id: "soap", label: "SOAP" },
+    { id: "seguro_obligatorio", label: "Seguro obligatorio" },
+    { id: "seguro_carga", label: "Seguro de carga" },
   ],
   mandante: [
     { id: "rut_empresa", label: "RUT empresa" },

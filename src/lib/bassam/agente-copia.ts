@@ -3,7 +3,7 @@ export const ENLACE_MI_CUENTA = "https://www.carga360go.cl/mi-cuenta";
 
 export const PASOS_CUENTA = "1. Datos. 2. Subir documentos. 3. Estado.";
 
-export const LISTA_DOCUMENTOS = "Transportista: licencia, padrón, SOAP. Mandante: RUT empresa, e-RUT, escritura, certificado de cuenta.";
+export const LISTA_DOCUMENTOS = "Transportista: licencia, padrón, SOAP, seguro obligatorio, seguro de carga. Mandante: RUT empresa, e-RUT, escritura, certificado de cuenta.";
 
 export const SIN_DATOS = `Sin datos. ${PASOS_CUENTA} ${ENLACE_MI_CUENTA} ${LISTA_DOCUMENTOS}`;
 

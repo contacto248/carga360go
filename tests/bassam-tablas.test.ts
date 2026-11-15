@@ -18,6 +18,7 @@ import {
   vistaCuenta,
 } from "../src/lib/bassam/acreditacion";
 import { SIN_DATOS, responderAgente } from "../src/lib/bassam/agente-respuesta";
+import { DOCUMENTOS_POR_CLIENTE } from "../src/lib/bassam/tipos-cliente";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "../src/lib/bassam/schema";
 import { waLink } from "../src/lib/format";
 import { BRAND } from "../src/lib/catalog";
@@ -74,7 +75,11 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(responderAgente("dónde subir", true), SIN_DATOS);
   assert.equal(responderAgente("Soy transportista", false), SIN_DATOS);
   assert.equal(responderAgente("Soy mandante", false), SIN_DATOS);
-  assert.match(guia, /Transportista: licencia, padrón, SOAP/);
+  assert.match(guia, /Transportista: licencia, padrón, SOAP, seguro obligatorio, seguro de carga/);
+  assert.deepEqual(
+    DOCUMENTOS_POR_CLIENTE.transportista.map((item) => item.label),
+    ["Licencia", "Padrón", "SOAP", "Seguro obligatorio", "Seguro de carga"],
+  );
   assert.match(guia, /Mandante: RUT empresa, e-RUT, escritura, certificado de cuenta/);
   assert.doesNotMatch(guia, /token de WhatsApp|WA_ACCESS_TOKEN/);
   assert.doesNotMatch(JSON.stringify(vacio), /SOC2|facial|saldo|ISO 9001|%/i);
