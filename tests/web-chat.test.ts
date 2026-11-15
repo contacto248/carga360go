@@ -13,6 +13,7 @@ import { CHAT_COOKIE, CHAT_MAX_MESSAGE, setWebChatEnabled, webChatEnabled } from
 import { getDb } from "../src/lib/db";
 import { resetRateLimits } from "../src/lib/rate-limit";
 import { systemPrompt } from "../src/lib/assistant/prompt";
+import { whatsappContactHref } from "../src/lib/format";
 import { detectIntent, ruleReply } from "../src/lib/whatsapp/intents";
 import { setSetting } from "../src/lib/whatsapp/store";
 
@@ -33,14 +34,19 @@ function enableChat() {
 
 const ctx = { params: Promise.resolve({}) };
 
-async function postChat(message: string, cookie?: string, extra: RequestInit = {}) {
+const VALID_CONTACT = { name: "Ana Pérez", phone: "+56 9 1234 5678" };
+
+async function postChat(message: string, cookie?: string, extra: RequestInit = {}, contact: { name: string; phone: string } | null = VALID_CONTACT) {
   const headers: Record<string, string> = { "content-type": "application/json", ...(extra.headers as Record<string, string> | undefined) };
   if (cookie) headers.cookie = cookie;
+  const body: Record<string, unknown> = {};
+  if (message) body.message = message;
+  if (contact) body.contact = contact;
   const response = await POST(
     new Request("http://127.0.0.1:4317/api/chat", {
       method: "POST",
       headers,
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(body),
     }),
     ctx,
   );
@@ -113,7 +119,7 @@ test("Motor de reglas del chat: empresa, transportista, precios y persona", () =
   assert.doesNotMatch(prompt, /comisi[oó]n por el flete|30 d[ií]as gratis|CAMPAIGN_|Mercado Pago/i);
   assert.match(ruleReply("publicar_carga", live, "web"), /cargas\/nueva/);
   assert.match(ruleReply("registro_transportista", live, "web"), /registro/);
-  assert.match(ruleReply("humano", live, "web"), /wa\.me\/56958428693/);
+  assert.doesNotMatch(ruleReply("humano", live, "web"), /wa\.me\//);
   assert.match(ruleReply("humano", live, "web"), /contacto@carga360go\.cl/);
   assert.match(ruleReply("saludo", live, "web"), /asistente virtual/i);
   assert.match(AI_FALLBACK_REPLY, /contacto@carga360go\.cl/);
@@ -184,6 +190,43 @@ test("POST /api/chat respeta el límite por sesión", async () => {
     if (lastStatus === 429) break;
   }
   assert.equal(lastStatus, 429);
+  setWebChatEnabled(false);
+  resetRateLimits();
+});
+
+test("el chat exige nombre y celular chileno y no se puede saltar desde el cliente", async () => {
+  clearAiEnv();
+  enableChat();
+  const before = (getDb().prepare(`SELECT COUNT(*) AS n FROM web_chat_messages`).get() as { n: number }).n;
+  const missing = await postChat("Hola", undefined, {}, null);
+  assert.equal(missing.response.status, 400);
+  assert.match(String(missing.data.error), /celular/i);
+  const shortName = await postChat("Hola", undefined, {}, { name: "A", phone: "+56 9 1234 5678" });
+  assert.equal(shortName.response.status, 400);
+  assert.match(String(shortName.data.error), /nombre/i);
+  const landline = await postChat("Hola", undefined, {}, { name: "Ana Pérez", phone: "+56 2 2123 4567" });
+  assert.equal(landline.response.status, 400);
+  assert.match(String(landline.data.error), /celular/i);
+  assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM web_chat_messages`).get() as { n: number }).n, before);
+
+  const saved = await postChat("", undefined, {}, { name: "  Ana   Pérez ", phone: "9 1234 5678" });
+  assert.equal(saved.response.status, 200);
+  assert.equal((saved.data.visitor as { name: string }).name, "Ana Pérez");
+  assert.equal((saved.data.visitor as { phone: string }).phone, "56912345678");
+  const cookie = cookieFrom(saved.response);
+  assert.ok(cookie);
+  const next = await postChat("Soy empresa con carga", cookie, {}, null);
+  assert.equal(next.response.status, 200);
+  assert.match(String(next.data.reply), /cargas\/nueva/);
+
+  const href = whatsappContactHref("56958428693", "Hola, quiero información de Carga360go.", "Ana Pérez", "+56 9 1234 5678");
+  assert.ok(href?.startsWith("https://wa.me/56958428693?text="));
+  const text = decodeURIComponent(href!.split("text=")[1] || "");
+  assert.match(text, /Nombre: Ana Pérez/);
+  assert.match(text, /Celular: \+56 9 1234 5678/);
+  assert.equal(whatsappContactHref("56958428693", "Hola", "A", "912345678"), null);
+  assert.equal(whatsappContactHref("56958428693", "Hola", "Ana Pérez", "+56 2 2123 4567"), null);
+
   setWebChatEnabled(false);
   resetRateLimits();
 });

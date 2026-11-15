@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 
 /**
  * Widget del agente comercial CARGA360 (texto y voz).
@@ -60,7 +61,7 @@ const MIC_ERRORS: Record<string, string> = {
   network: "El reconocimiento de voz necesita conexión. Inténtelo de nuevo o escriba su consulta.",
 };
 
-export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
+export function VoiceAgentLauncher({ waNumber, waText }: { waNumber: string; waText: string }) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
@@ -69,12 +70,12 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   if (hidden) return null;
   return (
     <div className={`help-dock${open ? " is-open" : ""}`}>
-      {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} /> : null}
+      {open ? <AgentPanel waNumber={waNumber} waText={waText} onClose={() => setOpen(false)} /> : null}
       {!open ? (
         <div className="help-stack">
-          <a className="btn wa fab help-wa" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
+          <WhatsAppContactGate number={waNumber} text={waText} className="btn wa fab help-wa">
             💬 WhatsApp
-          </a>
+          </WhatsAppContactGate>
           <button type="button" className="help-fab agent-fab" onClick={() => setOpen(true)} aria-expanded={false} aria-controls="c360-agent-panel">
             <span aria-hidden="true">🎙️</span>
             <span>Asistente</span>
@@ -89,7 +90,7 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   );
 }
 
-function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }) {
+function AgentPanel({ waNumber, waText, onClose }: { waNumber: string; waText: string; onClose: () => void }) {
   const titleId = useId();
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -408,7 +409,10 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
       </form>
       <p className="chat-note">
         {voiceSupported ? "Voz del navegador (es-CL), sin costo. " : "Su navegador no permite dictar por voz: use el texto. "}
-        El costo que entrega es referencial y calculado por el sistema; no aprueba cuentas ni documentos. <a href={waHref} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        El costo que entrega es referencial y calculado por el sistema; no aprueba cuentas ni documentos.{" "}
+        <WhatsAppContactGate number={waNumber} text={waText} className="wa-text">
+          WhatsApp
+        </WhatsAppContactGate>
       </p>
     </section>
   );

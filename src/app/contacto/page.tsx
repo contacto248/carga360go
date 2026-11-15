@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BRAND } from "@/lib/catalog";
-import { waLink } from "@/lib/format";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 
 export const metadata: Metadata = {
   title: "Contacto",
@@ -38,9 +38,9 @@ export default function ContactoPage() {
         <div className="card">
           <h3>💬 WhatsApp</h3>
           <p>{BRAND.whatsappDisplay}</p>
-          <a className="btn wa sm" href={waLink(BRAND.whatsapp, BRAND.infoMessage)} target="_blank" rel="noopener noreferrer">
+          <WhatsAppContactGate number={BRAND.whatsapp} text={BRAND.infoMessage} className="btn wa sm">
             Escribir por WhatsApp
-          </a>
+          </WhatsAppContactGate>
         </div>
         <div className="card">
           <h3>✉️ Correo</h3>

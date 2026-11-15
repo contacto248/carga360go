@@ -11,6 +11,8 @@ export type WebChatConversation = {
   lastInboundAt: string | null;
   lastMessageAt: string;
   createdAt: string;
+  visitorName: string | null;
+  visitorPhone: string | null;
 };
 
 export type WebChatMessage = {
@@ -33,6 +35,8 @@ type ConvRow = {
   last_inbound_at: string | null;
   last_message_at: string;
   created_at: string;
+  visitor_name?: string | null;
+  visitor_phone?: string | null;
 };
 
 type MsgRow = {
@@ -56,7 +60,16 @@ function toConv(row: ConvRow): WebChatConversation {
     lastInboundAt: row.last_inbound_at,
     lastMessageAt: row.last_message_at,
     createdAt: row.created_at,
+    visitorName: row.visitor_name ?? null,
+    visitorPhone: row.visitor_phone ?? null,
   };
+}
+
+function ensureVisitorColumns() {
+  const db = getDb();
+  const names = new Set((db.prepare(`PRAGMA table_info(web_chat_conversations)`).all() as { name: string }[]).map((column) => column.name));
+  if (!names.has("visitor_name")) db.exec(`ALTER TABLE web_chat_conversations ADD COLUMN visitor_name TEXT`);
+  if (!names.has("visitor_phone")) db.exec(`ALTER TABLE web_chat_conversations ADD COLUMN visitor_phone TEXT`);
 }
 
 function toMsg(row: MsgRow): WebChatMessage {
@@ -72,18 +85,26 @@ function toMsg(row: MsgRow): WebChatMessage {
 }
 
 export function getWebConversation(id: string): WebChatConversation | null {
+  ensureVisitorColumns();
   const row = getDb().prepare(`SELECT * FROM web_chat_conversations WHERE id = ?`).get(id) as ConvRow | undefined;
   return row ? toConv(row) : null;
 }
 
 export function conversationForSession(sessionId: string): WebChatConversation | null {
+  ensureVisitorColumns();
   const row = getDb()
     .prepare(`SELECT * FROM web_chat_conversations WHERE session_id = ? ORDER BY last_message_at DESC LIMIT 1`)
     .get(sessionId) as ConvRow | undefined;
   return row ? toConv(row) : null;
 }
 
+export function saveWebVisitor(id: string, name: string, phone: string) {
+  ensureVisitorColumns();
+  getDb().prepare(`UPDATE web_chat_conversations SET visitor_name = ?, visitor_phone = ? WHERE id = ?`).run(name, phone, id);
+}
+
 export function upsertWebConversation(input: { sessionId: string; ipHash?: string | null; userAgent?: string | null }, at: string): WebChatConversation {
+  ensureVisitorColumns();
   const existing = conversationForSession(input.sessionId);
   const db = getDb();
   if (existing) {
@@ -100,6 +121,7 @@ export function upsertWebConversation(input: { sessionId: string; ipHash?: strin
 }
 
 export function listWebConversations(limit = 200): (WebChatConversation & { lastBody: string | null; count: number })[] {
+  ensureVisitorColumns();
   const rows = getDb()
     .prepare(
       `SELECT c.*, (SELECT body FROM web_chat_messages m WHERE m.conversation_id = c.id ORDER BY created_at DESC, rowid DESC LIMIT 1) AS last_body,

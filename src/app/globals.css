@@ -434,3 +434,18 @@ footer.foot a:hover{color:#ffd7bd}
   *,*::before,*::after{transition:none!important;animation:none!important}
   .btn:hover,a.card:hover,.lb-list a:hover{transform:none}
 }
+
+/* Formulario previo a WhatsApp. No guarda los datos: solo prepara el mensaje. */
+.wa-gate{position:fixed;inset:0;z-index:80;background:#0b163380;display:grid;place-items:center;padding:16px}
+.wa-gate-card{width:min(420px,100%);background:#fff;color:var(--ink);border-radius:16px;padding:16px;box-shadow:0 16px 40px #0005;display:flex;flex-direction:column;gap:10px}
+.wa-gate-card h2{margin:0;font-size:1.1rem}
+.wa-gate-card p{margin:0;font-size:.9rem}
+.wa-gate-card label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700}
+.wa-gate-error{background:#fee2e2;color:#991b1b;border-radius:10px;padding:8px 10px;font-size:.82rem}
+.chat-wa-mini{border:0;cursor:pointer;font:inherit}
+.wa-text{background:none;border:0;padding:0;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline}
+.foot-wa{background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.foot-wa:hover{color:#ffd7bd}
+.wa-gate-inline{flex-wrap:wrap}
+.wa-gate-inline label{flex:1 1 140px;display:flex;flex-direction:column;gap:4px;font-size:.75rem;font-weight:700}
+.wa-gate-inline input{min-height:42px}

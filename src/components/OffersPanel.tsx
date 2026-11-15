@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { formatClp, formatDateCL, waLink } from "@/lib/format";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
+import { formatClp, formatDateCL } from "@/lib/format";
 import type { OfferWithLoad } from "@/lib/offers";
 
 type Mode = "owner" | "admin" | "carrier" | "carrier_locked" | "guest" | "other";
@@ -124,9 +125,9 @@ export function OffersPanel(props: Props) {
           {mine.status === "aceptada" && props.awardedContact ? (
             <div className="notice" style={{ background: "#effaf1", borderColor: "#c4e8cb", color: "#14532d" }}>
               ¡Ganaste esta carga! Coordina con {props.awardedContact.contact} ({props.awardedContact.name}) ·{" "}
-              <a href={waLink(props.awardedContact.whatsapp, `Hola, soy el transportista adjudicado en Carga360go para ${props.loadRoute}.`)} target="_blank" rel="noopener noreferrer">
+              <WhatsAppContactGate number={props.awardedContact.whatsapp} text={`Hola, soy el transportista adjudicado en Carga360go para ${props.loadRoute}.`} className="wa-text">
                 WhatsApp +{props.awardedContact.whatsapp}
-              </a>{" "}
+              </WhatsAppContactGate>{" "}
               · <a href={`mailto:${props.awardedContact.email}`}>{props.awardedContact.email}</a>
             </div>
           ) : null}
@@ -249,9 +250,9 @@ export function OffersPanel(props: Props) {
                       </button>
                     ) : null}
                     {offer.status === "aceptada" || props.mode === "admin" ? (
-                      <a className="btn wa sm" href={waLink(offer.carrierWhatsapp, `Hola ${offer.carrierContact}, te escribo por tu oferta en Carga360go para ${props.loadRoute}.`)} target="_blank" rel="noopener noreferrer">
+                      <WhatsAppContactGate number={offer.carrierWhatsapp} text={`Hola ${offer.carrierContact}, te escribo por tu oferta en Carga360go para ${props.loadRoute}.`} className="btn wa sm">
                         💬 WhatsApp
-                      </a>
+                      </WhatsAppContactGate>
                     ) : null}
                   </div>
                 </div>

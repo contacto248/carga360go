@@ -166,7 +166,7 @@ async function handoff(conv: AgentConversation, input: TurnInput, reason: string
   const existing = latestLeadFor(conv.id, "derivacion");
   if (existing && conv.handoffAt) {
     return {
-      text: `Ya avisé al equipo (solicitud ${existing.code}). Una persona le responderá a la brevedad. También puede escribir por WhatsApp a ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}) o a ${BRAND.email}.`,
+      text: `Ya avisé al equipo (solicitud ${existing.code}). Una persona le responderá a la brevedad. También puede usar el botón de WhatsApp del sitio (pide su nombre y celular) o escribir a ${BRAND.email}.`,
       state: { ...EMPTY_STATE, leadId: existing.id },
       intent: "humano",
       mode: "flujo",
@@ -194,7 +194,7 @@ async function handoff(conv: AgentConversation, input: TurnInput, reason: string
   state = prefillFromUser(state, user);
   const intro =
     `Entendido. Registré su solicitud de atención con el número ${lead.code} y avisé al equipo de Carga 360 Go: una persona le responderá a la brevedad. ` +
-    `También puede escribir por WhatsApp a ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}) o a ${BRAND.email}.`;
+    `También puede usar el botón de WhatsApp del sitio (pide su nombre y celular) o escribir a ${BRAND.email}.`;
   const next = askOrFinish(state, intro);
   return {
     text: next.text,
