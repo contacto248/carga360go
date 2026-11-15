@@ -349,7 +349,8 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(header, /Camiones/);
   assert.match(header, /Mi cuenta/);
   assert.match(header, /Agente BASSAM 360/);
-  assert.doesNotMatch(header, /\/admin\/bassam|Publicar camión|Buscar camión|Regiones/);
+  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin\/bassam"[\s\S]*Panel BASSAM/);
+  assert.doesNotMatch(header, /Publicar camión|Buscar camión|Regiones/);
   assert.doesNotMatch(footer, /HelpLauncher|VoiceAgentLauncher|FleteButton|ChatWidget|VoiceAgent/);
   assert.equal((footer.match(/<AgenteAcreditacion \/>/g) || []).length, 1);
   const panelCuenta = fs.readFileSync(new URL("../src/components/AccreditationPanel.tsx", import.meta.url), "utf8");
