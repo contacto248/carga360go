@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
 import { ENLACE_MI_CUENTA, SIN_DATOS } from "@/lib/bassam/agente-copia";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string };
@@ -12,16 +11,17 @@ const BOTONES = [
 ] as const;
 
 export function AgenteAcreditacion() {
-  const pathname = usePathname();
-  const onBassam = pathname === "/admin/bassam" || pathname.startsWith("/admin/bassam/");
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const abrir = () => setOpen(true);
+    window.addEventListener("c360-abrir-agente", abrir);
+    return () => window.removeEventListener("c360-abrir-agente", abrir);
+  }, []);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { id: "hola", role: "assistant", text: `Puedo revisar los documentos guardados en carga360go.cl y en /admin/bassam. Si no hay registros, digo ${SIN_DATOS}` },
   ]);
-  if (pathname.startsWith("/admin") && !onBassam) return null;
-
   async function ask(message: string) {
     if (!message || busy) return;
     setBusy(true);
@@ -47,7 +47,7 @@ export function AgenteAcreditacion() {
   }
 
   return (
-    <div className="agente-acred">
+    <div className="agente-acred" id="agente-bassam">
       {open ? (
         <section className="chat-panel" role="dialog" aria-label="Agente de acreditación">
           <header className="chat-head">
@@ -85,7 +85,7 @@ export function AgenteAcreditacion() {
         </section>
       ) : null}
       <button type="button" className="help-fab help-exec" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        Agente
+        Agente BASSAM 360
       </button>
     </div>
   );

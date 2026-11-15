@@ -2,7 +2,7 @@ import { GUIA_ACREDITACION, SIN_DATOS } from "./agente-copia";
 import { panelAcreditacion } from "./acreditacion";
 import type { FilaAcreditacion } from "./types";
 
-export { ENLACE_MI_CUENTA, GUIA_ACREDITACION, PASOS_CUENTA, PROMPT_AGENTE, SIN_DATOS } from "./agente-copia";
+export { ENLACE_MI_CUENTA, GUIA_ACREDITACION, LISTA_DOCUMENTOS, PASOS_CUENTA, PROMPT_AGENTE, SIN_DATOS } from "./agente-copia";
 
 function linea(fila: FilaAcreditacion): string {
   return `${fila.tipoCliente} · ${fila.tipo} · fecha ${fila.fecha} · RUT ${fila.rut} · vencimiento ${fila.vencimiento} · ${fila.estado} · ${fila.comentarioIa}`;
@@ -14,13 +14,16 @@ function pideGuia(pregunta: string): boolean {
 
 /** Lee documentos_acreditacion. No escribe, no aprueba y no rechaza. */
 export function responderAgente(pregunta: string, admin: boolean): string {
-  if (pideGuia(pregunta)) return GUIA_ACREDITACION;
   if (/aprob|aprueb|rechaz/i.test(pregunta)) {
-    return "No apruebo ni rechazo. El admin confirma con el botón del panel.";
+    return "No apruebo solo. El admin confirma con el botón del panel.";
   }
   const panel = panelAcreditacion();
   const filas = [...panel.transportistas.filas, ...panel.mandantes.filas];
   if (filas.length === 0) return SIN_DATOS;
+  if (pideGuia(pregunta)) {
+    const reales = admin ? filas.map(linea).join("\n") : `Transportistas: ${panel.transportistas.conteo}. Mandantes: ${panel.mandantes.conteo}.`;
+    return `${GUIA_ACREDITACION}\n${reales}`;
+  }
   if (!admin) {
     return `Transportistas: ${panel.transportistas.conteo}. Mandantes: ${panel.mandantes.conteo}.`;
   }

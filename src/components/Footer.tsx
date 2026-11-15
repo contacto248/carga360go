@@ -1,10 +1,6 @@
 import Link from "next/link";
-import { HelpLauncher } from "@/components/ChatWidget";
 import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
 import { FleteButton } from "@/components/FleteButton";
-import { VoiceAgentLauncher } from "@/components/VoiceAgent";
-import { agentEnabled } from "@/lib/agent/config";
-import { webChatEnabled } from "@/lib/chat/config";
 import { BRAND } from "@/lib/catalog";
 import { waLink } from "@/lib/format";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
@@ -69,7 +65,6 @@ export function Footer() {
       </footer>
       <AgenteAcreditacion />
       <FleteButton />
-      {agentEnabled() ? <VoiceAgentLauncher waHref={href} /> : <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />}
     </>
   );
 }

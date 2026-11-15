@@ -6,7 +6,7 @@ import { AppError } from "../errors";
 import { daysBetween, formatDateCL } from "../format";
 import { kycEnabled } from "../kyc/config";
 import type { PublicUser } from "../types";
-import type { FilaAcreditacion, PanelAcreditacion, PendingDocument } from "./types";
+import type { EventoTimeline, FilaAcreditacion, PanelAcreditacion, PendingDocument } from "./types";
 import { prefijoRevision, tiposDe, type TipoCliente } from "./tipos-cliente";
 
 export type { PendingDocument };
@@ -246,6 +246,81 @@ function kycLine(): string {
   if (!table) return "KYC: sin verificar";
   const n = (db.prepare(`SELECT COUNT(*) AS n FROM kyc_verifications WHERE status = 'aprobado'`).get() as { n: number }).n;
   return n > 0 ? `KYC: ${n} verificados` : "KYC: sin verificar";
+}
+
+export type EstadoCuenta = "Sin datos" | "En revisión" | "Acreditado";
+
+export type VistaCuenta = {
+  estado: EstadoCuenta;
+  transportistas: FilaAcreditacion[];
+  mandantes: FilaAcreditacion[];
+  timeline: EventoTimeline[] | "sin datos";
+};
+
+type FilaGuardada = {
+  id: string;
+  tipoCliente: TipoCliente;
+  tipo: string;
+  createdAt: string;
+  vencimiento: string | null;
+  rutExtraido: string | null;
+  comentarioIa: string | null;
+  estadoAdmin: string;
+};
+
+function filaGuardada(row: FilaGuardada): FilaAcreditacion {
+  return {
+    id: row.id,
+    tipoCliente: row.tipoCliente,
+    fecha: fechaVisible(row.createdAt),
+    tipo: row.tipo,
+    rut: row.rutExtraido?.trim() || "sin datos",
+    vencimiento: row.vencimiento ? fechaVisible(row.vencimiento) : "sin datos",
+    comentarioIa: row.comentarioIa?.trim() || "sin datos",
+    estado: estadoVisible(row.estadoAdmin),
+    estadoAdmin: row.estadoAdmin,
+  };
+}
+
+function estadoCuenta(rows: FilaGuardada[]): EstadoCuenta {
+  if (rows.length === 0) return "Sin datos";
+  const grupos = (["transportista", "mandante"] as const).filter((cliente) => rows.some((row) => row.tipoCliente === cliente));
+  const acreditado = grupos.every((cliente) => tiposDe(cliente).every((tipo) => rows.some((row) => row.tipoCliente === cliente && row.tipo === tipo && row.estadoAdmin === "aprobado")));
+  return acreditado ? "Acreditado" : "En revisión";
+}
+
+/** Documentos y eventos de una cuenta. Solo lee. */
+export function vistaCuenta(userId: string): VistaCuenta {
+  const db = getDb();
+  const rows = db
+    .prepare(
+      `SELECT id, tipo_cliente AS tipoCliente, tipo, created_at AS createdAt, vencimiento, rut_extraido AS rutExtraido,
+              comentario_ia AS comentarioIa, estado_admin AS estadoAdmin
+       FROM documentos_acreditacion
+       WHERE user_id = ? OR transportista_id IN (SELECT id FROM transportistas WHERE user_id = ?)
+       ORDER BY created_at DESC`,
+    )
+    .all(userId, userId) as FilaGuardada[];
+  const transportistas = rows.filter((row) => row.tipoCliente === "transportista").map(filaGuardada);
+  const mandantes = rows.filter((row) => row.tipoCliente === "mandante").map(filaGuardada);
+  if (rows.length === 0) return { estado: "Sin datos", transportistas, mandantes, timeline: "sin datos" };
+  const marks = rows.map(() => "?").join(", ");
+  const events = db
+    .prepare(
+      `SELECT id, created_at AS createdAt, origen, accion, comentario
+       FROM admin_bassam_360
+       WHERE tabla = 'documentos_acreditacion' AND registro_id IN (${marks})
+       ORDER BY created_at DESC`,
+    )
+    .all(...rows.map((row) => row.id)) as { id: string; createdAt: string; origen: string; accion: string; comentario: string }[];
+  return {
+    estado: estadoCuenta(rows),
+    transportistas,
+    mandantes,
+    timeline: events.length
+      ? events.map((event) => ({ id: event.id, fecha: fechaVisible(event.createdAt), origen: event.origen, accion: event.accion, comentario: event.comentario }))
+      : "sin datos",
+  };
 }
 
 /** Listas y timeline armados solo con filas guardadas. */

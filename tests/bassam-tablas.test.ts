@@ -15,8 +15,9 @@ import {
   runExpiryAlerts,
   storeAccreditationUpload,
   uploadAccountDocument,
+  vistaCuenta,
 } from "../src/lib/bassam/acreditacion";
-import { GUIA_ACREDITACION, SIN_DATOS, responderAgente } from "../src/lib/bassam/agente-respuesta";
+import { SIN_DATOS, responderAgente } from "../src/lib/bassam/agente-respuesta";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "../src/lib/bassam/schema";
 import { waLink } from "../src/lib/format";
 import { BRAND } from "../src/lib/catalog";
@@ -66,14 +67,13 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(vacio.timeline, "sin datos");
   assert.equal(vacio.kyc, "KYC: sin verificar");
   assert.equal(responderAgente("hay documentos", false), SIN_DATOS);
-  assert.match(SIN_DATOS, /^Sin datos https:\/\/www\.carga360go\.cl\/mi-cuenta$/);
+  assert.match(SIN_DATOS, /^Sin datos\. 1\. Datos\. 2\. Subir documentos\. 3\. Estado\. https:\/\/www\.carga360go\.cl\/mi-cuenta/);
   const guia = responderAgente("quiero acreditarme", false);
-  assert.equal(guia, GUIA_ACREDITACION);
-  assert.equal(responderAgente("dónde adjuntar", false), GUIA_ACREDITACION);
-  assert.equal(responderAgente("dónde subir", true), GUIA_ACREDITACION);
-  assert.equal(responderAgente("Soy transportista", false), GUIA_ACREDITACION);
-  assert.equal(responderAgente("Soy mandante", false), GUIA_ACREDITACION);
-  assert.match(guia, /^Sin datos aún\. 1\. Datos\. 2\. Subir documentos\. 3\. Estado\. https:\/\/www\.carga360go\.cl\/mi-cuenta/);
+  assert.equal(guia, SIN_DATOS);
+  assert.equal(responderAgente("dónde adjuntar", false), SIN_DATOS);
+  assert.equal(responderAgente("dónde subir", true), SIN_DATOS);
+  assert.equal(responderAgente("Soy transportista", false), SIN_DATOS);
+  assert.equal(responderAgente("Soy mandante", false), SIN_DATOS);
   assert.match(guia, /Transportista: licencia, padrón, SOAP/);
   assert.match(guia, /Mandante: RUT empresa, e-RUT, escritura, certificado de cuenta/);
   assert.doesNotMatch(guia, /token de WhatsApp|WA_ACCESS_TOKEN/);
@@ -187,7 +187,7 @@ test("la subida guarda el archivo privado, lee RUT y fecha, y no aprueba", async
   assert.equal(row.estado_admin, "pendiente_ok");
   assert.equal(row.vencimiento, "2026-12-15");
   const antes = row.estado_admin;
-  assert.match(responderAgente("aprueba el documento", true), /No apruebo ni rechazo\. El admin confirma/);
+  assert.match(responderAgente("aprueba el documento", true), /No apruebo solo\. El admin confirma/);
   assert.equal((getDb().prepare(`SELECT estado_admin AS estado FROM documentos_acreditacion WHERE id = ?`).get(saved.id) as { estado: string }).estado, antes);
   const detalle = responderAgente("que hay", true);
   assert.match(detalle, /15\.432\.109-K/);
@@ -291,6 +291,12 @@ test("la subida en mi cuenta compara el RUT y no aprueba", async () => {
     { today: "2026-11-15" },
   );
   assert.equal(companyDoc.estadoAdmin, "pendiente_ok");
+  const cuenta = vistaCuenta(user.id);
+  assert.equal(cuenta.estado, "En revisión");
+  assert.equal(cuenta.transportistas.length, 2);
+  assert.equal(cuenta.mandantes.length, 0);
+  assert.notEqual(cuenta.timeline, "sin datos");
+  assert.equal(vistaCuenta(randomUUID()).estado, "Sin datos");
   assert.equal(companyDoc.comentarioIa, "Revisión IA Empresa: RUT coincide. Vigente hasta 2027-12-01.");
   const stored = getDb().prepare(`SELECT tipo_cliente, transportista_id FROM documentos_acreditacion WHERE id = ?`).get(companyDoc.id) as { tipo_cliente: string; transportista_id: string | null };
   assert.equal(stored.tipo_cliente, "mandante");
@@ -327,7 +333,27 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   const copia = fs.readFileSync(new URL("../src/lib/bassam/agente-copia.ts", import.meta.url), "utf8");
   const respuesta = fs.readFileSync(new URL("../src/lib/bassam/agente-respuesta.ts", import.meta.url), "utf8");
   assert.match(agente, /\/api\/bassam\/agente/);
-  assert.match(agente, /admin\/bassam/);
+  assert.match(agente, /Agente BASSAM 360/);
+  const header = fs.readFileSync(new URL("../src/components/Header.tsx", import.meta.url), "utf8");
+  const footer = fs.readFileSync(new URL("../src/components/Footer.tsx", import.meta.url), "utf8");
+  const cuenta = fs.readFileSync(new URL("../src/app/mi-cuenta/page.tsx", import.meta.url), "utf8");
+  assert.match(header, /Publicar carga/);
+  assert.match(header, /Buscar camión/);
+  assert.match(header, /Mi cuenta/);
+  assert.match(header, />\s*Agente\s*</);
+  assert.doesNotMatch(header, /\/admin\/bassam|Publicar camión|Regiones/);
+  assert.doesNotMatch(footer, /HelpLauncher|VoiceAgentLauncher/);
+  assert.match(footer, /AgenteAcreditacion/);
+  assert.match(cuenta, /contactName/);
+  assert.match(cuenta, /Estado: \{vista\.estado\}/);
+  assert.match(cuenta, /Transportista/);
+  assert.match(cuenta, /Mandante/);
+  assert.match(cuenta, /Línea de tiempo/);
+  assert.doesNotMatch(cuenta, /Hola Bastián/);
+  assert.equal(fs.existsSync(new URL("../src/app/acreditacion/page.tsx", import.meta.url)), false);
+  assert.equal(fs.existsSync(new URL("../src/app/acreditar/page.tsx", import.meta.url)), false);
+  assert.equal(fs.existsSync(new URL("../src/app/upload-old/page.tsx", import.meta.url)), false);
+  assert.match(fs.readFileSync(new URL("../src/app/admin/bassam/page.tsx", import.meta.url), "utf8"), /user\.role !== "admin"/);
   assert.match(agente, /Subir documentos en \/mi-cuenta/);
   assert.match(agente, /Soy transportista/);
   assert.match(agente, /Soy mandante/);
