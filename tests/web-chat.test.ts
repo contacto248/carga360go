@@ -7,6 +7,7 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
 }
 
 import { GET, POST } from "../src/app/api/chat/route";
+import { aiReply } from "../src/lib/assistant/ai";
 import { GEMINI_DEFAULT_MODEL, GEMINI_DEFAULT_TIMEOUT_MS, GEMINI_OPENAI_BASE, aiConfig, aiReady } from "../src/lib/assistant/config";
 import { AI_FALLBACK_REPLY } from "../src/lib/assistant/reply";
 import { CHAT_COOKIE, CHAT_MAX_MESSAGE, setWebChatEnabled, webChatEnabled } from "../src/lib/chat/config";
@@ -53,31 +54,57 @@ function cookieFrom(response: Response): string | undefined {
   return match ? `${CHAT_COOKIE}=${match[1]}` : undefined;
 }
 
-test("Gemini: modelo por defecto gemini-3.5-flash-lite, GEMINI_MODEL y timeout de 25 s", () => {
+test("GEMINI_API_KEY usa Gemini; AI_API_KEY y gpt-4o-mini no eligen OpenAI", async () => {
   clearAiEnv();
   assert.equal(aiReady(), false);
+
+  process.env.AI_PROVIDER = "openai";
+  process.env.AI_API_KEY = "openai-key";
+  process.env.AI_MODEL = "gpt-4o-mini";
+  process.env.AI_BASE_URL = "https://api.openai.com/v1";
+  assert.equal(aiReady(), false);
+  const blocked = aiConfig();
+  assert.equal(blocked.provider, "gemini");
+  assert.equal(blocked.key, "");
+  assert.equal(blocked.model, GEMINI_DEFAULT_MODEL);
+  assert.equal(blocked.model, "gemini-3.5-flash-lite");
+  assert.equal(blocked.baseUrl, GEMINI_OPENAI_BASE);
+
   process.env.AI_PROVIDER = "gemini";
   process.env.GEMINI_API_KEY = "clave-de-prueba";
   const cfg = aiConfig();
+  assert.equal(aiReady(), true);
   assert.equal(cfg.provider, "gemini");
-  assert.equal(cfg.model, GEMINI_DEFAULT_MODEL);
   assert.equal(cfg.model, "gemini-3.5-flash-lite");
   assert.equal(cfg.baseUrl, GEMINI_OPENAI_BASE);
+  assert.equal(cfg.baseUrl.includes("api.openai.com"), false);
   assert.equal(cfg.timeoutMs, GEMINI_DEFAULT_TIMEOUT_MS);
   assert.equal(cfg.timeoutMs, 25_000);
   assert.equal(cfg.key, "clave-de-prueba");
 
+  let url = "";
+  let sentModel = "";
+  const fetchImpl = (async (input: string, init?: RequestInit) => {
+    url = String(input);
+    sentModel = String(JSON.parse(String(init?.body)).model);
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ choices: [{ message: { content: "Puede ver las cargas en el sitio." } }] }),
+    } as Response;
+  }) as typeof fetch;
+  const outcome = await aiReply([], "hola", { activeLoads: 0, activeTrucks: 0, recentLoads: [], recentTrucks: [] }, "web", { fetchImpl });
+  assert.equal(outcome.attempt, "ok");
+  assert.equal(url, `${GEMINI_OPENAI_BASE}/chat/completions`);
+  assert.equal(sentModel, "gemini-3.5-flash-lite");
+  assert.equal(outcome.result?.engine, "ia:gemini:gemini-3.5-flash-lite");
+
   process.env.GEMINI_MODEL = "gemini-otro";
   assert.equal(aiConfig().model, "gemini-otro");
-
-  delete process.env.AI_PROVIDER;
-  delete process.env.GEMINI_API_KEY;
-  process.env.AI_API_KEY = "openai-key";
-  const open = aiConfig();
-  assert.equal(open.provider, "openai");
-  assert.equal(open.model, "gpt-4o-mini");
-  assert.equal(open.baseUrl, "https://api.openai.com/v1");
+  process.env.AI_TIMEOUT_MS = "18000";
+  assert.equal(aiConfig().timeoutMs, 18_000);
   clearAiEnv();
+  assert.equal(aiReady(), false);
 });
 
 test("El chat web está apagado por defecto y no expone secretos", async () => {

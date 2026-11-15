@@ -45,7 +45,6 @@ export default async function AdminChatPage({ searchParams }: { searchParams: Pr
         status={{
           globalEnabled: webChatEnabled(),
           ai: aiReady(),
-          aiProvider: aiReady() ? cfg.aiProvider : null,
           aiModel: aiReady() ? cfg.aiModel : null,
         }}
         conversations={conversations}

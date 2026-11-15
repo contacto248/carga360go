@@ -15,8 +15,8 @@
  *  WA_API_VERSION       versión de Graph API (por defecto v23.0, solo Meta)
  *  WA_HUMAN_PAUSE_HOURS horas que el bot calla en un chat después de que una persona responde desde la app (12)
  *  WA_HANDOFF_EMAIL     correo que recibe las derivaciones a humano (contacto@carga360go.cl)
- *  AI_PROVIDER / GEMINI_API_KEY / AI_API_KEY / AI_BASE_URL / AI_MODEL
- *                       cliente de IA (Gemini u OpenAI compatible). Sin clave se usa el motor de reglas.
+ *  AI_PROVIDER=gemini / GEMINI_API_KEY / GEMINI_MODEL / AI_TIMEOUT_MS
+ *                       cliente de IA (solo Gemini). Sin GEMINI_API_KEY se usa el motor de reglas.
  */
 
 import { aiConfig, aiReady as assistantAiReady } from "../assistant/config";

@@ -30,7 +30,7 @@ function isTimeout(error: unknown): boolean {
   return name === "TimeoutError" || name === "AbortError";
 }
 
-/** Cliente compatible con OpenAI. Sin clave, apagado o sin cupo no llama al proveedor. */
+/** Cliente de Gemini por el endpoint compatible. Sin clave, apagado o sin cupo no llama al proveedor. */
 export async function aiReply(
   history: ChatTurn[],
   userText: string,

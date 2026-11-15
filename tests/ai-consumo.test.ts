@@ -17,9 +17,12 @@ function resetLog() {
 
 function enableCalls(limit: number) {
   delete process.env.AI_CALLS_ENABLED;
-  process.env.AI_PROVIDER = "openai";
-  process.env.AI_API_KEY = SECRET;
-  delete process.env.GEMINI_API_KEY;
+  delete process.env.AI_API_KEY;
+  delete process.env.AI_BASE_URL;
+  delete process.env.AI_MODEL;
+  process.env.AI_PROVIDER = "gemini";
+  process.env.GEMINI_API_KEY = SECRET;
+  delete process.env.GEMINI_MODEL;
   setSetting("ai_calls_enabled", "on");
   setSetting("ai_daily_call_limit", String(limit));
   resetLog();
@@ -88,6 +91,8 @@ test("el cupo se reserva antes de llamar y el siguiente intento no sale", async 
   const ok = rows.find((row) => row.status === "ok");
   assert.equal(ok?.promptTokens, 12);
   assert.equal(ok?.completionTokens, 7);
+  assert.equal(ok?.provider, "gemini");
+  assert.equal(ok?.model, "gemini-3.5-flash-lite");
   assert.equal(JSON.stringify(rows).includes(PRIVATE), false);
   assert.equal(JSON.stringify(rows).includes(SECRET), false);
   assert.equal(countAiAttempts(), 1);

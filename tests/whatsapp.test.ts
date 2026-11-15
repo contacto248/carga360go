@@ -27,7 +27,12 @@ function setEnv() {
   process.env.WA_PHONE_NUMBER_ID = "111";
   process.env.WA_ACCESS_TOKEN = "x";
   process.env.WA_BOT_ENABLED = "true";
+  delete process.env.AI_PROVIDER;
   delete process.env.AI_API_KEY;
+  delete process.env.AI_BASE_URL;
+  delete process.env.AI_MODEL;
+  delete process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_MODEL;
   setSender(async (to, text) => {
     sent.push({ to: to.waId, text });
     outSeq += 1;

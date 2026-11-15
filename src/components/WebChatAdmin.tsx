@@ -8,7 +8,6 @@ import type { WebChatConversation, WebChatMessage } from "@/lib/chat/store";
 type Status = {
   globalEnabled: boolean;
   ai: boolean;
-  aiProvider: string | null;
   aiModel: string | null;
 };
 
@@ -53,9 +52,7 @@ export function WebChatAdmin({
     router.refresh();
   }
 
-  const aiLabel = status.ai
-    ? `IA (${status.aiProvider === "gemini" ? "Gemini" : "OpenAI"}: ${status.aiModel})`
-    : "IA sin clave: respuestas por reglas";
+  const aiLabel = status.ai ? `IA (Gemini: ${status.aiModel})` : "IA sin clave: respuestas por reglas";
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -71,7 +68,7 @@ export function WebChatAdmin({
         </div>
         <p className="muted" style={{ margin: 0 }}>
           Apagado, el sitio solo muestra el botón de WhatsApp. Encendido, aparece el asistente junto a WhatsApp. Hace falta una clave de Gemini
-          (gratis) o de una API compatible con OpenAI para respuestas con IA; si no hay clave, responde el motor de reglas.
+          (plan gratuito) para respuestas con IA; si no hay clave, responde el motor de reglas.
         </p>
         {error && <div className="notice">{error}</div>}
       </div>
