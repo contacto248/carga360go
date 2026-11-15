@@ -56,13 +56,20 @@ function canSeeOwn(viewer: PublicUser | null, ownerId: string): boolean {
   return Boolean(viewer && (viewer.role === "admin" || viewer.id === ownerId));
 }
 
+/** Quita identificadores internos de usuario de una publicación visible para terceros. */
+function omitInternalUserIds<T extends { ownerId?: string }>(item: T): T {
+  const copy = { ...item };
+  delete (copy as { ownerId?: string }).ownerId;
+  return copy;
+}
+
 export function redactLoad(load: LoadListItem, viewer: PublicUser | null): LoadListItem {
   if (viewer?.role === "admin") return load;
   // El dueño ve su propia publicación completa, pero no el contacto de los camiones sugeridos.
   if (canSeeOwn(viewer, load.ownerId)) {
     return { ...load, matches: load.matches.map((match) => ({ ...match, truck: { ...match.truck, ownerName: "", whatsapp: "" } })) };
   }
-  return {
+  return omitInternalUserIds({
     ...load,
     contactHidden: true,
     ownerName: "",
@@ -70,7 +77,7 @@ export function redactLoad(load: LoadListItem, viewer: PublicUser | null): LoadL
     description: stripContacts(load.description),
     notes: null,
     matches: load.matches.map((match) => ({ ...match, truck: { ...match.truck, ownerName: "", whatsapp: "", notes: null } })),
-  };
+  });
 }
 
 export function redactTruck(truck: TruckListItem, viewer: PublicUser | null): TruckListItem {
@@ -78,14 +85,14 @@ export function redactTruck(truck: TruckListItem, viewer: PublicUser | null): Tr
   if (canSeeOwn(viewer, truck.ownerId)) {
     return { ...truck, matches: truck.matches.map((match) => ({ ...match, load: { ...match.load, ownerName: "", whatsapp: "", description: stripContacts(match.load.description) } })) };
   }
-  return {
+  return omitInternalUserIds({
     ...truck,
     contactHidden: true,
     ownerName: "",
     whatsapp: "",
     notes: null,
     matches: truck.matches.map((match) => ({ ...match, load: { ...match.load, ownerName: "", whatsapp: "", description: stripContacts(match.load.description) } })),
-  };
+  });
 }
 
 /** Quién puede ver una carga por su id: el resumen público (si sigue abierta) o el detalle de las partes. */

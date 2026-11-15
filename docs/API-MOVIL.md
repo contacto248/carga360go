@@ -132,7 +132,7 @@ Para pasar a `aprobado` hacen falta:
 
 La aprobación no es automática, así que la app solo debe refrescar `/api/me`.
 
-**Visitante sin sesión:** puede listar cargas y camiones, pero con `contactHidden: true`, `ownerName: ""`, `whatsapp: ""` y sin `notes`. Muestra "Ingresa para ver el contacto".
+**Visitante sin sesión:** puede listar cargas y camiones, pero con `contactHidden: true`, `ownerName: ""`, `whatsapp: ""` y sin `notes`. No se envía `ownerId` ni otros identificadores internos de usuario. Muestra "Ingresa para ver el contacto". El dueño y el administrador sí reciben `ownerId` en su propia publicación (o en todas, el administrador).
 
 ## 5. Publicaciones
 
@@ -149,7 +149,7 @@ Filtros opcionales (query): `equipment`, `origin`, `destination` (ciudad exacta)
   "url": "https://www.carga360go.cl/cargas/uuid"
 }
 ```
-`demo: true` aparece solo en publicaciones de ejemplo. `budgetClp` y `notes` se omiten si están vacíos.
+`demo: true` aparece solo en publicaciones de ejemplo. `budgetClp` y `notes` se omiten si están vacíos. `ownerId` solo aparece cuando quien consulta es el dueño o un administrador; en la consulta anónima o de un tercero el campo no se envía.
 
 ### `GET /api/loads/:id` → 200 `Load` | 404
 
