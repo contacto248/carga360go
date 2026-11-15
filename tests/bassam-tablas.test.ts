@@ -19,6 +19,7 @@ import {
   vistaCuenta,
 } from "../src/lib/bassam/acreditacion";
 import { SIN_DATOS, responderAgente } from "../src/lib/bassam/agente-respuesta";
+import { vistaCentro } from "../src/lib/bassam/centro";
 import { DOCUMENTOS_POR_CLIENTE } from "../src/lib/bassam/tipos-cliente";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "../src/lib/bassam/schema";
 import { waLink } from "../src/lib/format";
@@ -69,6 +70,12 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(vacio.timeline, "sin datos");
   assert.equal(vacio.kyc, "Sin datos");
   assert.deepEqual(conteosControl(), { cargas: "0", camiones: "0", documentos: "0", agente: "0" });
+  const centro = vistaCentro();
+  assert.equal(centro.cargas, "--");
+  assert.equal(centro.camiones, "--");
+  assert.equal(centro.documentos, "--");
+  assert.equal(centro.agente, "--");
+  assert.equal(centro.agenteEstado, "Por verificar");
   assert.equal(responderAgente("hay documentos", false), SIN_DATOS);
   assert.match(SIN_DATOS, /^Sin datos\. 1\. Datos\. 2\. Subir documentos\. 3\. Estado\. https:\/\/www\.carga360go\.cl\/mi-cuenta/);
   const guia = responderAgente("quiero acreditarme", false);
@@ -387,6 +394,18 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(panel, />Agente</);
   assert.doesNotMatch(panel + bassam + fs.readFileSync(new URL("../src/components/bassam-panel.module.css", import.meta.url), "utf8"), /127|98\.4%|hace \d+ horas|\b84\b/);
   assert.match(fs.readFileSync(new URL("../src/components/bassam-panel.module.css", import.meta.url), "utf8"), /#0b1633/i);
+  const centroPage = fs.readFileSync(new URL("../src/app/admin/centro-control/page.tsx", import.meta.url), "utf8");
+  const centroAgente = fs.readFileSync(new URL("../src/components/CentroAgente.tsx", import.meta.url), "utf8");
+  for (const label of ["Vista general", "Operaciones", "Camiones y viajes", "Clientes", "Agentes IA", "Cotizador", "Comunicaciones", "Seguridad", "Tareas y soporte"]) {
+    assert.match(centroPage, new RegExp(label));
+  }
+  assert.match(centroPage, /WhatsApp: Por verificar/);
+  assert.match(centroPage, /RegionsDashboard/);
+  assert.match(centroAgente, /Consultar documentos/);
+  assert.match(centroAgente, /Guía de acreditación/);
+  assert.match(centroAgente, /Estado de la cuenta/);
+  assert.match(centroAgente, /Agente BASSAM 360/);
+  assert.doesNotMatch(centroPage + centroAgente, /WA_ACCESS_TOKEN|127|98\.4%/);
   assert.match(panel, /Aprobar/);
   assert.match(panel, /Rechazar/);
   assert.match(panel, /Pedir renovación/);
