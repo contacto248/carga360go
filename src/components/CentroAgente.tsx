@@ -6,7 +6,7 @@ function abrir() {
   window.dispatchEvent(new Event("c360-abrir-agente"));
 }
 
-export function CentroAgente({ estado }: { estado: "Por verificar" }) {
+export function CentroAgente({ estado }: { estado: "--" }) {
   return (
     <div>
       <p>Estado: {estado}</p>

@@ -88,7 +88,7 @@ export default async function CentroControlPage() {
           </section>
           <section className={styles.section} id="agentes">
             <h2>Agentes IA</h2>
-            <CentroAgente estado="Por verificar" />
+            <p>--</p>
           </section>
           <section className={styles.section} id="cotizador">
             <h2>Cotizador</h2>
@@ -107,6 +107,10 @@ export default async function CentroControlPage() {
             <p>--</p>
           </section>
         </div>
+        <aside className={styles.agents} aria-label="Agentes">
+          <h2>Agentes</h2>
+          <CentroAgente estado="--" />
+        </aside>
       </section>
     </div>
   );

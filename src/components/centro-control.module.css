@@ -1,8 +1,8 @@
 .layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 220px 1fr 260px;
   gap: 16px;
-  background: #050e1f;
+  background: #020a18;
   color: #e8eef8;
   border-radius: 12px;
   padding: 16px;
@@ -21,6 +21,18 @@
   padding: 8px 10px;
   border-radius: 8px;
   background: #12203a;
+}
+
+.agents {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agents h2 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.05rem;
 }
 
 .main h1 {

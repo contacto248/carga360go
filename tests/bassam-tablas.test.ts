@@ -407,7 +407,9 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(centroPage, /Esperando datos reales/);
   assert.match(centroPage, /WhatsApp: --/);
   assert.doesNotMatch(centroPage, /Calama|Antofagasta|Copiapó|WA_ACCESS_TOKEN|from "fs"|api\/centro-control\/stats|"0"/);
-  assert.match(fs.readFileSync(new URL("../src/components/centro-control.module.css", import.meta.url), "utf8"), /#050e1f/i);
+  assert.match(centroPage, /estado="--"/);
+  assert.doesNotMatch(centroPage, /2 ACTIVOS|Activo/);
+  assert.match(fs.readFileSync(new URL("../src/components/centro-control.module.css", import.meta.url), "utf8"), /#020a18/i);
   assert.match(centroAgente, /Consultar documentos/);
   assert.match(centroAgente, /Guía de acreditación/);
   assert.match(centroAgente, /Estado de la cuenta/);
