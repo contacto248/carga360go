@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RegionsDashboard } from "@/components/RegionsDashboard";
+import { regionIndicators } from "@/lib/stats";
 import styles from "./home.module.css";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -17,6 +19,7 @@ const BENEFICIOS = [
 ];
 
 export default function HomePage() {
+  const regions = regionIndicators();
   return (
     <>
       <section className={styles.hero}>
@@ -31,6 +34,13 @@ export default function HomePage() {
               Ofrecer mi camión
             </Link>
           </div>
+        </div>
+      </section>
+      <section className={styles.block} aria-label="Mapa de camiones y cargas">
+        <div className="wrap">
+          <h2>Camiones y cargas</h2>
+          <p className={styles.lead}>El mapa usa los avisos reales por región. Sin coordenadas guardadas no se marcan puntos.</p>
+          <RegionsDashboard regions={regions} compact />
         </div>
       </section>
       <section className={styles.block}>

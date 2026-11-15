@@ -51,6 +51,8 @@ test("la portada usa el copy del paquete y no promete acreditación 100% ni audi
   assert.match(home, /\/mi-cuenta\?rol=transportista/);
   assert.match(home, /Cómo funciona/);
   assert.match(home, /Beneficios/);
+  assert.match(home, /RegionsDashboard/);
+  assert.doesNotMatch(home, /cityCoords|new google\.maps|L\.marker/);
   assert.doesNotMatch(home, /100% acreditad/);
   assert.doesNotMatch(home, /calidad, seguridad y medio ambiente/);
   assert.doesNotMatch(home, /La bolsa de carga de Chile que/);
