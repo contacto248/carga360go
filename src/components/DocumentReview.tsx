@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { ConteoControl } from "@/lib/bassam/acreditacion";
 import type { EventoTimeline, FilaAcreditacion, PanelAcreditacion } from "@/lib/bassam/types";
 import styles from "./bassam-panel.module.css";
 
@@ -102,7 +103,7 @@ function Timeline({ eventos }: { eventos: PanelAcreditacion["timeline"] }) {
   );
 }
 
-export function DocumentReview({ panel }: { panel: PanelAcreditacion }) {
+export function DocumentReview({ panel, conteos }: { panel: PanelAcreditacion; conteos: ConteoControl }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -128,6 +129,12 @@ export function DocumentReview({ panel }: { panel: PanelAcreditacion }) {
 
   return (
     <>
+      <div className={styles.counts} aria-label="Conteos reales">
+        <p><span>Cargas</span><strong>{conteos.cargas}</strong></p>
+        <p><span>Camiones</span><strong>{conteos.camiones}</strong></p>
+        <p><span>Documentos</span><strong>{conteos.documentos}</strong></p>
+        <p><span>Agente</span><strong>{conteos.agente}</strong></p>
+      </div>
       <div className={styles.grid}>
         <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} onAct={act} />
         <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} onAct={act} />

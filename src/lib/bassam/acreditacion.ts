@@ -233,6 +233,38 @@ function estadoVisible(estado: string): "pendiente" | "aprobado" | "rechazado" |
   return "pendiente";
 }
 
+export type ConteoControl = {
+  cargas: string;
+  camiones: string;
+  documentos: string;
+  agente: string;
+};
+
+function tablaExiste(nombre: string): boolean {
+  return Boolean(getDb().prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?`).get(nombre));
+}
+
+function conteoTabla(tabla: "loads" | "trucks" | "documentos_acreditacion" | "admin_bassam_360", where?: string): string {
+  if (!tablaExiste(tabla)) return "sin datos";
+  try {
+    const n = (getDb().prepare(`SELECT COUNT(*) AS n FROM ${tabla}${where ? ` WHERE ${where}` : ""}`).get() as { n: number }).n;
+    if (!Number.isInteger(n) || n < 0) return "sin datos";
+    return String(n);
+  } catch {
+    return "sin datos";
+  }
+}
+
+/** Conteos leídos de la base. Cero es un conteo real. Si la tabla no está, «sin datos». */
+export function conteosControl(): ConteoControl {
+  return {
+    cargas: conteoTabla("loads", "is_demo = 0"),
+    camiones: conteoTabla("trucks", "is_demo = 0"),
+    documentos: conteoTabla("documentos_acreditacion"),
+    agente: conteoTabla("admin_bassam_360", "origen = 'agente'"),
+  };
+}
+
 export function conteoRegistrados(n: number): string {
   if (!Number.isInteger(n) || n < 0) return "sin datos";
   return n === 0 ? "0 registrados" : String(n);

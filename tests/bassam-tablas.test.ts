@@ -8,6 +8,7 @@ import { FLETE_EMPRESA, FLETE_TRANSPORTISTA } from "../src/lib/bassam/flete";
 import { COOKIE_NAME, createSession, upsertAdmin } from "../src/lib/auth";
 import {
   listPendingDocuments,
+  conteosControl,
   panelAcreditacion,
   readRutAndDate,
   recordAgentComment,
@@ -67,6 +68,7 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(vacio.mandantes.conteo, "0 registrados");
   assert.equal(vacio.timeline, "sin datos");
   assert.equal(vacio.kyc, "Sin datos");
+  assert.deepEqual(conteosControl(), { cargas: "0", camiones: "0", documentos: "0", agente: "0" });
   assert.equal(responderAgente("hay documentos", false), SIN_DATOS);
   assert.match(SIN_DATOS, /^Sin datos\. 1\. Datos\. 2\. Subir documentos\. 3\. Estado\. https:\/\/www\.carga360go\.cl\/mi-cuenta/);
   const guia = responderAgente("quiero acreditarme", false);
@@ -379,6 +381,12 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(copia, /https:\/\/www\.carga360go\.cl\/mi-cuenta/);
   assert.equal(fs.existsSync(new URL("../src/app/api/agente/chat/route.ts", import.meta.url)), false);
   assert.doesNotMatch(respuesta, /INSERT\s+INTO|whatsapp\/send/i);
+  assert.match(panel, /Cargas/);
+  assert.match(panel, /Camiones/);
+  assert.match(panel, /Documentos/);
+  assert.match(panel, />Agente</);
+  assert.doesNotMatch(panel + bassam + fs.readFileSync(new URL("../src/components/bassam-panel.module.css", import.meta.url), "utf8"), /127|98\.4%|hace \d+ horas|\b84\b/);
+  assert.match(fs.readFileSync(new URL("../src/components/bassam-panel.module.css", import.meta.url), "utf8"), /#0b1633/i);
   assert.match(panel, /Aprobar/);
   assert.match(panel, /Rechazar/);
   assert.match(panel, /Pedir renovación/);
