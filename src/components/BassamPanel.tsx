@@ -2,13 +2,28 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { AuthAction, BassamSnapshot } from "@/lib/bassam/types";
+import type { BassamSnapshot, QualityView, Severity } from "@/lib/bassam/types";
+import styles from "./bassam-panel.module.css";
 
-const ACTIONS: { action: AuthAction; label: string }[] = [
-  { action: "autorizar", label: "Autorizar" },
-  { action: "rechazar", label: "Rechazar" },
-  { action: "solicitar_revision", label: "Solicitar revisión" },
-];
+const SEVERITY: Record<Severity, string> = {
+  baja: "Baja",
+  media: "Media",
+  alta: "Alta",
+  muy_alta: "Muy alta",
+};
+
+const DECISION: Record<QualityView["decision"], string> = {
+  resuelto: "Resuelto",
+  solicitar_revision: "Solicitar revisión",
+  sin_datos: "sin datos",
+  pendiente_gerente: "Pendiente de gerencia",
+  aprobado: "Aprobado",
+};
+
+const ACTOR: Record<QualityView["actor"], string> = {
+  agente_calidad: "Agente de calidad",
+  gerente: "Gerencia",
+};
 
 function fmt(iso: string): string {
   return new Date(iso).toLocaleString("es-CL", { timeZone: "America/Santiago", dateStyle: "short", timeStyle: "short" });
@@ -19,17 +34,17 @@ export function BassamPanel({ initial }: { initial: BassamSnapshot }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  async function act(loadId: string, action: AuthAction) {
+  async function aprobar(loadId: string) {
     setBusy(true);
     setError("");
     try {
       const response = await fetch("/api/admin/bassam", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ loadId, action }),
+        body: JSON.stringify({ loadId, action: "aprobado" }),
       });
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      if (!response.ok) setError(data?.error || "No se pudo registrar la autorización.");
+      if (!response.ok) setError(data?.error || "No se pudo registrar la aprobación.");
       else router.refresh();
     } catch {
       setError("No hay conexión.");
@@ -39,47 +54,49 @@ export function BassamPanel({ initial }: { initial: BassamSnapshot }) {
 
   return (
     <>
-      <div className="grid c2" style={{ margin: "12px 0" }}>
+      <div className={styles.metrics}>
         {(
           [
             ["Viajes adjudicados", initial.conteos.viajes],
             ["Eventos de viaje", initial.conteos.eventos],
             ["Puntos GPS", initial.conteos.gps],
             ["Autorizaciones", initial.conteos.autorizaciones],
+            ["Revisiones", initial.conteos.revisiones],
           ] as const
         ).map(([label, value]) => (
-          <div className="card" key={label}>
-            <p className="meta">{label}</p>
-            <strong>{value}</strong>
+          <div className={styles.card} key={label}>
+            <p className={styles.label}>{label}</p>
+            <strong className={styles.value}>{value}</strong>
           </div>
         ))}
       </div>
 
-      <div className="card" style={{ marginBottom: 12 }}>
+      <section className={styles.card}>
         <h2>GPS</h2>
         <p>
-          <span className="pill warn">{initial.gpsClasificacion}</span>
+          <span className={styles.pill}>{initial.gpsClasificacion}</span>
         </p>
-        <p className="meta">La API guarda latitud, longitud y hora solo de un viaje autorizado. No hay dispositivo en terreno, así que no está operativa y no se muestran posiciones inventadas.</p>
-      </div>
+        <p className={styles.meta}>La API guarda latitud, longitud y hora solo de un viaje autorizado. No hay dispositivo en terreno, así que no está operativa y no se muestran posiciones inventadas.</p>
+      </section>
 
-      <div className="card" style={{ marginBottom: 12 }}>
+      <section className={styles.card}>
         <h2>Torre de control</h2>
+        <p className={styles.meta}>Gerencia solo revisa. El agente de calidad resuelve lo rutinario con reglas fijas, sin otro proveedor de IA.</p>
         {initial.torre.length === 0 ? (
           <p>sin datos</p>
         ) : (
           initial.torre.map((viaje) => (
-            <article key={viaje.id} style={{ borderTop: "1px solid var(--line)", paddingTop: 10, marginTop: 10 }}>
+            <article className={styles.trip} key={viaje.id}>
               <h3>
                 {viaje.origin} → {viaje.destination}
               </h3>
-              <p className="meta">
-                {viaje.tripLabel} · autorización {viaje.autorizacion}
+              <p className={styles.meta}>
+                {viaje.tripLabel} · autorización {viaje.autorizacion} · severidad {viaje.severidad === "sin datos" ? "sin datos" : SEVERITY[viaje.severidad]} · regla {viaje.regla}
               </p>
               {viaje.historial.length === 0 ? (
                 <p>sin datos</p>
               ) : (
-                <ul>
+                <ul className={styles.list}>
                   {viaje.historial.map((event) => (
                     <li key={`${viaje.id}-${event.at}-${event.status}`}>
                       {event.label} · {event.authorLabel} · {fmt(event.at)}
@@ -90,7 +107,7 @@ export function BassamPanel({ initial }: { initial: BassamSnapshot }) {
               {viaje.gps.length === 0 ? (
                 <p>GPS: sin datos</p>
               ) : (
-                <ul>
+                <ul className={styles.list}>
                   {viaje.gps.map((point) => (
                     <li key={`${viaje.id}-${point.recordedAt}`}>
                       {point.lat}, {point.lng} · {fmt(point.recordedAt)}
@@ -98,51 +115,57 @@ export function BassamPanel({ initial }: { initial: BassamSnapshot }) {
                   ))}
                 </ul>
               )}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {ACTIONS.map((item) => (
-                  <button key={item.action} className="btn sm sec" type="button" disabled={busy} onClick={() => act(viaje.id, item.action)}>
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+              {viaje.necesitaGerente ? (
+                <button className={styles.approve} type="button" disabled={busy} onClick={() => aprobar(viaje.id)}>
+                  Aprobado
+                </button>
+              ) : (
+                <p className={styles.auto}>Lo resolvió el agente de calidad. No requiere aprobación de gerencia.</p>
+              )}
             </article>
           ))
         )}
-        {error ? <p className="chat-error">{error}</p> : null}
-      </div>
+        {error ? <p className={styles.error}>{error}</p> : null}
+      </section>
 
-      <div className="card">
+      <section className={styles.card}>
+        <h2>Historial del agente de calidad</h2>
+        {initial.calidad === "sin datos" ? (
+          <p>sin datos</p>
+        ) : (
+          <div className={styles.history}>
+            {initial.calidad.map((item) => (
+              <article key={item.id}>
+                <b>{item.route}</b>
+                <p className={styles.meta}>
+                  {fmt(item.at)} · {ACTOR[item.actor]} · {DECISION[item.decision]} · regla {item.ruleId} · severidad {SEVERITY[item.severity]}
+                </p>
+                <p>{item.result}</p>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className={styles.card}>
         <h2>Informe</h2>
         {initial.informe.texto === "sin datos" ? (
           <p>sin datos</p>
         ) : (
-          <table className="tbl">
-            <caption>Viajes adjudicados leídos de la base</caption>
-            <thead>
-              <tr>
-                <th>Ruta</th>
-                <th>Estado</th>
-                <th>Eventos</th>
-                <th>GPS</th>
-                <th>Autorización</th>
-              </tr>
-            </thead>
-            <tbody>
-              {initial.informe.viajes.map((viaje) => (
-                <tr key={viaje.id}>
-                  <td>
-                    {viaje.origin} → {viaje.destination}
-                  </td>
-                  <td>{viaje.tripLabel}</td>
-                  <td>{viaje.historial.length ? viaje.historial.length : "sin datos"}</td>
-                  <td>{viaje.gps.length ? viaje.gps.length : "sin datos"}</td>
-                  <td>{viaje.autorizacion}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className={styles.history}>
+            {initial.informe.viajes.map((viaje) => (
+              <article key={viaje.id}>
+                <b>
+                  {viaje.origin} → {viaje.destination}
+                </b>
+                <p className={styles.meta}>
+                  {viaje.tripLabel} · eventos {viaje.historial.length ? viaje.historial.length : "sin datos"} · GPS {viaje.gps.length ? viaje.gps.length : "sin datos"} · {viaje.autorizacion}
+                </p>
+              </article>
+            ))}
+          </div>
         )}
-      </div>
+      </section>
     </>
   );
 }

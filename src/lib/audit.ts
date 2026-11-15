@@ -65,6 +65,8 @@ export const AUDIT_LABELS: Record<string, string> = {
   "bassam.solicitar_revision": "Revisión de viaje solicitada",
   "bassam.gps": "Punto GPS del viaje autorizado",
   "bassam.qr": "QR de origen y destino emitido",
+  "bassam.agente": "Agente de calidad: decisión automática",
+  "bassam.aprobado": "Gerencia aprobó un caso de severidad muy alta",
 };
 
 function writeAudit(

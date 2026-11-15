@@ -7,6 +7,7 @@ import { GET as getGps, POST as postGps } from "../src/app/api/viajes/[id]/gps/r
 import { GET as getQr } from "../src/app/api/viajes/[id]/qr/route";
 import { COOKIE_NAME, createSession, registerUser, upsertAdmin } from "../src/lib/auth";
 import { publicCheckpoint, bassamSnapshot, GPS_CLASIFICACION } from "../src/lib/bassam/ops";
+import { approveByManager, evaluateQuality, qualityHistory, runQualityAgent } from "../src/lib/bassam/quality";
 import { systemPrompt } from "../src/lib/assistant/prompt";
 import { REQUIRED_CARRIER_DOCS } from "../src/lib/carrier";
 import { getDb } from "../src/lib/db";
@@ -245,4 +246,66 @@ test("el asistente ejecutivo usa el mismo prompt y el botón está sobre el chat
   const page = fs.readFileSync(new URL("../src/app/admin/bassam/page.tsx", import.meta.url), "utf8");
   assert.match(page, /CARGA360GO/);
   assert.match(page, /BASSAM 360/);
+  const panel = fs.readFileSync(new URL("../src/components/BassamPanel.tsx", import.meta.url), "utf8");
+  assert.match(panel, /viaje\.necesitaGerente \?/);
+  assert.match(panel, />\s*Aprobado\s*</);
+  const rules = fs.readFileSync(new URL("../src/lib/bassam/quality.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(rules, /openai|gemini|AI_API_KEY|manychat/i);
+});
+
+test("el agente de calidad resuelve lo rutinario y Aprobado solo existe si la severidad es muy alta", async () => {
+  const routine = evaluateQuality({ tripStatus: "asignado", origin: "La Serena", destination: "Santiago", eventCount: 1, gpsCount: 0, hasCarrier: true });
+  assert.equal(routine.needsManager, false);
+  assert.equal(routine.severity, "baja");
+  assert.equal(routine.ruleId, "rutina-sin-excepcion");
+  const critical = evaluateQuality({ tripStatus: "incidencia", origin: "La Serena", destination: "Santiago", eventCount: 2, gpsCount: 0, hasCarrier: true });
+  assert.equal(critical.needsManager, true);
+  assert.equal(critical.severity, "muy_alta");
+  const emptyHistory = evaluateQuality({ tripStatus: "asignado", origin: "La Serena", destination: "Santiago", eventCount: 0, gpsCount: 0, hasCarrier: true });
+  assert.equal(emptyHistory.result, "sin datos");
+  assert.equal(emptyHistory.needsManager, false);
+
+  const owner = person("mandante", "qa-dueno");
+  const carrier = person("transportista", "qa-chofer");
+  const load = createLoad(owner, {
+    origin: "Copiapó",
+    destination: "Calama",
+    pickupDate: addDays(6),
+    equipment: "rampla_plana",
+    description: "Revisión de calidad",
+    weightT: 9,
+    specs: {},
+  });
+  const offer = await submitOffer(carrier, load.id, { priceClp: 700000, pickupDate: addDays(6) }, { notify: false });
+  await acceptOffer(owner, offer.offer.id, { notify: false });
+
+  runQualityAgent(admin);
+  runQualityAgent(admin);
+  const first = qualityHistory().filter((row) => row.loadId === load.id);
+  assert.equal(first.length, 1);
+  assert.equal(first[0]?.actor, "agente_calidad");
+  assert.equal(first[0]?.decision, "resuelto");
+  assert.equal(first[0]?.ruleId, "rutina-sin-excepcion");
+  assert.match(first[0]?.at ?? "", /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal((await postBassam(req("/api/admin/bassam", "POST", adminToken, { loadId: load.id, action: "aprobado" }), ctx)).status, 409);
+
+  getDb().prepare(`UPDATE loads SET trip_status = 'incidencia' WHERE id = ?`).run(load.id);
+  const snap = bassamSnapshot(admin);
+  const viaje = snap.torre.find((item) => item.id === load.id);
+  assert.equal(viaje?.necesitaGerente, true);
+  assert.equal(viaje?.severidad, "muy_alta");
+  assert.equal(viaje?.regla, "incidencia-abierta");
+  const approved = await postBassam(req("/api/admin/bassam", "POST", adminToken, { loadId: load.id, action: "aprobado" }), ctx);
+  assert.equal(approved.status, 200);
+  const history = qualityHistory().filter((row) => row.loadId === load.id);
+  const manager = history.find((row) => row.actor === "gerente");
+  assert.equal(manager?.decision, "aprobado");
+  assert.equal(manager?.ruleId, "incidencia-abierta");
+  assert.equal(manager?.result, "Aprobado por gerencia.");
+  assert.match(manager?.at ?? "", /^\d{4}-\d{2}-\d{2}T/);
+  runQualityAgent(admin);
+  assert.equal(qualityHistory().filter((row) => row.loadId === load.id && row.decision === "pendiente_gerente").length, 1);
+  const after = bassamSnapshot(admin).torre.find((item) => item.id === load.id);
+  assert.equal(after?.necesitaGerente, false);
+  assert.throws(() => approveByManager(admin, load.id), /muy alta/);
 });

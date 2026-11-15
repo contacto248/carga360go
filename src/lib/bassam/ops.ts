@@ -7,6 +7,7 @@ import { AppError } from "../errors";
 import { appUrl } from "../mail";
 import type { PublicUser } from "../types";
 import { TRIP_LABEL, isTripStatus } from "../viaje";
+import { latestQualityMap, qualityHistory, runQualityAgent } from "./quality";
 import { AUTH_ACTIONS, GPS_CLASIFICACION, type AuthAction, type BassamSnapshot, type GpsPointView, type PublicCheckpoint, type QrSide, type TorreViaje } from "./types";
 
 export { GPS_CLASIFICACION };
@@ -249,6 +250,7 @@ export function publicCheckpoint(tokenValue: string): PublicCheckpoint | null {
 
 function viajeRows(): TorreViaje[] {
   ensureBassamOps();
+  const qualityByLoad = latestQualityMap();
   const loads = getDb()
     .prepare(
       `SELECT l.id, l.origin AS origin, l.destination AS destination, l.trip_status AS tripStatus
@@ -268,12 +270,16 @@ function viajeRows(): TorreViaje[] {
       .prepare(`SELECT lat, lng, recorded_at AS recordedAt FROM trip_gps_points WHERE load_id = ? ORDER BY recorded_at ASC`)
       .all(load.id) as GpsPointView[];
     const auth = authorizationOf(load.id);
+    const quality = qualityByLoad.get(load.id);
     return {
       id: load.id,
       origin: load.origin,
       destination: load.destination,
       tripLabel: tripLabel(load.tripStatus),
       autorizacion: auth ?? "pendiente",
+      severidad: quality?.severity ?? "sin datos",
+      regla: quality?.ruleId ?? "sin datos",
+      necesitaGerente: quality?.needsManager ?? false,
       historial: events.map((event) => ({
         status: event.status,
         label: isTripStatus(event.status) ? TRIP_LABEL[event.status] : event.status,
@@ -288,9 +294,11 @@ function viajeRows(): TorreViaje[] {
 export function bassamSnapshot(user: PublicUser): BassamSnapshot {
   assertAdmin(user);
   ensureBassamOps();
+  runQualityAgent(user);
   const db = getDb();
   const count = (sql: string) => (db.prepare(sql).get() as { n: number }).n;
   const torre = viajeRows();
+  const calidad = qualityHistory();
   return {
     marca: "CARGA360GO",
     titulo: "BASSAM 360",
@@ -300,9 +308,11 @@ export function bassamSnapshot(user: PublicUser): BassamSnapshot {
       eventos: countText(count(`SELECT COUNT(*) n FROM trip_events e JOIN loads l ON l.id = e.load_id WHERE l.status = 'adjudicada' AND l.is_demo = 0`)),
       gps: countText(count(`SELECT COUNT(*) n FROM trip_gps_points g JOIN loads l ON l.id = g.load_id WHERE l.is_demo = 0`)),
       autorizaciones: countText(count(`SELECT COUNT(*) n FROM trip_authorizations a JOIN loads l ON l.id = a.load_id WHERE l.is_demo = 0`)),
+      revisiones: countText(calidad.length),
     },
     torre,
     informe: torre.length ? { texto: "datos reales", viajes: torre } : { texto: "sin datos" },
+    calidad: calidad.length ? calidad : "sin datos",
     gpsClasificacion: GPS_CLASIFICACION,
   };
 }
