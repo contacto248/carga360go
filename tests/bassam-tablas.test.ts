@@ -334,8 +334,9 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(panel, /Mandantes/);
   assert.match(panel, /Línea de tiempo/);
   assert.match(panel, /Mandantes pagadores/);
-  assert.match(panel, /Sin datos/);
-  assert.match(panel, /0 registrados/);
+  assert.match(panel, /sin datos/);
+  assert.doesNotMatch(panel, /0 registrados/);
+  assert.doesNotMatch(panel, /glance/);
   assert.doesNotMatch(panel + admin, /SOC2|facial|saldo|ISO 9001/);
   const agente = fs.readFileSync(new URL("../src/components/AgenteAcreditacion.tsx", import.meta.url), "utf8");
   const copia = fs.readFileSync(new URL("../src/lib/bassam/agente-copia.ts", import.meta.url), "utf8");
@@ -368,7 +369,10 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   const bassam = fs.readFileSync(new URL("../src/app/admin/bassam/page.tsx", import.meta.url), "utf8");
   assert.match(bassam, /user\.role !== "admin"/);
   assert.doesNotMatch(bassam, /AdminNav/);
-  assert.match(panel, /styles\.glance/);
+  assert.equal((panel.match(/titulo="Transportistas"/g) || []).length, 1);
+  assert.equal((panel.match(/titulo="Mandantes pagadores"/g) || []).length, 1);
+  assert.equal((panel.match(/<h2>Comentarios<\/h2>/g) || []).length, 1);
+  assert.equal((panel.match(/<h2>Línea de tiempo<\/h2>/g) || []).length, 1);
   assert.match(agente, /Subir documentos en \/mi-cuenta/);
   assert.match(agente, /Soy transportista/);
   assert.match(agente, /Soy mandante/);

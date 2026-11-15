@@ -18,24 +18,16 @@ const ESTADO: Record<FilaAcreditacion["estado"], string> = {
   renovacion: "renovación",
 };
 
-function Vacio() {
-  return (
-    <>
-      <p>Sin datos</p>
-      <p className={styles.meta}>0 registrados</p>
-    </>
-  );
-}
-
 function Lista({ titulo, conteo, filas, busy, onAct }: { titulo: string; conteo: string; filas: FilaAcreditacion[]; busy: boolean; onAct: (id: string, action: (typeof ACTIONS)[number]["action"]) => void }) {
   return (
     <section className={styles.card}>
       <h2>{titulo}</h2>
-      <p className={styles.meta}>{conteo}</p>
       {filas.length === 0 ? (
-        <Vacio />
+        <p>sin datos</p>
       ) : (
-        filas.map((doc) => (
+        <>
+          <p className={styles.meta}>{conteo}</p>
+          {filas.map((doc) => (
           <article className={styles.trip} key={doc.id}>
             <h3>
               {doc.tipoCliente} · {doc.tipo}
@@ -55,7 +47,8 @@ function Lista({ titulo, conteo, filas, busy, onAct }: { titulo: string; conteo:
               </div>
             ) : null}
           </article>
-        ))
+        ))}
+        </>
       )}
     </section>
   );
@@ -66,18 +59,20 @@ function Comentarios({ filas }: { filas: FilaAcreditacion[] }) {
   return (
     <section className={styles.card}>
       <h2>Comentarios</h2>
-      <p className={styles.meta}>{comentarios.length === 0 ? "0 registrados" : String(comentarios.length)}</p>
       {comentarios.length === 0 ? (
-        <Vacio />
+        <p>sin datos</p>
       ) : (
-        comentarios.map((fila) => (
+        <>
+          <p className={styles.meta}>{String(comentarios.length)}</p>
+          {comentarios.map((fila) => (
           <article className={styles.trip} key={fila.id}>
             <p>
               {fila.fecha} · {fila.tipoCliente} · {fila.tipo}
             </p>
             <p>{fila.comentarioIa}</p>
           </article>
-        ))
+        ))}
+        </>
       )}
     </section>
   );
@@ -88,18 +83,20 @@ function Timeline({ eventos }: { eventos: PanelAcreditacion["timeline"] }) {
   return (
     <section className={styles.card}>
       <h2>Línea de tiempo</h2>
-      <p className={styles.meta}>{filas.length === 0 ? "0 registrados" : String(filas.length)}</p>
       {filas.length === 0 ? (
-        <Vacio />
+        <p>sin datos</p>
       ) : (
-        filas.map((event) => (
+        <>
+          <p className={styles.meta}>{String(filas.length)}</p>
+          {filas.map((event) => (
           <article className={styles.trip} key={event.id}>
             <p>
               {event.fecha} · {event.origen} · {event.accion}
             </p>
             <p>{event.comentario}</p>
           </article>
-        ))
+        ))}
+        </>
       )}
     </section>
   );
@@ -129,23 +126,15 @@ export function DocumentReview({ panel }: { panel: PanelAcreditacion }) {
     setBusy(false);
   }
 
-  const comentarios = [...panel.transportistas.filas, ...panel.mandantes.filas].filter((fila) => fila.comentarioIa !== "sin datos").length;
-  const eventos = panel.timeline === "sin datos" ? 0 : panel.timeline.length;
   return (
     <>
-      <div className={styles.glance} aria-label="Conteos">
-        <p><span>Transportistas</span><strong>{panel.transportistas.filas.length === 0 ? "sin datos" : panel.transportistas.conteo}</strong></p>
-        <p><span>Mandantes</span><strong>{panel.mandantes.filas.length === 0 ? "sin datos" : panel.mandantes.conteo}</strong></p>
-        <p><span>Comentarios</span><strong>{comentarios === 0 ? "sin datos" : String(comentarios)}</strong></p>
-        <p><span>Línea de tiempo</span><strong>{eventos === 0 ? "sin datos" : String(eventos)}</strong></p>
-      </div>
       <div className={styles.grid}>
         <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} onAct={act} />
         <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} onAct={act} />
         <Comentarios filas={[...panel.transportistas.filas, ...panel.mandantes.filas]} />
         <Timeline eventos={panel.timeline} />
       </div>
-      <footer className={styles.footer}>{documentos === 0 ? "Sin datos. 0 registrados." : `Total: ${documentos} documentos registrados.`}</footer>
+      {documentos === 0 ? null : <footer className={styles.footer}>{`Total: ${documentos} documentos registrados.`}</footer>}
       {error ? <p className={styles.error}>{error}</p> : null}
     </>
   );
