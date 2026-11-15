@@ -249,6 +249,7 @@ body:has(.help-stack) footer.foot{padding-bottom:140px}
   .chat-panel{width:calc(100vw - 16px);height:min(78vh,620px);max-height:calc(100dvh - 90px - env(safe-area-inset-bottom))}
   .help-fab span:last-child{display:none}
   .help-fab{width:52px;padding:0;border-radius:50%}
+  .help-fab.help-exec{width:auto;max-width:240px;padding:12px 14px;border-radius:16px;white-space:normal}
 }
 
 /* Canal oficial de WhatsApp (bloque compacto en portada) */

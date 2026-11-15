@@ -48,7 +48,8 @@ export default async function AdminPage() {
       <div className="card" style={{ margin: "12px 0" }}>
         <h2>BASSAM 360 · Centro de control inteligente</h2>
         <p>Espacios de BASSAM SPA y CARGA360GO: operaciones, tareas, responsables y conexiones.</p>
-        <Link className="btn" href="/admin/control">Abrir centro de control →</Link>
+        <Link className="btn" href="/admin/bassam">Abrir BASSAM 360 →</Link>{" "}
+        <Link className="btn sec" href="/admin/control">Centro de control →</Link>
       </div>
       <div className="notice" style={{ marginBottom: 12 }}>
         Las cuentas nuevas (mandantes y transportistas) no publican ni ofertan hasta quedar 100% acreditadas.{" "}

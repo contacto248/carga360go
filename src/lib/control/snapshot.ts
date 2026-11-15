@@ -31,7 +31,7 @@ export function controlSnapshot(user: PublicUser, companyValue: unknown): Snapsh
     ], corridors: [], integrations: [
       { name: "Sitio BASSAM SPA", state: "Acceso disponible", detail: "Sitio externo; no importa datos al tablero.", href: "https://www.bassamspa.com/" },
       { name: "Horómetros", state: "Acceso disponible", detail: "Portal externo con su propia sesión; datos sin sincronizar.", href: "https://horometros.bassamspa.com/" },
-      { name: "GPS desde el teléfono", state: "Pendiente", detail: "Falta la aplicación emisora y la recepción de posiciones. No se muestran ubicaciones simuladas." },
+      { name: "GPS desde el teléfono", state: "Probada en test", detail: "La API guarda lat, lng y hora solo de un viaje autorizado. No hay dispositivo emisor: no está operativa y no se simulan posiciones.", href: "/admin/bassam" },
     ],
   };
   const live = activeListings();
@@ -56,7 +56,7 @@ export function controlSnapshot(user: PublicUser, companyValue: unknown): Snapsh
       configured("Correo", emailChannelReady(), "/admin/transportistas", "Canal SMTP del servidor."),
       { name: "WhatsApp", state: canSend() && botGloballyEnabled() ? "Configurado y habilitado" : "Pendiente de activación", detail: `Credenciales: ${canSend() ? "configuradas" : "ausentes"}. Flujo del agente: ${agentWhatsappEnabled() ? "habilitado" : "apagado"}. Requiere consentimiento y prueba de recepción.`, href: "/admin/whatsapp" },
       configured("Telefonía", twilio.status().connected, "/admin/agente", "Configuración del adaptador Twilio existente."),
-      { name: "GPS desde el teléfono", state: "Pendiente", detail: "Este centro no recibe todavía coordenadas de los choferes." },
+      { name: "GPS desde el teléfono", state: "Probada en test", detail: "La API guarda lat, lng y hora solo de un viaje autorizado. No hay dispositivo emisor: no está operativa y no se simulan posiciones.", href: "/admin/bassam" },
     ],
   };
 }

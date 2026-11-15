@@ -28,11 +28,11 @@ export function Header({ user }: { user: PublicUser | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const locked = user?.role === "transportista" && user.verificationStatus !== "verificado";
-  const tabs = user?.role === "admin" ? [...TABS.slice(0, -1), { href: "/admin/control", label: "BASSAM 360", icon: "◈" }] : TABS;
+  const tabs = user?.role === "admin" ? [...TABS.slice(0, -1), { href: "/admin/bassam", label: "BASSAM 360", icon: "◈" }] : TABS;
   const links = locked
     ? [{ href: "/cuenta-en-revision", label: "Mi cuenta (en revisión)" }]
     : user?.role === "admin"
-      ? [...LINKS.filter((link) => link.href !== "/herramientas/calculadora"), { href: "/admin/control", label: "BASSAM 360" }, { href: "/admin", label: "Admin" }]
+      ? [...LINKS.filter((link) => link.href !== "/herramientas/calculadora"), { href: "/admin/bassam", label: "BASSAM 360" }, { href: "/admin", label: "Admin" }]
       : LINKS;
 
   async function salir() {

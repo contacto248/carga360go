@@ -20,6 +20,7 @@ const CARGO_MODULES = [
   ["WhatsApp", "Conversaciones, pausas y derivaciones.", "/admin/whatsapp"],
   ["Chat web", "Atención desde la plataforma.", "/admin/chat"],
   ["Auditoría de plataforma", "Registro de las acciones administrativas.", "/admin/auditoria"],
+  ["BASSAM 360", "Torre de control, autorizaciones e informe con datos reales.", "/admin/bassam"],
 ] as const;
 
 function stamp(value: string) { return new Date(value).toLocaleString("es-CL", { timeZone: "America/Santiago", dateStyle: "short", timeStyle: "short" }); }
@@ -104,7 +105,7 @@ export function ControlCenter({ initial }: { initial: Snapshot }) {
           </section>
           <section className={styles.panel}><div className={styles.panelHead}><h2>Prioridades del equipo</h2><button className={styles.textButton} onClick={() => navigate("tareas")}>Ver todas →</button></div><p className={styles.muted}>{pending.length} tareas abiertas · {overdue} con fecha vencida</p><div className={styles.taskPreview}>{pending.length ? pending.slice(0, 4).map(t => <button key={t.id} onClick={() => { navigate("tareas"); setTask(t); }}><span><b>{t.title}</b><small>{t.owner || "Sin responsable"} · {t.due || "Sin fecha"}</small></span><span className={styles.badge} data-state={t.status}>{LABELS[t.status]}</span></button>) : <p className={styles.empty}>No hay tareas abiertas. Puedes crear el plan de esta empresa.</p>}</div></section>
           <section className={styles.panel}><div className={styles.panelHead}><h2>Conexiones y agentes</h2><button className={styles.textButton} onClick={() => navigate("integraciones")}>Revisar →</button></div>{data.integrations.slice(0, 4).map(i => <div className={styles.connection} key={i.name}><span>{i.name}</span><span className={styles.tag}>{i.state}</span></div>)}<p className={styles.muted}>El estado muestra la configuración del servidor. Las pruebas de conexión y recepción se validan por separado.</p></section>
-          <section className={styles.panel}><div className={styles.panelHead}><h2>Seguimiento de viajes</h2><span className={styles.tag}>GPS pendiente</span></div><div className={styles.gps}><span aria-hidden="true">◎</span><div><h3>Ubicación desde el teléfono</h3><p>La recepción de posiciones de los choferes aún no está integrada. No hay ubicaciones en vivo en este módulo.</p></div></div><button className={styles.secondary} onClick={() => { navigate("tareas"); setTask("new"); }}>Registrar tarea de integración</button></section>
+          <section className={styles.panel}><div className={styles.panelHead}><h2>Seguimiento de viajes</h2><span className={styles.tag}>Probada en test</span></div><div className={styles.gps}><span aria-hidden="true">◎</span><div><h3>Ubicación desde el teléfono</h3><p>La API guarda latitud, longitud y hora solo de un viaje autorizado. No hay dispositivo en terreno: no está operativa y esta torre no inventa posiciones.</p></div></div><Link className={styles.secondary} href="/admin/bassam">Abrir BASSAM 360</Link></section>
         </div>
       </> : null}
 

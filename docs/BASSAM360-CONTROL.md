@@ -32,7 +32,7 @@ Los botones **BASSAM SPA** y **CARGA360GO** cambian de espacio. Cada registro de
 
 El tablero diferencia la configuración local de una conexión comprobada. No expone claves, no realiza llamadas de prueba ni activa servicios de pago. La existencia de un contrato telefónico del usuario no acredita la configuración del adaptador Twilio que ya utiliza este código.
 
-**GPS móvil no está integrado.** Requiere una aplicación emisora con permisos de ubicación, recepción autenticada, relación chofer/viaje y permisos del cliente. El módulo no presenta posiciones simuladas como reales. Tampoco conecta automáticamente Gmail, HubSpot, Grok o el portal externo de horómetros.
+**GPS:** la API guarda latitud, longitud y hora solo de un viaje autorizado. Está probada en test. Sin un dispositivo emisor en terreno no está operativa y no se muestran posiciones simuladas. El panel privado es `/admin/bassam`. Tampoco conecta automáticamente Gmail, HubSpot, Grok o el portal externo de horómetros. Manychat no se integra.
 
 ## Datos y compatibilidad
 

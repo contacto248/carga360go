@@ -60,6 +60,11 @@ export const AUDIT_LABELS: Record<string, string> = {
   "costos.cotizacion_estado": "Revisión de cotización",
   "costos.refresco_manual": "Actualización manual de fuentes de costos",
   "costos.cotizacion_publicacion": "Cotización guardada al publicar carga",
+  "bassam.autorizar": "Viaje autorizado",
+  "bassam.rechazar": "Viaje rechazado",
+  "bassam.solicitar_revision": "Revisión de viaje solicitada",
+  "bassam.gps": "Punto GPS del viaje autorizado",
+  "bassam.qr": "QR de origen y destino emitido",
 };
 
 function writeAudit(

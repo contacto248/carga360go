@@ -63,13 +63,22 @@ const MIC_ERRORS: Record<string, string> = {
 export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [bassam, setBassam] = useState(false);
   useEffect(() => {
-    setHidden(window.location.pathname.startsWith("/admin"));
+    const path = window.location.pathname;
+    const onBassam = path === "/admin/bassam" || path.startsWith("/admin/bassam/");
+    setBassam(onBassam);
+    setHidden(path.startsWith("/admin") && !onBassam);
   }, []);
   if (hidden) return null;
   return (
     <div className={`help-dock${open ? " is-open" : ""}`}>
-      {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} /> : null}
+      {bassam ? (
+        <button type="button" className="help-fab help-exec" onClick={() => setOpen(true)} aria-expanded={open} aria-controls="c360-agent-panel">
+          Asistente IA ejecutivo
+        </button>
+      ) : null}
+      {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} executive={bassam} /> : null}
       {!open ? (
         <div className="help-stack">
           <a className="btn wa fab help-wa" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
@@ -89,7 +98,7 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   );
 }
 
-function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }) {
+function AgentPanel({ waHref, onClose, executive = false }: { waHref: string; onClose: () => void; executive?: boolean }) {
   const titleId = useId();
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -191,7 +200,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, via }),
+        body: JSON.stringify(executive ? { message, via, executive: true } : { message, via }),
       });
       const data = (await res.json().catch(() => null)) as Reply | null;
       if (!res.ok || !data) {
@@ -287,7 +296,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
     <section id="c360-agent-panel" className="chat-panel agent-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <header className="chat-head">
         <div>
-          <h2 id={titleId}>Asistente CARGA360</h2>
+          <h2 id={titleId}>{executive ? "Asistente IA ejecutivo" : "Asistente CARGA360"}</h2>
           <p>
             Asistente automático · español de Chile
             {aiLabel ? <span className={`agent-badge${status?.ai === "conectada" ? " ok" : ""}`}>{aiLabel}</span> : null}

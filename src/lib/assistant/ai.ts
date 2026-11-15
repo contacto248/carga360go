@@ -18,7 +18,7 @@ export type AiOutcome =
   | { attempt: "fallido"; reason: AiFailReason; result: null }
   | { attempt: "ok"; reason: null; result: AiResult };
 
-export type AiDeps = { fetchImpl?: typeof fetch; timeoutMs?: number };
+export type AiDeps = { fetchImpl?: typeof fetch; timeoutMs?: number; executive?: boolean };
 
 function tokenCount(value: unknown): number | null {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
@@ -42,7 +42,7 @@ export async function aiReply(
   if (!cfg.key) return { attempt: "omitido", reason: "sin_clave", result: null };
   const reserved = reserveAiCall();
   if ("reason" in reserved) return { attempt: "omitido", reason: reserved.reason, result: null };
-  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [{ role: "system", content: systemPrompt(live, channel) }];
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] = [{ role: "system", content: systemPrompt(live, channel, deps?.executive === true) }];
   for (const msg of history.slice(-10)) {
     if (!msg.body) continue;
     messages.push({ role: msg.direction === "in" ? "user" : "assistant", content: msg.body.slice(0, 1000) });

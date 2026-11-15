@@ -96,7 +96,7 @@ export const POST = guard(async (request) => {
   }
 
   const user = userFromHeaders(request.headers);
-  const reply = await handleAgentTurn({ channel: "web", sessionKey: sessionId, text: message, via, user, ip });
+  const reply = await handleAgentTurn({ channel: "web", sessionKey: sessionId, text: message, via, user, ip, executive: body.executive === true });
   const response = NextResponse.json({
     enabled: true,
     reply: reply.text,
