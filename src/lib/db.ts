@@ -710,6 +710,7 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
+  if (!hasColumn(db, "transportistas", "user_id")) db.exec(`ALTER TABLE transportistas ADD COLUMN user_id TEXT`);
 }
 
 export function closeDb() {

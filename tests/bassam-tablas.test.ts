@@ -13,6 +13,7 @@ import {
   reviewDocument,
   runExpiryAlerts,
   storeAccreditationUpload,
+  uploadAccountDocument,
 } from "../src/lib/bassam/acreditacion";
 import { MIGRATION_17_SQL } from "../src/lib/bassam/schema";
 import { waLink } from "../src/lib/format";
@@ -151,10 +152,9 @@ test("la subida guarda el archivo privado, lee RUT y fecha, y no aprueba", async
     filename: "cedula.txt",
     mime: "text/plain",
     bytes: Buffer.from("Titular 15.432.109-K. Vencimiento 15-12-2026."),
-  });
+  }, { today: "2026-11-15" });
   assert.equal(saved.estadoAdmin, "pendiente_ok");
-  assert.match(saved.comentarioIa, /15\.432\.109-K/);
-  assert.match(saved.comentarioIa, /2026-12-15/);
+  assert.match(saved.comentarioIa, /^Revisión IA: RUT no coincide\. Por vencer \(2026-12-15\)\.$/);
   const full = path.join(process.env.UPLOAD_DIR!, saved.archivo);
   assert.equal(fs.statSync(full).mode & 0o777, 0o600);
   assert.equal(full.includes(`${path.sep}public${path.sep}`), false);
@@ -175,7 +175,7 @@ test("sin GOOGLE_VISION_KEY una imagen queda ILEGIBLE y no llama a Google", asyn
   assert.equal(called, false);
   assert.equal(saved.estadoIa, "ILEGIBLE");
   assert.equal(saved.estadoAdmin, "pendiente_ok");
-  assert.equal(saved.comentarioIa, "ILEGIBLE");
+  assert.equal(saved.comentarioIa, "Revisión IA: ILEGIBLE.");
   process.env.GOOGLE_VISION_KEY = "clave-de-prueba";
   let seenKey = false;
   const read = await storeAccreditationUpload(
@@ -190,9 +190,55 @@ test("sin GOOGLE_VISION_KEY una imagen queda ILEGIBLE y no llama a Google", asyn
   delete process.env.GOOGLE_VISION_KEY;
   assert.equal(seenKey, true);
   assert.equal(read.estadoAdmin, "pendiente_ok");
-  assert.match(read.comentarioIa, /9\.876\.543-2/);
+  assert.match(read.comentarioIa, /^Revisión IA: RUT no coincide\. Vigencia sin datos\.$/);
   assert.equal(read.comentarioIa.includes("clave-de-prueba"), false);
   await assert.rejects(() => storeAccreditationUpload({ transportistaId: randomUUID(), tipo: "cedula", filename: "x.txt", mime: "text/plain", bytes: Buffer.from("hola") }), /no encontrado/);
+});
+
+test("la subida en mi cuenta compara el RUT y no aprueba", async () => {
+  const user = {
+    id: randomUUID(),
+    email: "cuenta@tablas.test",
+    role: "transportista" as const,
+    razonSocial: "Transportes del Norte",
+    rut: "15.432.109-K",
+    contactName: "Ana",
+    whatsapp: "+56933334444",
+    city: "Antofagasta",
+    verificationStatus: "pendiente" as const,
+    verificationNote: null,
+    emailVerifiedAt: null,
+    phoneVerifiedAt: null,
+    verifiedAt: null,
+    createdAt: new Date().toISOString(),
+    freeUntil: null,
+  };
+  const saved = await uploadAccountDocument(
+    user,
+    { tipo: "licencia", filename: "licencia.txt", mime: "text/plain", bytes: Buffer.from("RUT 15.432.109-K hasta 2027-12-01") },
+    { today: "2026-11-15" },
+  );
+  assert.equal(saved.estadoAdmin, "pendiente_ok");
+  assert.equal(saved.estadoIa, "vigente");
+  assert.equal(saved.comentarioIa, "Revisión IA: RUT coincide. Vigente hasta 2027-12-01.");
+  const expired = await uploadAccountDocument(
+    user,
+    { tipo: "soap", filename: "soap.txt", mime: "text/plain", bytes: Buffer.from("vence 2026-01-02") },
+    { today: "2026-11-15" },
+  );
+  assert.equal(expired.estadoAdmin, "pendiente_ok");
+  assert.equal(expired.estadoIa, "vencido");
+  assert.equal(expired.comentarioIa, "Revisión IA: RUT sin datos. Vencido (2026-01-02).");
+  assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM transportistas WHERE user_id = ?`).get(user.id) as { n: number }).n, 1);
+  const before = (getDb().prepare(`SELECT COUNT(*) AS n FROM documentos_acreditacion`).get() as { n: number }).n;
+  await assert.rejects(() => uploadAccountDocument(user, { tipo: "cedula", filename: "vacio.txt", mime: "text/plain", bytes: Buffer.alloc(0) }), /Adjunta/);
+  assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM documentos_acreditacion`).get() as { n: number }).n, before);
+  assert.doesNotMatch(MIGRATION_17_SQL, /INSERT\s+INTO/i);
+  assert.equal(String(process.env.DATABASE_PATH).includes("/var/lib/carga360go"), false);
+  const page = fs.readFileSync(new URL("../src/app/mi-cuenta/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /MiCuentaUpload/);
+  const route = fs.readFileSync(new URL("../src/app/api/mi-cuenta/documento/route.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(route, /whatsapp|notifyDocumentUploaded|estado_admin = 'aprobado'/);
 });
 
 test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", () => {

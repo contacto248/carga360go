@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS transportistas (
   correo TEXT,
   ciudad TEXT,
   mensaje TEXT,
+  user_id TEXT,
   estado TEXT NOT NULL DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'activo')),
   estado_admin TEXT NOT NULL DEFAULT 'pendiente_ok' CHECK (estado_admin IN ('pendiente_ok', 'aprobado', 'rechazado', 'renovacion')),
   estado_ia TEXT,

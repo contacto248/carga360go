@@ -48,6 +48,7 @@ export type UploadInput = {
 
 export type UploadDeps = {
   fetchImpl?: typeof fetch;
+  today?: string;
 };
 
 function uploadRoot(): string {
@@ -107,15 +108,30 @@ async function visionText(bytes: Buffer, fetchImpl: typeof fetch): Promise<strin
   return text || null;
 }
 
-function commentFromReading(text: string): { comentario: string; estadoIa: string; fecha: string | null } {
+function rutKey(value: string): string {
+  return value.replace(/\./g, "").replace(/\s/g, "").toUpperCase();
+}
+
+export function reviewText(text: string, carrierRut: string, today: string): { comentario: string; estadoIa: string; fecha: string | null } {
   const found = readRutAndDate(text);
-  const rut = found.rut ?? "sin datos";
-  const fecha = found.fecha ?? "sin datos";
-  return {
-    comentario: `RUT ${rut}. Fecha ${fecha}.`,
-    estadoIa: found.rut || found.fecha ? "leido" : "parcial",
-    fecha: found.fecha,
-  };
+  const rutLine = !found.rut ? "RUT sin datos." : rutKey(found.rut) === rutKey(carrierRut) ? "RUT coincide." : "RUT no coincide.";
+  let vigencia = "Vigencia sin datos.";
+  let estadoIa = "sin_vigencia";
+  if (found.fecha) {
+    const days = daysBetween(today, found.fecha);
+    if (days < 0) {
+      vigencia = `Vencido (${found.fecha}).`;
+      estadoIa = "vencido";
+    } else if (days <= 30) {
+      vigencia = `Por vencer (${found.fecha}).`;
+      estadoIa = "por_vencer";
+    } else {
+      vigencia = `Vigente hasta ${found.fecha}.`;
+      estadoIa = "vigente";
+    }
+  }
+  if (found.rut && rutKey(found.rut) !== rutKey(carrierRut)) estadoIa = "rut_no_coincide";
+  return { comentario: `Revisión IA: ${rutLine} ${vigencia}`, estadoIa, fecha: found.fecha };
 }
 
 /** Guarda el archivo fuera de la web. No aprueba. Sin clave de Vision marca ILEGIBLE y no llama a Google. */
@@ -132,7 +148,7 @@ export async function storeAccreditationUpload(input: UploadInput, deps: UploadD
   const ext = allowed.get(input.mime);
   if (!ext) throw new AppError("Solo se aceptan PDF, JPG, PNG o texto.");
   const db = getDb();
-  const carrier = db.prepare(`SELECT id FROM transportistas WHERE id = ?`).get(input.transportistaId);
+  const carrier = db.prepare(`SELECT id, rut FROM transportistas WHERE id = ?`).get(input.transportistaId) as { id: string; rut: string | null } | undefined;
   if (!carrier) throw new AppError("Transportista no encontrado.", 404);
   const id = randomUUID();
   const relative = path.join("acreditacion", `${id}${ext}`);
@@ -149,7 +165,8 @@ export async function storeAccreditationUpload(input: UploadInput, deps: UploadD
       text = await visionText(input.bytes, fetchImpl);
     }
   }
-  const reading = text ? commentFromReading(text) : { comentario: "ILEGIBLE", estadoIa: "ILEGIBLE", fecha: null as string | null };
+  const today = deps.today ?? new Date().toISOString().slice(0, 10);
+  const reading = text ? reviewText(text, carrier.rut ?? "", today) : { comentario: "Revisión IA: ILEGIBLE.", estadoIa: "ILEGIBLE", fecha: null as string | null };
   db.transaction(() => {
     db.prepare(
       `INSERT INTO documentos_acreditacion (
@@ -163,6 +180,27 @@ export async function storeAccreditationUpload(input: UploadInput, deps: UploadD
   })();
   const saved = db.prepare(`SELECT estado_admin AS estadoAdmin FROM documentos_acreditacion WHERE id = ?`).get(id) as { estadoAdmin: string };
   return { id, estadoAdmin: saved.estadoAdmin, estadoIa: reading.estadoIa, comentarioIa: reading.comentario, archivo: relative };
+}
+
+/** Subida desde la cuenta del transportista. Usa sus datos reales y no aprueba el documento. */
+export async function uploadAccountDocument(user: PublicUser, input: Omit<UploadInput, "transportistaId">, deps: UploadDeps = {}) {
+  if (!input.bytes.length) throw new AppError("Adjunta el documento.");
+  if (user.role !== "transportista") throw new AppError("Solo un transportista puede subir esta acreditación.", 403);
+  const db = getDb();
+  const stamp = new Date().toISOString();
+  let row = db.prepare(`SELECT id FROM transportistas WHERE user_id = ?`).get(user.id) as { id: string } | undefined;
+  if (!row && user.rut) row = db.prepare(`SELECT id FROM transportistas WHERE rut = ?`).get(user.rut) as { id: string } | undefined;
+  let carrierId = row?.id;
+  if (!carrierId) {
+    carrierId = randomUUID();
+    db.prepare(
+      `INSERT INTO transportistas (id, user_id, nombre, rut, telefono, correo, ciudad, mensaje, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+    ).run(carrierId, user.id, user.razonSocial || user.contactName, user.rut, user.whatsapp, user.email, user.city, stamp, stamp);
+  } else {
+    db.prepare(`UPDATE transportistas SET user_id = COALESCE(user_id, ?) WHERE id = ?`).run(user.id, carrierId);
+  }
+  return storeAccreditationUpload({ ...input, transportistaId: carrierId }, deps);
 }
 
 export function alertWindow(days: number): AlertDay | null {
