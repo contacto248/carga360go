@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { equipmentById, regionLabel, regionOfCity, specLines } from "@/lib/catalog";
 import { MATCH_DISCLAIMER, MATCH_NAME } from "@/lib/match-copy";
-import { formatClp, formatDateCL, waLink } from "@/lib/format";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
+import { formatClp, formatDateCL } from "@/lib/format";
 import { roadKm } from "@/lib/geo";
 import { TruckArt } from "./TruckArt";
 import { REFERENCE_NOTICE } from "@/lib/costos/notice";
@@ -15,9 +16,9 @@ import type { LoadListItem, MatchResult, TruckListItem } from "@/lib/types";
 
 function WhatsApp({ number, text, label = "WhatsApp" }: { number: string; text: string; label?: string }) {
   return (
-    <a className="btn wa sm" href={waLink(number, text)} target="_blank" rel="noopener noreferrer">
+    <WhatsAppContactGate number={number} text={text} className="btn wa sm">
       💬 {label}
-    </a>
+    </WhatsAppContactGate>
   );
 }
 

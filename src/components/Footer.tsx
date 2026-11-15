@@ -4,12 +4,13 @@ import { VoiceAgentLauncher } from "@/components/VoiceAgent";
 import { agentEnabled } from "@/lib/agent/config";
 import { webChatEnabled } from "@/lib/chat/config";
 import { BRAND } from "@/lib/catalog";
-import { waLink } from "@/lib/format";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
 
 export function Footer() {
   const payments = paymentsLegalPublished();
-  const href = waLink(BRAND.whatsapp, BRAND.infoMessage);
+  const waNumber = BRAND.whatsapp;
+  const waText = BRAND.infoMessage;
   return (
     <>
       <footer className="foot">
@@ -45,9 +46,9 @@ export function Footer() {
             <span>
               Una plataforma de {BRAND.company} · RUT {BRAND.rut}
             </span>
-            <a href={href} target="_blank" rel="noopener noreferrer">
+            <WhatsAppContactGate number={waNumber} text={waText} className="foot-wa">
               WhatsApp {BRAND.whatsappDisplay}
-            </a>
+            </WhatsAppContactGate>
             <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
             <span>{BRAND.address}</span>
             <Link href="/contacto">Contacto</Link>
@@ -65,7 +66,7 @@ export function Footer() {
           con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
-      {agentEnabled() ? <VoiceAgentLauncher waHref={href} /> : <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />}
+      {agentEnabled() ? <VoiceAgentLauncher waNumber={waNumber} waText={waText} /> : <HelpLauncher chatEnabled={webChatEnabled()} waNumber={waNumber} waText={waText} />}
     </>
   );
 }
