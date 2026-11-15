@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { forbidden, redirect } from "next/navigation";
 import { CentroAgente } from "@/components/CentroAgente";
 import { DocumentReview } from "@/components/DocumentReview";
 import styles from "@/components/bassam-panel.module.css";
@@ -12,19 +12,8 @@ export const dynamic = "force-dynamic";
 
 export default async function Bassam360Page() {
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="wrap" style={{ paddingBottom: 30 }}>
-        <section className={styles.shell}>
-          <h1>BASSAM 360</h1>
-          <p className={styles.lede}>Solo la sesión de administrador entra aquí.</p>
-          <Link className={styles.approve} href="/ingreso?next=/admin/bassam360">
-            Ingresar
-          </Link>
-        </section>
-      </div>
-    );
-  }
+  if (!user) redirect("/ingreso?next=/admin/bassam360");
+  if (user.role !== "admin") forbidden();
   const vista = vistaCentro();
   const base = conteosControl();
   const conteos = {
@@ -47,7 +36,7 @@ export default async function Bassam360Page() {
         </div>
         <p className={styles.meta}>GPS: --. Agentes: --. WhatsApp: --.</p>
         <CentroAgente estado="--" />
-        <DocumentReview panel={panelAcreditacion()} conteos={conteos} correccion />
+        <DocumentReview panel={panelAcreditacion()} conteos={conteos} correccion endpoint="/api/admin/bassam360" />
       </section>
     </div>
   );

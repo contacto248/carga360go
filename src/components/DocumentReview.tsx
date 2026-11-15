@@ -106,7 +106,7 @@ function Timeline({ eventos }: { eventos: PanelAcreditacion["timeline"] }) {
   );
 }
 
-export function DocumentReview({ panel, conteos, correccion = false }: { panel: PanelAcreditacion; conteos: ConteoControl; correccion?: boolean }) {
+export function DocumentReview({ panel, conteos, correccion = false, endpoint = "/api/admin/bassam/documentos" }: { panel: PanelAcreditacion; conteos: ConteoControl; correccion?: boolean; endpoint?: string }) {
   const acciones = ACTIONS.filter((item) => (correccion ? item.action !== "pedir_renovacion" : item.action !== "pedir_correccion"));
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -117,7 +117,7 @@ export function DocumentReview({ panel, conteos, correccion = false }: { panel: 
     setBusy(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/bassam/documentos", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action }),
