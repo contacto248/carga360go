@@ -23,27 +23,19 @@ function conteoSiExiste(tabla: string, where?: string): Marca {
 }
 
 export type VistaCentro = {
-  cargas: Marca;
+  viajes: Marca;
   camiones: Marca;
-  documentos: Marca;
-  agente: Marca;
   clientes: Marca;
-  cotizador: Marca;
-  tareas: Marca;
-  agenteEstado: "Por verificar";
+  docs: Marca;
 };
 
 /** Lectura para el centro. No escribe y no mira el token de WhatsApp. */
 export function vistaCentro(): VistaCentro {
   const base = conteosControl();
   return {
-    cargas: marcaConteo(base.cargas),
+    viajes: marcaConteo(base.cargas),
     camiones: marcaConteo(base.camiones),
-    documentos: marcaConteo(base.documentos),
-    agente: marcaConteo(base.agente),
     clientes: conteoSiExiste("users", "role IN ('transportista', 'mandante')"),
-    cotizador: conteoSiExiste("cost_quotes"),
-    tareas: "--",
-    agenteEstado: "Por verificar",
+    docs: marcaConteo(base.documentos),
   };
 }

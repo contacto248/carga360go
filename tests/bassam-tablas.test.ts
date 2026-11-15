@@ -71,11 +71,10 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(vacio.kyc, "Sin datos");
   assert.deepEqual(conteosControl(), { cargas: "0", camiones: "0", documentos: "0", agente: "0" });
   const centro = vistaCentro();
-  assert.equal(centro.cargas, "--");
+  assert.equal(centro.viajes, "--");
   assert.equal(centro.camiones, "--");
-  assert.equal(centro.documentos, "--");
-  assert.equal(centro.agente, "--");
-  assert.equal(centro.agenteEstado, "Por verificar");
+  assert.equal(centro.clientes, "--");
+  assert.equal(centro.docs, "--");
   assert.equal(responderAgente("hay documentos", false), SIN_DATOS);
   assert.match(SIN_DATOS, /^Sin datos\. 1\. Datos\. 2\. Subir documentos\. 3\. Estado\. https:\/\/www\.carga360go\.cl\/mi-cuenta/);
   const guia = responderAgente("quiero acreditarme", false);
@@ -402,8 +401,13 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   for (const label of ["Vista general", "Operaciones", "Camiones y viajes", "Clientes", "Agentes IA", "Cotizador", "Comunicaciones", "Seguridad", "Tareas y soporte"]) {
     assert.match(centroPage, new RegExp(label));
   }
-  assert.match(centroPage, /WhatsApp: Por verificar/);
-  assert.match(centroPage, /RegionsDashboard/);
+  assert.match(centroPage, /CENTRO DE CONTROL INTELIGENTE/);
+  assert.match(centroPage, /Viajes/);
+  assert.match(centroPage, /Docs BASSAM/);
+  assert.match(centroPage, /Esperando datos reales/);
+  assert.match(centroPage, /WhatsApp: --/);
+  assert.doesNotMatch(centroPage, /Calama|Antofagasta|Copiapó|WA_ACCESS_TOKEN|from "fs"|api\/centro-control\/stats|"0"/);
+  assert.match(fs.readFileSync(new URL("../src/components/centro-control.module.css", import.meta.url), "utf8"), /#050e1f/i);
   assert.match(centroAgente, /Consultar documentos/);
   assert.match(centroAgente, /Guía de acreditación/);
   assert.match(centroAgente, /Estado de la cuenta/);
