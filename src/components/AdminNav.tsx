@@ -3,6 +3,7 @@ import { paymentsEnabled } from "@/lib/pagos/config";
 import { kycEnabled } from "@/lib/kyc/config";
 
 const ITEMS = [
+  { href: "/admin/control", label: "BASSAM 360 · Centro de control" },
   { href: "/admin", label: "Usuarios y documentos" },
   { href: "/admin/transportistas", label: "Acreditación" },
   { href: "/admin/ofertas", label: "Ofertas y ajustes" },
