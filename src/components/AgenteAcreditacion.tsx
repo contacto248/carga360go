@@ -11,7 +11,7 @@ export function AgenteAcreditacion() {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([{ id: "hola", role: "assistant", text: "Pregunte por los documentos guardados. Si no hay, diré sin datos." }]);
+  const [messages, setMessages] = useState<Msg[]>([{ id: "hola", role: "assistant", text: "Puedo revisar los documentos guardados en carga360go.cl y en /admin/bassam. Si no hay registros, digo Sin datos." }]);
   if (pathname.startsWith("/admin") && !onBassam) return null;
 
   async function send(event: FormEvent) {

@@ -65,7 +65,15 @@ test("la migración 17 es SQLite, no inserta personas y deja pendiente_ok", () =
   assert.equal(vacio.mandantes.conteo, "0 registrados");
   assert.equal(vacio.timeline, "sin datos");
   assert.equal(vacio.kyc, "KYC: sin verificar");
-  assert.equal(responderAgente("hay documentos", false), "sin datos");
+  assert.equal(responderAgente("hay documentos", false), "Sin datos");
+  const guia = responderAgente("quiero acreditarme", false);
+  assert.match(guia, /\/mi-cuenta/);
+  assert.match(guia, /licencia, padrón y SOAP/);
+  assert.match(guia, /RUT empresa/);
+  assert.match(guia, /e-RUT/);
+  assert.match(guia, /escritura/);
+  assert.match(guia, /cuenta bancaria a nombre de la empresa/);
+  assert.doesNotMatch(guia, /token de WhatsApp|WA_ACCESS_TOKEN/);
   assert.doesNotMatch(JSON.stringify(vacio), /SOC2|facial|saldo|ISO 9001|%/i);
   const cols = getDb().prepare(`PRAGMA table_info(documentos_acreditacion)`).all() as { name: string }[];
   assert.ok(cols.some((col) => col.name === "tipo_cliente"));
@@ -176,7 +184,7 @@ test("la subida guarda el archivo privado, lee RUT y fecha, y no aprueba", async
   assert.equal(row.estado_admin, "pendiente_ok");
   assert.equal(row.vencimiento, "2026-12-15");
   const antes = row.estado_admin;
-  assert.match(responderAgente("aprueba el documento", true), /No apruebo ni rechazo/);
+  assert.match(responderAgente("aprueba el documento", true), /No apruebo ni rechazo\. El admin confirma/);
   assert.equal((getDb().prepare(`SELECT estado_admin AS estado FROM documentos_acreditacion WHERE id = ?`).get(saved.id) as { estado: string }).estado, antes);
   const detalle = responderAgente("que hay", true);
   assert.match(detalle, /15\.432\.109-K/);
