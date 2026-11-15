@@ -116,6 +116,40 @@ test("una BD que ya tenía la 16 sin la 15 recibe la 15 (comprobación por núme
   assert.ok(hasTable(again, "agent_leads"));
 });
 
+test("reconcilia la migración 14 alternativa sin perder datos ni repetir su registro", () => {
+  closeDb();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "c360-mig-alternativa-"));
+  const file = path.join(dir, "copia.sqlite");
+  fs.copyFileSync(path.join(FIX, "produccion-v13.sqlite"), file);
+  const raw = new Database(file);
+  raw.exec(`ALTER TABLE users ADD COLUMN ingreso_sin_documentos INTEGER NOT NULL DEFAULT 0`);
+  raw.prepare(`UPDATE users SET ingreso_sin_documentos = 1 WHERE id = (SELECT id FROM users ORDER BY id LIMIT 1)`).run();
+  const appliedAt = "2026-11-13T16:00:00.000Z";
+  raw.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(appliedAt);
+  raw.close();
+  const before = snapshot(file);
+  try {
+    process.env.DATABASE_PATH = file;
+    assertFinalSchema(getDb());
+    closeDb();
+    const after = snapshot(file);
+    assert.deepEqual(after.counts, before.counts);
+    assert.deepEqual(after.loads, before.loads);
+    assert.deepEqual(after.trucks, before.trucks);
+    after.users.forEach((user, i) => {
+      for (const [key, value] of Object.entries(before.users[i] as Record<string, unknown>)) {
+        assert.deepEqual((user as Record<string, unknown>)[key], value, key);
+      }
+    });
+    const reopened = getDb();
+    assertFinalSchema(reopened);
+    assert.deepEqual(reopened.prepare(`SELECT applied_at FROM schema_migrations WHERE version = 14`).all(), [{ applied_at: appliedAt }]);
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
+});
+
 test("abrir dos veces no repite migraciones", () => {
   const db = openCopy("produccion-v13.sqlite");
   const file = process.env.DATABASE_PATH!;

@@ -663,7 +663,7 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
-  if (schemaVersion(db) < 14) {
+  if (schemaVersion(db) < 14 || MIGRATION_14_USER_COLUMNS.some((column) => !hasColumn(db, "users", column))) {
     const apply = db.transaction(() => {
       // Contacto de respaldo (teléfono o correo) para cuentas con verificación pendiente, y verificación manual
       // del administrador: acceso de solo lectura por 30 días (estado efectivo "manual_readonly", ver manual-readonly.ts).
@@ -672,7 +672,9 @@ function migrate(db: Database.Database) {
         if (!hasColumn(db, "users", column)) db.exec(`ALTER TABLE users ADD COLUMN ${column} TEXT`);
       }
       db.exec(`CREATE INDEX IF NOT EXISTS idx_users_manual_readonly ON users(manual_readonly_until)`);
-      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
+      // Algunas instalaciones usaron la versión 14 para ingreso_sin_documentos.
+      // Reconciliar las columnas faltantes conserva ese campo y el registro original.
+      db.prepare(`INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
     });
     apply();
   }
