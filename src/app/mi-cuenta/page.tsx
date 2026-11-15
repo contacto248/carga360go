@@ -56,28 +56,36 @@ export default async function MiCuentaPage({ searchParams }: { searchParams: Pro
   const user = await getCurrentUser();
   const nombre = user ? user.contactName.trim() || user.razonSocial.trim() : "";
   const vista = user ? vistaCuenta(user.id) : VACIA;
-  const puedeSubir = user?.role === "transportista" || user?.role === "mandante";
-  const cliente = user?.role === "mandante" || user?.role === "transportista" ? user.role : pedido ?? "transportista";
   const destino = pedido ? `/mi-cuenta?rol=${pedido}` : "/mi-cuenta";
-  const primero = pedido === "mandante" ? "mandante" : "transportista";
-  const tarjetas = {
-    transportista: <Tarjeta key="transportista" titulo="Transportista" pedidos={DOCUMENTOS_POR_CLIENTE.transportista} filas={vista.transportistas} />,
-    mandante: <Tarjeta key="mandante" titulo="Mandante" pedidos={DOCUMENTOS_POR_CLIENTE.mandante} filas={vista.mandantes} />,
-  };
+  const puedeSubir = Boolean(pedido && user?.role === pedido);
   return (
     <div className={`wrap ${styles.page}`}>
       <h1>{nombre ? `Hola ${nombre}` : "Mi cuenta"}</h1>
       <p className={styles.estado}>Estado: {vista.estado}</p>
-      {!user ? (
-        <p>
-          <Link href={`/ingreso?next=${encodeURIComponent(destino)}`}>Ingresa</Link> para subir tus documentos.
-        </p>
-      ) : null}
-      <MiCuentaUpload cliente={cliente} puedeSubir={puedeSubir} />
-      <div className={styles.grid}>
-        {tarjetas[primero]}
-        {tarjetas[primero === "mandante" ? "transportista" : "mandante"]}
-      </div>
+      {!pedido ? (
+        <div className={styles.grid}>
+          <Link className={styles.card} href="/mi-cuenta?rol=transportista">
+            <h2>Transportista</h2>
+          </Link>
+          <Link className={styles.card} href="/mi-cuenta?rol=mandante">
+            <h2>Mandante con carga</h2>
+          </Link>
+        </div>
+      ) : (
+        <>
+          {!user ? (
+            <p>
+              <Link href={`/ingreso?next=${encodeURIComponent(destino)}`}>Ingresa</Link> para subir tus documentos.
+            </p>
+          ) : null}
+          <MiCuentaUpload cliente={pedido} puedeSubir={puedeSubir} />
+          <Tarjeta
+            titulo={pedido === "mandante" ? "Mandante con carga" : "Transportista"}
+            pedidos={DOCUMENTOS_POR_CLIENTE[pedido]}
+            filas={pedido === "mandante" ? vista.mandantes : vista.transportistas}
+          />
+        </>
+      )}
       <section className={styles.timeline}>
         <h2>Línea de tiempo</h2>
         {vista.timeline === "sin datos" ? (

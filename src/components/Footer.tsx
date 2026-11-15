@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
 import { BRAND } from "@/lib/catalog";
@@ -62,7 +63,9 @@ export function Footer() {
           con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
-      <AgenteAcreditacion />
+      <Suspense fallback={null}>
+        <AgenteAcreditacion />
+      </Suspense>
     </>
   );
 }

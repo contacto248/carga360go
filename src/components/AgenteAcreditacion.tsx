@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { ENLACE_MI_CUENTA, SIN_DATOS } from "@/lib/bassam/agente-copia";
+import { useSearchParams } from "next/navigation";
+import { ENLACE_MI_CUENTA, LISTA_MANDANTE, LISTA_TRANSPORTISTA, SIN_DATOS } from "@/lib/bassam/agente-copia";
+import { DOCUMENTOS_POR_CLIENTE, type TipoCliente } from "@/lib/bassam/tipos-cliente";
 
 type Msg = { id: string; role: "user" | "assistant"; text: string };
 
-const BOTONES = [
-  { label: "Soy transportista", message: "Soy transportista" },
-  { label: "Soy mandante", message: "Soy mandante" },
-] as const;
+function rolDeQuery(value: string | null): TipoCliente | null {
+  if (value === "transportista" || value === "mandante") return value;
+  return null;
+}
 
 export function AgenteAcreditacion() {
+  const params = useSearchParams();
+  const rol = rolDeQuery(params.get("rol"));
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const abrir = () => setOpen(true);
@@ -31,7 +35,7 @@ export function AgenteAcreditacion() {
       const response = await fetch("/api/bassam/agente", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, rol }),
       });
       const data = (await response.json().catch(() => null)) as { reply?: string; error?: string } | null;
       setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: data?.reply || data?.error || SIN_DATOS }]);
@@ -67,14 +71,28 @@ export function AgenteAcreditacion() {
             ))}
           </div>
           <div className="chat-quick">
-            <a className="chat-chip" href={ENLACE_MI_CUENTA}>
-              Subir documentos en /mi-cuenta
-            </a>
-            {BOTONES.map((item) => (
-              <button key={item.message} type="button" className="chat-chip" disabled={busy} onClick={() => void ask(item.message)}>
-                {item.label}
-              </button>
-            ))}
+            {rol ? (
+              <>
+                <a className="chat-chip" href={`${ENLACE_MI_CUENTA}?rol=${rol}`}>
+                  Subir documentos en /mi-cuenta
+                </a>
+                {DOCUMENTOS_POR_CLIENTE[rol].map((item) => (
+                  <button key={item.id} type="button" className="chat-chip" disabled={busy} onClick={() => void ask(rol === "mandante" ? `Soy mandante ${item.label}` : `Soy transportista ${item.label}`)}>
+                    {item.label}
+                  </button>
+                ))}
+                <p>{rol === "mandante" ? LISTA_MANDANTE : LISTA_TRANSPORTISTA}</p>
+              </>
+            ) : (
+              <>
+                <a className="chat-chip" href="/mi-cuenta?rol=transportista">
+                  Soy transportista
+                </a>
+                <a className="chat-chip" href="/mi-cuenta?rol=mandante">
+                  Soy mandante
+                </a>
+              </>
+            )}
           </div>
           <form className="chat-form" onSubmit={send}>
             <textarea value={text} onChange={(event) => setText(event.target.value)} rows={1} placeholder="Pregunte por los documentos…" />

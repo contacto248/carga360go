@@ -8,7 +8,7 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const PASOS = [
   { n: "1", title: "Datos", text: "Entra a Mi cuenta. El saludo usa el nombre de tu sesión." },
-  { n: "2", title: "Subir documentos", text: "Arrastra los archivos. Transportista: licencia, padrón, SOAP, seguro obligatorio y seguro de carga. Mandante: RUT empresa, e-RUT, escritura y certificado de cuenta." },
+  { n: "2", title: "Subir documentos", text: "En Mi cuenta ves solo la lista de tu tipo. No se mezclan." },
   { n: "3", title: "Estado", text: "Ves Sin datos, En revisión o Acreditado. El admin confirma." },
 ];
 
@@ -25,13 +25,13 @@ export default function HomePage() {
       <section className={styles.hero}>
         <div className="wrap">
           <h1>Conectamos cargas y camiones. Movemos la industria de Chile.</h1>
-          <p className={styles.lead}>Elige cómo partes. Los dos botones te llevan a Mi cuenta para subir tus documentos.</p>
+          <p className={styles.lead}>Parte por el tipo. Cada camino abre su propia lista de documentos.</p>
           <div className={styles.cta}>
             <Link className={`${styles.big} ${styles.primary}`} href="/mi-cuenta?rol=mandante">
-              Publicar carga ahora
+              Mandante con carga
             </Link>
             <Link className={`${styles.big} ${styles.secondary}`} href="/mi-cuenta?rol=transportista">
-              Ofrecer mi camión
+              Transportista
             </Link>
           </div>
         </div>

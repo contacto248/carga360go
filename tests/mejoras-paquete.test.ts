@@ -45,8 +45,8 @@ function account(role: "transportista" | "mandante", name: string, city = "Santi
 test("la portada usa el copy del paquete y no promete acreditación 100% ni auditorías de calidad", () => {
   const home = read("src/app/page.tsx");
   assert.match(home, /Conectamos cargas y camiones\. Movemos la industria de Chile\./);
-  assert.match(home, /Publicar carga ahora/);
-  assert.match(home, /Ofrecer mi camión/);
+  assert.match(home, /Mandante con carga/);
+  assert.match(home, /Transportista/);
   assert.match(home, /\/mi-cuenta\?rol=mandante/);
   assert.match(home, /\/mi-cuenta\?rol=transportista/);
   assert.match(home, /Cómo funciona/);
