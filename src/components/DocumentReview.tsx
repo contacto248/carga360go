@@ -10,7 +10,10 @@ const ACTIONS = [
   { action: "aprobar", label: "Aprobar" },
   { action: "rechazar", label: "Rechazar" },
   { action: "pedir_renovacion", label: "Pedir renovación" },
+  { action: "pedir_correccion", label: "Pedir corrección" },
 ] as const;
+
+type Accion = (typeof ACTIONS)[number]["action"];
 
 const ESTADO: Record<FilaAcreditacion["estado"], string> = {
   pendiente: "pendiente",
@@ -19,7 +22,7 @@ const ESTADO: Record<FilaAcreditacion["estado"], string> = {
   renovacion: "renovación",
 };
 
-function Lista({ titulo, conteo, filas, busy, onAct }: { titulo: string; conteo: string; filas: FilaAcreditacion[]; busy: boolean; onAct: (id: string, action: (typeof ACTIONS)[number]["action"]) => void }) {
+function Lista({ titulo, conteo, filas, busy, acciones, onAct }: { titulo: string; conteo: string; filas: FilaAcreditacion[]; busy: boolean; acciones: readonly (typeof ACTIONS)[number][]; onAct: (id: string, action: Accion) => void }) {
   return (
     <section className={styles.card}>
       <h2>{titulo}</h2>
@@ -40,7 +43,7 @@ function Lista({ titulo, conteo, filas, busy, onAct }: { titulo: string; conteo:
             <p>Estado: {ESTADO[doc.estado]}</p>
             {doc.estadoAdmin === "pendiente_ok" ? (
               <div className={styles.actions}>
-                {ACTIONS.map((item) => (
+                {acciones.map((item) => (
                   <button key={item.action} type="button" className={item.action === "aprobar" ? styles.approve : styles.secondary} disabled={busy} onClick={() => onAct(doc.id, item.action)}>
                     {item.label}
                   </button>
@@ -103,13 +106,14 @@ function Timeline({ eventos }: { eventos: PanelAcreditacion["timeline"] }) {
   );
 }
 
-export function DocumentReview({ panel, conteos }: { panel: PanelAcreditacion; conteos: ConteoControl }) {
+export function DocumentReview({ panel, conteos, correccion = false }: { panel: PanelAcreditacion; conteos: ConteoControl; correccion?: boolean }) {
+  const acciones = ACTIONS.filter((item) => (correccion ? item.action !== "pedir_renovacion" : item.action !== "pedir_correccion"));
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const documentos = panel.transportistas.filas.length + panel.mandantes.filas.length;
 
-  async function act(id: string, action: (typeof ACTIONS)[number]["action"]) {
+  async function act(id: string, action: Accion) {
     setBusy(true);
     setError("");
     try {
@@ -136,8 +140,8 @@ export function DocumentReview({ panel, conteos }: { panel: PanelAcreditacion; c
         <p><span>Agente</span><strong>{conteos.agente}</strong></p>
       </div>
       <div className={styles.grid}>
-        <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} onAct={act} />
-        <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} onAct={act} />
+        <Lista titulo="Transportistas" conteo={panel.transportistas.conteo} filas={panel.transportistas.filas} busy={busy} acciones={acciones} onAct={act} />
+        <Lista titulo="Mandantes pagadores" conteo={panel.mandantes.conteo} filas={panel.mandantes.filas} busy={busy} acciones={acciones} onAct={act} />
         <Comentarios filas={[...panel.transportistas.filas, ...panel.mandantes.filas]} />
         <Timeline eventos={panel.timeline} />
       </div>

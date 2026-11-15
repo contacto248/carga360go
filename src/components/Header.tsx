@@ -49,9 +49,14 @@ export function Header({ user }: { user: PublicUser | null }) {
               Agente BASSAM 360
             </a>
             {user?.role === "admin" ? (
-              <Link href="/admin/bassam" className={pathname === "/admin/bassam" ? "on" : ""}>
-                Panel BASSAM
-              </Link>
+              <>
+                <Link href="/admin/bassam" className={pathname === "/admin/bassam" ? "on" : ""}>
+                  Panel BASSAM
+                </Link>
+                <Link href="/admin/bassam360" className={pathname === "/admin/bassam360" ? "on" : ""}>
+                  BASSAM 360
+                </Link>
+              </>
             ) : null}
             {user ? (
               <button className="btn sm" type="button" onClick={salir}>

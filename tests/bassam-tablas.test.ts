@@ -418,4 +418,13 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(panel, /Aprobar/);
   assert.match(panel, /Rechazar/);
   assert.match(panel, /Pedir renovación/);
+  assert.match(panel, /Pedir corrección/);
+  const bassam360 = fs.readFileSync(new URL("../src/app/admin/bassam360/page.tsx", import.meta.url), "utf8");
+  assert.match(bassam360, /user\.role !== "admin"/);
+  assert.match(bassam360, /El asistente no aprueba solo/);
+  assert.match(bassam360, /correccion/);
+  assert.match(bassam360, /GPS: --/);
+  assert.match(bassam360, /Agentes: --/);
+  assert.match(bassam360, /WhatsApp: --/);
+  assert.doesNotMatch(bassam360, /2 ACTIVOS|Activo|conectado|WA_ACCESS_TOKEN|from "fs"|api\/centro-control\/stats/);
 });

@@ -13,7 +13,7 @@ export type { PendingDocument };
 export const AGENT_TABLES = ["solicitudes_carga", "transportistas", "documentos_acreditacion"] as const;
 export type AgentTable = (typeof AGENT_TABLES)[number];
 
-export const HUMAN_ACTIONS = ["aprobar", "rechazar", "pedir_renovacion"] as const;
+export const HUMAN_ACTIONS = ["aprobar", "rechazar", "pedir_renovacion", "pedir_correccion"] as const;
 export type HumanAction = (typeof HUMAN_ACTIONS)[number];
 
 export const ALERT_DAYS = [30, 15, 7] as const;
@@ -414,6 +414,23 @@ export function recordAgentComment(input: { table: AgentTable; id: string; comen
   })();
 }
 
+function comentarioHumano(action: HumanAction): string {
+  switch (action) {
+    case "aprobar":
+      return "Aprobado por una persona.";
+    case "rechazar":
+      return "Rechazado por una persona.";
+    case "pedir_renovacion":
+      return "Se pidió renovación.";
+    case "pedir_correccion":
+      return "Se pidió corrección.";
+    default: {
+      const desconocida: never = action;
+      return desconocida;
+    }
+  }
+}
+
 export function reviewDocument(user: PublicUser, documentId: string, action: HumanAction) {
   assertAdmin(user);
   if (!(HUMAN_ACTIONS as readonly string[]).includes(action)) throw new AppError("Acción no válida.");
@@ -424,7 +441,7 @@ export function reviewDocument(user: PublicUser, documentId: string, action: Hum
   if (!doc) throw new AppError("Documento no encontrado.", 404);
   const stamp = new Date().toISOString();
   const next = action === "aprobar" ? "aprobado" : action === "rechazar" ? "rechazado" : "renovacion";
-  const comment = action === "aprobar" ? "Aprobado por una persona." : action === "rechazar" ? "Rechazado por una persona." : "Se pidió renovación.";
+  const comment = comentarioHumano(action);
   db.transaction(() => {
     db.prepare(`UPDATE documentos_acreditacion SET estado_admin = ?, updated_at = ? WHERE id = ?`).run(next, stamp, doc.id);
     if (action === "aprobar" && doc.transportistaId) {
