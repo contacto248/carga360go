@@ -72,15 +72,10 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
     <div className={`help-dock${open ? " is-open" : ""}`}>
       {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} /> : null}
       {!open ? (
-        <div className="help-stack">
-          <a className="btn wa fab help-wa" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
-            WhatsApp
-          </a>
-          <button type="button" className="help-fab agent-fab" onClick={() => setOpen(true)} aria-expanded={false} aria-controls="c360-agent-panel">
-            <AgentAvatar state="idle" size={28} className="agent-fab-avatar" />
-            <span>Agente Carga360go</span>
-          </button>
-        </div>
+        <button type="button" className="help-fab agent-fab" onClick={() => setOpen(true)} aria-expanded={false} aria-controls="c360-agent-panel">
+          <AgentAvatar state="idle" size={28} className="agent-fab-avatar" />
+          <span>Agente Carga360go</span>
+        </button>
       ) : (
         <button type="button" className="help-fab is-close" onClick={() => setOpen(false)} aria-expanded={true} aria-controls="c360-agent-panel" aria-label="Cerrar Agente Carga360go">
           ✕
@@ -309,6 +304,9 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
             {aiLabel ? <span className={`agent-badge${status?.ai === "conectada" ? " ok" : ""}`}>{aiLabel}</span> : null}
           </p>
         </div>
+        <a className="chat-wa-mini" href={waHref} target="_blank" rel="noopener noreferrer">
+          WhatsApp
+        </a>
         {ttsSupported ? (
           <button type="button" className="chat-x" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Activar la voz del agente" : "Silenciar la voz del agente"} title={muted ? "Voz silenciada" : "Voz activada"}>
             {muted ? "🔇" : "🔊"}

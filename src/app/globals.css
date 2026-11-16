@@ -223,7 +223,7 @@ label.f,.form-grid>*,.calc>*{min-width:0}select{max-width:100%;text-overflow:ell
 .help-fab:hover{background:var(--navy2)}
 .help-fab.is-close{width:52px;padding:0;background:var(--accent)}
 .help-fab.is-close:hover{background:var(--accent2)}
-body:has(.help-stack) footer.foot{padding-bottom:140px}
+body:has(.help-dock) footer.foot{padding-bottom:100px}
 .chat-panel{width:min(380px,calc(100vw - 24px));height:min(72vh,560px);max-height:min(72vh,560px);display:flex;flex-direction:column;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 40px #0005;overflow:hidden}
 .chat-head{display:flex;align-items:flex-start;gap:8px;background:var(--navy);color:#fff;padding:12px 12px 12px 14px}
 .chat-head h2{margin:0;font-size:1rem;color:#fff}
@@ -439,7 +439,7 @@ footer.foot a:hover{color:#ffd7bd}
 
 /* ===== Home v2 · torre de control + Agente Carga360go ===== */
 .brand-hero{margin:0 0 10px;font-size:clamp(1.85rem,1.2rem + 2.2vw,2.85rem);font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1}
-.hero-v2 .hero-copy h1{font-size:clamp(1.55rem,1.15rem + 1.4vw,2.35rem);max-width:18ch}
+.hero-v2 .hero-copy h1{font-size:clamp(1.55rem,1.15rem + 1.4vw,2.35rem);max-width:18ch;color:#FFFFFF}
 .hero-v2 .hero-copy > p:not(.hero-legal):not(.brand-hero){max-width:42rem}
 .tower-board{background:#0a1428e6;border:1px solid #ffffff22;border-radius:22px;padding:16px;box-shadow:0 24px 48px #00000055;backdrop-filter:blur(8px);color:#e8eef8}
 .tower-head{display:flex;align-items:center;gap:8px;font-weight:800;margin-bottom:12px}
@@ -458,12 +458,18 @@ footer.foot a:hover{color:#ffd7bd}
 .auto-grid > div{padding:16px 0;border-top:3px solid var(--brand-orange)}
 .auto-grid strong{display:block;color:var(--navy);font-size:1.05rem;margin-bottom:4px}
 .auto-grid p{margin:0;color:var(--muted)}
-@keyframes home-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes home-scan{0%,100%{opacity:.35}50%{opacity:1}}
-.hero-v2 .brand-hero{animation:home-rise .7s var(--ease) both}
-.hero-v2 .hero-copy h1{animation:home-rise .75s .08s var(--ease) both}
-.hero-v2 .hero-copy > p:not(.brand-hero){animation:home-rise .75s .14s var(--ease) both}
-.tower-board{animation:home-rise .8s .12s var(--ease) both}
+/* Contraste AA: texto del hero siempre blanco legible; animación sin opacity:0 (estado inicial visible). */
+.hero,.hero-v2{color:#F5F8FC}
+.hero h1,.hero-v2 .hero-copy h1{color:#FFFFFF}
+.brand-hero{color:#FFFFFF;text-shadow:0 1px 0 #0006}
+.hero-v2 .hero-copy > p:not(.hero-legal):not(.brand-hero){color:#E8EEF8}
+.hero-legal{color:#D5DFEE}
+@keyframes home-rise{from{transform:translateY(10px)}to{transform:none}}
+@keyframes home-scan{0%,100%{opacity:.45}50%{opacity:1}}
+.hero-v2 .brand-hero{animation:home-rise .55s var(--ease) both}
+.hero-v2 .hero-copy h1{animation:home-rise .6s .04s var(--ease) both}
+.hero-v2 .hero-copy > p:not(.brand-hero){animation:home-rise .6s .08s var(--ease) both}
+.tower-board{animation:home-rise .65s .06s var(--ease) both}
 .tower-head .dot-live{animation:home-scan 1.8s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.hero-v2 .brand-hero,.hero-v2 .hero-copy h1,.hero-v2 .hero-copy > p:not(.brand-hero),.tower-board{animation:none}.tower-head .dot-live{animation:none}}
 
@@ -491,3 +497,33 @@ footer.foot a:hover{color:#ffd7bd}
 .agent-fab-avatar{margin-right:2px}
 .agent-head-avatar{margin-right:2px}
 .help-fab.agent-fab{border-radius:999px}
+
+
+/* ===== Tecnología / demos T-060 ===== */
+.tech-hero{position:relative}
+.tech-demo,.auto-board-demo{margin-top:18px;background:linear-gradient(165deg,#0B1633 0%,#002451 70%);color:#e8eef8;border-radius:22px;padding:18px;border:1px solid #ffffff22;box-shadow:var(--shadow-lg)}
+.tech-demo-head{display:grid;gap:6px;margin-bottom:14px}
+.tech-demo-head p{margin:0;color:#b9c8df;font-size:.9rem}
+.tech-demo-badge{display:inline-block;justify-self:start;background:#FF5001;color:#fff;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:8px;padding:4px 8px}
+.tech-timeline{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.tech-timeline li{display:grid;grid-template-columns:52px 16px 1fr;gap:10px;align-items:start;padding:10px 0;opacity:.55;transition:opacity .25s var(--ease),transform .25s var(--ease)}
+.tech-timeline li.is-done{opacity:.85}
+.tech-timeline li.is-active{opacity:1;transform:translateX(2px)}
+.tech-time{font-size:.78rem;font-weight:700;color:#ffd7bd;padding-top:2px}
+.tech-dot{width:12px;height:12px;border-radius:50%;background:#ffffff44;margin-top:4px;box-shadow:0 0 0 3px #ffffff14}
+.tech-timeline li.is-active .tech-dot{background:#FF5001;box-shadow:0 0 0 4px #ff500133}
+.tech-timeline li.is-done .tech-dot{background:#67E8F9}
+.tech-timeline strong{color:#fff}
+.tech-timeline p{margin:2px 0 0;color:#b9c8df;font-size:.86rem}
+.auto-board-grid{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:720px){.auto-board-grid{grid-template-columns:repeat(4,1fr)}}
+.auto-board-card{background:#ffffff0f;border:1px solid #ffffff1f;border-radius:16px;padding:14px;animation:home-rise .6s var(--ease) both}
+.auto-board-n{display:inline-block;font-weight:800;color:#FF5001;margin-bottom:6px}
+.auto-board-card strong{display:block;color:#fff}
+.auto-board-card p{margin:4px 0 0;color:#b9c8df;font-size:.88rem}
+.sec-grid{display:grid;gap:14px;grid-template-columns:1fr;margin-top:16px}
+@media(min-width:820px){.sec-grid{grid-template-columns:repeat(3,1fr)}}
+.sec-card{padding:16px 0;border-top:3px solid var(--brand-orange)}
+.sec-card h3{margin:0 0 6px;color:var(--navy);font-size:1.05rem}
+.sec-card p{margin:0;color:var(--muted)}
+.home-tech-preview{margin-top:8px}

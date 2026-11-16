@@ -34,6 +34,7 @@ export function Footer() {
             <h4>Herramientas</h4>
             <Link href="/herramientas/calculadora">Calculadora de flete</Link>
             <Link href="/cotizador">Cotizador</Link>
+            <Link href="/tecnologia">Tecnología</Link>
             <Link href="/regiones">Panel de regiones</Link>
             <Link href="/panel#alertas">Alertas por correo</Link>
             <Link href="/panel">Mi panel</Link>

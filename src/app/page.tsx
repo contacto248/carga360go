@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FreeBanner } from "@/components/FreeBanner";
 import { WhatsAppChannel } from "@/components/WhatsAppChannel";
 import { QuickSearch } from "@/components/QuickSearch";
+import { TraceAutomationDemo } from "@/components/TraceAutomationDemo";
 import { getCurrentUser } from "@/lib/current-user";
 import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
 import { TruckArt } from "@/components/TruckArt";
@@ -250,7 +251,7 @@ export default async function HomePage() {
           <h2>Automatización que se ve</h2>
           <p className="lead">
             Costo real del flete, Carga360 Match y eventos de viaje: la plataforma hace el trabajo repetitivo y deja la
-            decisión en las partes.
+            decisión en las partes. Mira la demo o abre la página de tecnología.
           </p>
           <div className="auto-grid">
             <div>
@@ -265,6 +266,14 @@ export default async function HomePage() {
               <strong>Agente Carga360go</strong>
               <p>Asistente de voz y texto en el sitio (Web Speech API, es-CL / es-ES), sin claves de pago.</p>
             </div>
+          </div>
+          <div className="home-tech-preview">
+            <TraceAutomationDemo compact />
+            <p style={{ marginTop: 12 }}>
+              <Link className="btn sec sm" href="/tecnologia">
+                Tecnología Carga360go →
+              </Link>
+            </p>
           </div>
         </div>
       </section>
