@@ -71,7 +71,13 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(engine, /Hablar con soporte/);
   assert.ok(fs.existsSync(path.join(ROOT, "src/components/AgentAvatar.tsx")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/brand/agent-mark.svg")));
-  assert.ok(fs.existsSync(path.join(ROOT, "docs/diseno-whatsapp-cloud-api-agente.md")));
+  const waDoc = read("docs/diseno-whatsapp-cloud-api-agente.md");
+  assert.match(waDoc, /Estado Meta \(16-11-2026, lectura\)/);
+  assert.match(waDoc, /Test Messaging Account/);
+  assert.match(waDoc, /WA_WABA_ID/);
+  assert.match(waDoc, /WA_PHONE_NUMBER_ID/);
+  assert.match(waDoc, /WA_ACCESS_TOKEN/);
+  assert.doesNotMatch(waDoc, /EAA[A-Za-z0-9]{20,}/);
 });
 
 test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => {
