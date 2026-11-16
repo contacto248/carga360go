@@ -1,13 +1,10 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { guard, readJson } from "@/lib/api";
-import { aiReady } from "@/lib/assistant/config";
 import { AGENT_COOKIE, AGENT_MAX_MESSAGE, AGENT_RATE, agentCookieOptions, agentEnabled } from "@/lib/agent/config";
 import { AGENT_GREETING, DEFAULT_QUICK, handleAgentTurn, resetAgentConversation } from "@/lib/agent/engine";
 import { agentRepliesSince, findAgentConversation, listAgentMessages } from "@/lib/agent/store";
 import { cleanText, toSpeech } from "@/lib/agent/validate";
-import { avatarPublicStatus } from "@/lib/agent/avatar";
-import { voiceProvidersStatus } from "@/lib/agent/voice";
 import { AppError } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, userFromHeaders } from "@/lib/request-auth";
@@ -31,16 +28,6 @@ function sessionFrom(request: Request): string | null {
   return null;
 }
 
-function publicStatus() {
-  const ai = aiReady();
-  return {
-    ai: ai ? "conectada" : "no_configurada",
-    modeLabel: ai ? "IA conectada" : "Respuestas por reglas (IA sin configurar)",
-    voice: voiceProvidersStatus().map((p) => ({ id: p.id, label: p.label, connected: p.connected, state: p.state })),
-    avatar: avatarPublicStatus(),
-  };
-}
-
 function history(sessionId: string | null) {
   const conv = sessionId ? findAgentConversation("web", sessionId) : null;
   if (!conv) return [];
@@ -51,6 +38,7 @@ export const GET = guard(async (request) => {
   if (!agentEnabled()) return NextResponse.json({ enabled: false });
   const existing = sessionFrom(request);
   const sessionId = existing || randomUUID();
+  // Sin `status` técnico (IA/voz/avatar/env): eso queda en /admin/agente para operadores autenticados.
   const response = NextResponse.json({
     enabled: true,
     greeting: AGENT_GREETING,
@@ -58,7 +46,6 @@ export const GET = guard(async (request) => {
     quick: DEFAULT_QUICK,
     messages: history(existing),
     maxLength: AGENT_MAX_MESSAGE,
-    status: publicStatus(),
   });
   if (!existing) response.cookies.set(AGENT_COOKIE, sessionId, agentCookieOptions());
   return response;

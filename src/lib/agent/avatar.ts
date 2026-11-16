@@ -58,7 +58,8 @@ export function avatarPublicStatus(env: EnvBag = process.env): AvatarPublicStatu
       provider: staticUrl ? "static" : "mock",
       enabled: false,
       connected: false,
-      state: "NO CONECTADA: avatar local (mock). Proveedor real apagado (AVATAR_ENABLED≠true).",
+      // Mensajes genéricos: sin nombres de variables ni detalles de entorno (no filtrar a APIs públicas).
+      state: "NO CONECTADA: avatar local (mock).",
       staticUrl,
       streamUrl: "",
     };
@@ -70,9 +71,7 @@ export function avatarPublicStatus(env: EnvBag = process.env): AvatarPublicStatu
       provider: "static",
       enabled: true,
       connected: Boolean(staticUrl),
-      state: staticUrl
-        ? "CONECTADA: imagen/video estático (NEXT_PUBLIC_AVATAR_STATIC_URL)"
-        : "NO CONECTADA: AVATAR_PROVIDER=static sin NEXT_PUBLIC_AVATAR_STATIC_URL",
+      state: staticUrl ? "CONECTADA: imagen/video estático" : "NO CONECTADA: proveedor estático sin URL pública",
       staticUrl,
       streamUrl: "",
     };
@@ -86,7 +85,7 @@ export function avatarPublicStatus(env: EnvBag = process.env): AvatarPublicStatu
       provider,
       enabled: true,
       connected: false,
-      state: `NO CONECTADA: ${provider} sin clave de servidor (AVATAR_${provider === "heygen" ? "HEYGEN" : "DID"}_API_KEY). UI en mock.`,
+      state: `NO CONECTADA: ${provider} sin credenciales de servidor. UI en mock.`,
       staticUrl,
       streamUrl: "",
     };
@@ -99,7 +98,7 @@ export function avatarPublicStatus(env: EnvBag = process.env): AvatarPublicStatu
     connected: Boolean(streamUrl),
     state: streamUrl
       ? `CONECTADA: stream ${provider}`
-      : `NO CONECTADA: ${provider} con clave pero sin sesión/stream (NEXT_PUBLIC_AVATAR_STREAM_URL). UI en mock hasta integrar la sesión.`,
+      : `NO CONECTADA: ${provider} sin sesión de stream. UI en mock.`,
     staticUrl,
     streamUrl,
   };

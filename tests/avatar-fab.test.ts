@@ -47,7 +47,7 @@ test("avatar: static con URL pública, sin claves", () => {
   assert.match(status.state, /CONECTADA/);
 });
 
-test("avatar: heygen sin clave de servidor → UI mock, estado NO CONECTADA", () => {
+test("avatar: heygen sin clave de servidor → UI mock, estado NO CONECTADA sin nombres de env", () => {
   const status = avatarPublicStatus({
     AVATAR_ENABLED: "true",
     NEXT_PUBLIC_AVATAR_PROVIDER: "heygen",
@@ -56,10 +56,11 @@ test("avatar: heygen sin clave de servidor → UI mock, estado NO CONECTADA", ()
   assert.equal(status.enabled, true);
   assert.equal(status.connected, false);
   assert.equal(status.mode, "mock");
-  assert.match(status.state, /AVATAR_HEYGEN_API_KEY/);
+  assert.match(status.state, /sin credenciales/);
+  assert.equal(JSON.stringify(status).includes("AVATAR_HEYGEN_API_KEY"), false);
 });
 
-test("avatar: did con clave pero sin stream → mock (sin filtrar la clave)", () => {
+test("avatar: did con clave pero sin stream → mock (sin filtrar la clave ni nombres de env)", () => {
   const status = avatarPublicStatus({
     AVATAR_ENABLED: "true",
     NEXT_PUBLIC_AVATAR_PROVIDER: "did",
@@ -70,7 +71,8 @@ test("avatar: did con clave pero sin stream → mock (sin filtrar la clave)", ()
   assert.equal(status.connected, false);
   assert.equal(status.mode, "mock");
   assert.equal(JSON.stringify(status).includes("clave-secreta-prueba"), false);
-  assert.match(status.state, /sin sesión\/stream/);
+  assert.equal(JSON.stringify(status).includes("AVATAR_"), false);
+  assert.match(status.state, /sin sesión de stream/);
 });
 
 test("T-064 + avatar: zona dentro del panel FAB, un solo flotante Carga360", () => {
@@ -104,8 +106,14 @@ test("T-064 + avatar: zona dentro del panel FAB, un solo flotante Carga360", () 
   assert.match(css, /agent-mouth|lipsync/);
 
   const route = read("src/app/api/agente/route.ts");
-  assert.match(route, /avatarPublicStatus/);
-  assert.match(route, /avatar:/);
+  // GET público: sin status técnico (ni avatar/voz/IA/env).
+  assert.doesNotMatch(route, /avatarPublicStatus|voiceProvidersStatus|publicStatus|status: publicStatus/);
+  assert.match(route, /Sin `status` técnico/);
+
+  const admin = read("src/app/admin/agente/page.tsx");
+  assert.match(admin, /avatarPublicStatus/);
+  assert.match(admin, /voiceProvidersStatus/);
+  assert.match(admin, /Estado real de conexión/);
 
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /VoiceAgentLauncher/);

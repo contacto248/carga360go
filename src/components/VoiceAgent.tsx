@@ -13,7 +13,6 @@ import { avatarPublicStatus, type AvatarPublicStatus } from "@/lib/agent/avatar"
  * No se graba ni se guarda audio: solo se envía el texto reconocido. Sin claves ni servicios de pago.
  */
 type Msg = { id: string; role: "user" | "assistant"; text: string; at: string };
-type VoiceStatus = { id: string; label: string; connected: boolean; state: string };
 type Init = {
   enabled: boolean;
   greeting?: string;
@@ -21,7 +20,6 @@ type Init = {
   quick?: string[];
   messages?: Msg[];
   maxLength?: number;
-  status?: { ai: string; modeLabel: string; voice: VoiceStatus[]; avatar?: AvatarPublicStatus };
 };
 type Reply = { reply?: string; speak?: string; quick?: string[]; messages?: Msg[]; handoff?: boolean; mode?: string; error?: string };
 
@@ -147,7 +145,8 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
         const data = (await res.json().catch(() => null)) as Init | null;
         if (cancelled || !data) return;
         setEnabled(Boolean(data.enabled));
-        if (data.status?.avatar) setAvatarStatus(data.status.avatar);
+        // Avatar: solo config pública local (NEXT_PUBLIC_*); el API ya no expone status técnico.
+        setAvatarStatus(avatarPublicStatus());
         if (!data.enabled) return;
         setGreeting({ id: "greeting", role: "assistant", text: data.greeting || "", at: "" });
         setMessages(data.messages || []);
