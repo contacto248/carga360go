@@ -7,14 +7,15 @@ const nextConfig: NextConfig = {
     // CSP razonable: todo propio; Next necesita scripts y estilos en línea.
     // GTM (GTM-NP2F9GRJ) y GA4 (G-1LWRQYDEKS): script, imagen, connect y el iframe noscript.
     // *.google-analytics.com cubre region1.google-analytics.com y el resto de region*.
+    // HubSpot tracking (js.hs-scripts.com/{portalId}.js) solo tras consentimiento de cookies.
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://js.hs-scripts.com https://js.hscollectedforms.net https://js.hubspot.com https://js.hs-analytics.net https://js.hs-banner.com https://js.hsadspixel.net",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com https://stats.g.doubleclick.net",
+      "img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com https://stats.g.doubleclick.net https://track.hubspot.com https://forms.hsforms.com https://*.hubspot.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://stats.g.doubleclick.net",
-      "frame-src 'self' blob: https://www.googletagmanager.com",
+      "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://stats.g.doubleclick.net https://api.hubspot.com https://forms.hubspot.com https://api.hsforms.com https://cta-service-cms2.hubspot.com https://*.hubspot.com https://*.hs-analytics.net https://*.hscollectedforms.net",
+      "frame-src 'self' blob: https://www.googletagmanager.com https://app.hubspot.com https://*.hubspot.com https://*.hsforms.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

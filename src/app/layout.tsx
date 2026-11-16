@@ -3,8 +3,10 @@ import { Figtree, Sora } from "next/font/google";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { HubSpotTracking } from "@/components/HubSpotTracking";
 import { PolicyBody, TermsBody } from "@/components/PolicyBody";
 import { PrivacyGate } from "@/components/PrivacyGate";
 import { privacyGateFor } from "@/lib/accreditation";
@@ -15,6 +17,7 @@ import {
   isAdminPathname,
 } from "@/lib/analytics";
 import { getCurrentUser } from "@/lib/current-user";
+import { hubspotPortalId } from "@/lib/hubspot";
 import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
 import "./globals.css";
@@ -154,6 +157,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           </>
         ) : null}
         {productionAnalytics ? <AnalyticsRouteGuard /> : null}
+        <HubSpotTracking portalId={hubspotPortalId()} />
         <Header user={user} />
         <main>
           {privacy.required && user ? (
@@ -171,6 +175,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           )}
         </main>
         <Footer />
+        <CookieConsentBanner />
       </body>
     </html>
   );
