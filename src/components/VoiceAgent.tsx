@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { AgentAvatar, type AgentAvatarState } from "@/components/AgentAvatar";
 
 /**
- * Widget del agente comercial CARGA360 (texto y voz).
- * Voz: Web Speech API del navegador en es-CL (reconocimiento y síntesis). No se graba ni se guarda audio:
- * solo se envía el texto reconocido. Si el navegador no soporta la API, se usa solo texto.
+ * Agente Carga360go (texto y voz).
+ * Voz: Web Speech API del navegador (speechSynthesis + SpeechRecognition) en es-CL / es-ES.
+ * No se graba ni se guarda audio: solo se envía el texto reconocido. Sin claves ni servicios de pago.
  */
 type Msg = { id: string; role: "user" | "assistant"; text: string; at: string };
 type VoiceStatus = { id: string; label: string; connected: boolean; state: string };
@@ -49,7 +50,7 @@ function pickVoice(): SpeechSynthesisVoice | null {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
   const voices = window.speechSynthesis.getVoices();
   const by = (re: RegExp) => voices.find((v) => re.test(v.lang));
-  return by(/^es[-_]CL/i) ?? by(/^es[-_](419|US|MX|AR|CO|PE)/i) ?? by(/^es/i) ?? null;
+  return by(/^es[-_]CL/i) ?? by(/^es[-_]ES/i) ?? by(/^es[-_](419|US|MX|AR|CO|PE)/i) ?? by(/^es/i) ?? null;
 }
 
 const MIC_ERRORS: Record<string, string> = {
@@ -73,15 +74,15 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
       {!open ? (
         <div className="help-stack">
           <a className="btn wa fab help-wa" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
-            💬 WhatsApp
+            WhatsApp
           </a>
           <button type="button" className="help-fab agent-fab" onClick={() => setOpen(true)} aria-expanded={false} aria-controls="c360-agent-panel">
-            <span aria-hidden="true">🎙️</span>
-            <span>Asistente</span>
+            <AgentAvatar state="idle" size={28} className="agent-fab-avatar" />
+            <span>Agente Carga360go</span>
           </button>
         </div>
       ) : (
-        <button type="button" className="help-fab is-close" onClick={() => setOpen(false)} aria-expanded={true} aria-controls="c360-agent-panel" aria-label="Cerrar el asistente">
+        <button type="button" className="help-fab is-close" onClick={() => setOpen(false)} aria-expanded={true} aria-controls="c360-agent-panel" aria-label="Cerrar Agente Carga360go">
           ✕
         </button>
       )}
@@ -94,6 +95,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recRef = useRef<Recognition | null>(null);
+  const [enabled, setEnabled] = useState<boolean | null>(null);
   const [greeting, setGreeting] = useState<Msg | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [quick, setQuick] = useState<string[]>([]);
@@ -110,6 +112,8 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [ttsSupported, setTtsSupported] = useState(false);
 
+  const avatarState: AgentAvatarState = listening ? "listening" : speaking ? "speaking" : "idle";
+
   useEffect(() => {
     setVoiceSupported(Boolean(recognitionCtor()));
     setTtsSupported(typeof window !== "undefined" && "speechSynthesis" in window);
@@ -123,14 +127,22 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
       try {
         const res = await fetch("/api/agente", { credentials: "same-origin" });
         const data = (await res.json().catch(() => null)) as Init | null;
-        if (cancelled || !data?.enabled) return;
+        if (cancelled || !data) return;
+        setEnabled(Boolean(data.enabled));
+        if (!data.enabled) return;
         setGreeting({ id: "greeting", role: "assistant", text: data.greeting || "", at: "" });
         setMessages(data.messages || []);
         setQuick(data.quick || []);
         setStatus(data.status || null);
         if (data.maxLength) setMaxLength(data.maxLength);
+        if (data.greetingSpeak) {
+          // Saludo hablado solo si el usuario ya abrió el panel (aquí) y no está silenciado.
+        }
       } catch {
-        if (!cancelled) setError("No hay conexión con el asistente. Puede escribirnos por WhatsApp.");
+        if (!cancelled) {
+          setEnabled(false);
+          setError("No hay conexión con el Agente Carga360go. Puede escribirnos por WhatsApp.");
+        }
       }
     })();
     return () => {
@@ -150,7 +162,10 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
       const utter = new SpeechSynthesisUtterance(line);
       utter.lang = "es-CL";
       const voice = pickVoice();
-      if (voice) utter.voice = voice;
+      if (voice) {
+        utter.voice = voice;
+        if (/^es[-_]ES/i.test(voice.lang) && !/^es[-_]CL/i.test(voice.lang)) utter.lang = "es-ES";
+      }
       utter.rate = 1;
       utter.onstart = () => setSpeaking(true);
       utter.onend = () => setSpeaking(false);
@@ -180,7 +195,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
 
   async function send(raw: string, via: "texto" | "voz") {
     const message = raw.trim();
-    if (!message || busy) return;
+    if (!message || busy || enabled === false) return;
     stopSpeaking();
     setError("");
     setBusy(true);
@@ -286,26 +301,36 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
   return (
     <section id="c360-agent-panel" className="chat-panel agent-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <header className="chat-head">
+        <AgentAvatar state={avatarState} size={44} className="agent-head-avatar" />
         <div>
-          <h2 id={titleId}>Asistente CARGA360</h2>
+          <h2 id={titleId}>Agente Carga360go</h2>
           <p>
-            Asistente automático · español de Chile
+            Trazabilidad y automatización · español de Chile
             {aiLabel ? <span className={`agent-badge${status?.ai === "conectada" ? " ok" : ""}`}>{aiLabel}</span> : null}
           </p>
         </div>
         {ttsSupported ? (
-          <button type="button" className="chat-x" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Activar la voz del asistente" : "Silenciar la voz del asistente"} title={muted ? "Voz silenciada" : "Voz activada"}>
+          <button type="button" className="chat-x" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Activar la voz del agente" : "Silenciar la voz del agente"} title={muted ? "Voz silenciada" : "Voz activada"}>
             {muted ? "🔇" : "🔊"}
           </button>
         ) : null}
-        <button type="button" className="chat-x" onClick={reset} aria-label="Nueva conversación" title="Nueva conversación">
+        <button type="button" className="chat-x" onClick={reset} aria-label="Nueva conversación" title="Nueva conversación" disabled={enabled === false}>
           ↺
         </button>
-        <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar el asistente">
+        <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar Agente Carga360go">
           ✕
         </button>
       </header>
       <div className="chat-log" ref={logRef} aria-live="polite">
+        {enabled === false ? (
+          <div className="chat-bubble from-bot">
+            El Agente Carga360go está en pausa en este momento. Puede escribirnos por{" "}
+            <a href={waHref} target="_blank" rel="noopener noreferrer">
+              WhatsApp
+            </a>{" "}
+            o a contacto@carga360go.cl.
+          </div>
+        ) : null}
         {all.map((msg) => (
           <div key={msg.id} className={`chat-bubble ${msg.role === "user" ? "from-me" : "from-bot"}`}>
             {msg.text}
@@ -313,13 +338,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         ))}
         {listening ? (
           <div className="agent-listening" role="status">
-            <span className="agent-wave" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-              <i />
-              <i />
-            </span>
+            <AgentAvatar state="listening" size={28} />
             <span>{interim || "Escuchando…"}</span>
           </div>
         ) : null}
@@ -327,7 +346,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         {askConsent ? (
           <div className="agent-consent" role="alertdialog" aria-label="Permiso para usar el micrófono">
             <p>
-              Para hablar, su navegador le pedirá permiso para usar el micrófono. Carga 360 Go <strong>no graba ni guarda audio</strong>: solo guarda el texto de la conversación. Según el navegador, la conversión de voz a texto puede hacerla su proveedor (por ejemplo, Google en Chrome).
+              Para hablar, su navegador le pedirá permiso para usar el micrófono. Carga360go <strong>no graba ni guarda audio</strong>: solo guarda el texto de la conversación. Según el navegador, la conversión de voz a texto puede hacerla su proveedor (por ejemplo, Google en Chrome).
             </p>
             <div className="row">
               <button
@@ -349,7 +368,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         ) : null}
         {error ? <div className="chat-error">{error}</div> : null}
       </div>
-      {quick.length ? (
+      {quick.length && enabled !== false ? (
         <div className="chat-quick" role="group" aria-label="Acciones frecuentes">
           {quick.map((label) => (
             <button key={label} type="button" className="chat-chip" disabled={busy} onClick={() => send(label, "texto")}>
@@ -374,7 +393,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
           rows={1}
           maxLength={maxLength}
           value={text}
-          disabled={busy}
+          disabled={busy || enabled === false}
           placeholder={voiceSupported ? "Escriba o toque el micrófono…" : "Escriba su consulta…"}
           onChange={(event) => setText(event.target.value)}
           onKeyDown={(event) => {
@@ -389,9 +408,9 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
             type="button"
             className={`agent-mic${listening ? " is-on" : ""}`}
             onClick={listening ? stopListening : startListening}
-            disabled={busy}
+            disabled={busy || enabled === false}
             aria-pressed={listening}
-            aria-label={listening ? "Detener el micrófono" : "Hablar con el asistente"}
+            aria-label={listening ? "Detener el micrófono" : "Hablar con Agente Carga360go"}
           >
             {listening ? "■" : "🎙️"}
           </button>
@@ -401,14 +420,17 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
             Callar
           </button>
         ) : (
-          <button type="submit" className="btn sm" disabled={busy || !text.trim()}>
+          <button type="submit" className="btn sm" disabled={busy || enabled === false || !text.trim()}>
             Enviar
           </button>
         )}
       </form>
       <p className="chat-note">
-        {voiceSupported ? "Voz del navegador (es-CL), sin costo. " : "Su navegador no permite dictar por voz: use el texto. "}
-        El costo que entrega es referencial y calculado por el sistema; no aprueba cuentas ni documentos. <a href={waHref} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        {voiceSupported ? "Voz del navegador (es-CL / es-ES), sin costo. " : "Su navegador no permite dictar por voz: use el texto. "}
+        El costo que entrega es referencial y calculado por el sistema; no aprueba cuentas ni documentos.{" "}
+        <a href={waHref} target="_blank" rel="noopener noreferrer">
+          WhatsApp
+        </a>
       </p>
     </section>
   );

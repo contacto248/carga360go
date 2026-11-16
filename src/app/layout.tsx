@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Figtree, Sora } from "next/font/google";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
@@ -18,13 +19,27 @@ import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
 import "./globals.css";
 
+const display = Sora({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["600", "700", "800"],
+});
+
+const bodyFont = Figtree({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
+
 export const dynamic = "force-dynamic";
 
 const PRODUCTION_ANALYTICS_HOSTS = new Set(["www.carga360go.cl", "carga360go.cl"]);
 
-const title = "Carga360go — Cargas y camiones de transporte en todo Chile, de Arica a Punta Arenas";
+const title = "Carga360go — Trazabilidad y automatización de cargas y camiones en Chile";
 const description =
-  `Carga360go conecta cargas y camiones en Chile. Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y conoce el costo real del flete: ruta, peajes según ejes, diésel y costos operacionales. ${BRAND.company} · RUT ${BRAND.rut}.`;
+  `Carga360go conecta cargas y camiones en Chile con trazabilidad y automatización. Publica tu carga, encuentra camión, sigue la operación en vivo y conserva el comprobante digital. Costo real del flete: ruta, peajes según ejes, diésel y costos operacionales. ${BRAND.company} · RUT ${BRAND.rut}.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.carga360go.cl"),
@@ -109,7 +124,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const pathname = (await headers()).get("x-pathname") || "";
   const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname);
   return (
-    <html lang="es-CL">
+    <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
       <body>
         {loadAnalyticsTags ? (
           <>
