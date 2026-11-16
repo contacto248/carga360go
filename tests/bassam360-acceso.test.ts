@@ -72,6 +72,9 @@ test("bassam360: admin 200, usuario autenticado 403 y anónimo redirección", as
   assert.match(textoAprobacion, /No apruebo solo/);
   assert.equal(textoAprobacion.includes(admin.email), false);
 
+  const ciega = await POST(pedirConsulta(sesion, "aprueba el documento", false), ctx);
+  assert.equal(ciega.status, 403);
+
   const sql = await POST(pedirConsulta(sesion, "SELECT email FROM users"), ctx);
   assert.equal(sql.status, 200);
   const textoSql = ((await sql.json()) as { texto: string }).texto;
@@ -86,8 +89,10 @@ function pedirCsv(cookie?: string) {
   return new Request("http://127.0.0.1:4317/api/admin/bassam360?formato=csv", { headers });
 }
 
-function pedirConsulta(cookie: string, consulta: string) {
+function pedirConsulta(cookie: string, consulta: string, mismoOrigen = true) {
+  // Como el navegador: las mutaciones con cookie de sesión exigen Origin o Sec-Fetch-Site (CSRF ciego).
   const headers = new Headers({ host: "127.0.0.1:4317", "content-type": "application/json" });
+  if (mismoOrigen) headers.set("sec-fetch-site", "same-origin");
   headers.set("cookie", `${COOKIE_NAME}=${cookie}`);
   return new Request("http://127.0.0.1:4317/api/admin/bassam360", { method: "POST", headers, body: JSON.stringify({ consulta }) });
 }

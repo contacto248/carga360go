@@ -1,3 +1,4 @@
+import { cookieSecure } from "../auth";
 import { getSetting, setSetting } from "../whatsapp/store";
 
 export const AGENT_COOKIE = "c360_agente";
@@ -38,6 +39,11 @@ export function setAgentWhatsappEnabled(enabled: boolean) {
 }
 
 export function agentCookieOptions() {
-  const secure = process.env.COOKIE_SECURE === "true" || (process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false");
-  return { httpOnly: true as const, sameSite: "lax" as const, secure, path: "/", maxAge: AGENT_COOKIE_DAYS * 24 * 60 * 60 };
+  return {
+    httpOnly: true as const,
+    sameSite: "lax" as const,
+    secure: cookieSecure(),
+    path: "/",
+    maxAge: AGENT_COOKIE_DAYS * 24 * 60 * 60,
+  };
 }

@@ -143,6 +143,7 @@ export function isTrustedDevice(userId: string, token: string | null | undefined
 }
 
 export function challengeCookieOptions(secure: boolean) {
+  // path acotado a /api/auth: no viaja a otras rutas; SameSite=strict contra CSRF.
   return { httpOnly: true as const, sameSite: "strict" as const, secure, path: "/api/auth", maxAge: Math.floor(CODE_TTL_MS / 1000) };
 }
 
