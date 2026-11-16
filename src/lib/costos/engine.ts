@@ -416,6 +416,9 @@ export function publicView(result: QuoteResult, showAmount: boolean) {
   const costoBase = result.totals.costoBase;
   const p = getParams();
   const iva = p.aplicaIva ? Math.round((costoBase * p.ivaPct) / 100) : 0;
+  // Un total con componentes pendientes (ej. sin precio del diésel vigente) subestima el costo: en la vista pública
+  // solo se muestra el total cuando el cálculo del motor está completo (misma regla que el agente y CARGA360 Match).
+  const showTotal = showAmount && result.method === "motor" && result.totals.complete;
   return {
     method: result.method,
     notice: result.notice,
@@ -429,11 +432,11 @@ export function publicView(result: QuoteResult, showAmount: boolean) {
     components: visible.map((c) => ({ key: c.key, label: c.label, group: c.group, status: c.status, source: c.source, date: c.date, detail: c.detail, amount: showAmount ? c.amount : null })),
     tolls: result.tolls.map((t) => ({ name: t.name, concession: t.concession, category: t.categoryLabel, amount: showAmount ? t.amountGross : null, status: t.status, sourceUrl: t.sourceUrl })),
     diesel: result.diesel ? { zone: result.diesel.zone, price: showAmount ? result.diesel.priceGross : null, fetchedAt: result.diesel.fetchedAt, source: result.diesel.source, liters: result.diesel.liters, status: result.diesel.status } : null,
-    costoBase: showAmount ? costoBase : null,
-    iva: showAmount ? iva : null,
-    costoTotal: showAmount ? costoBase + iva : null,
+    costoBase: showTotal ? costoBase : null,
+    iva: showTotal ? iva : null,
+    costoTotal: showTotal ? costoBase + iva : null,
     // Rango opcional (parámetro rangoPublicoPct, 0 por defecto = desactivado).
-    rango: showAmount && p.rangoPublicoPct > 0 && result.method === "motor"
+    rango: showTotal && p.rangoPublicoPct > 0
       ? { pct: p.rangoPublicoPct, min: Math.round((costoBase + iva) * (1 - p.rangoPublicoPct / 100)), max: Math.round((costoBase + iva) * (1 + p.rangoPublicoPct / 100)) }
       : null,
     fallback: showAmount && result.fallback ? result.fallback : result.fallback ? { ...result.fallback, min: null, max: null } : null,

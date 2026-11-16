@@ -108,6 +108,8 @@ Al arrancar, la app aplica las migraciones que falten en `schema_migrations`. No
 | 1 | Tablas iniciales: usuarios, sesiones, restablecimientos, cargas, camiones y documentos. |
 | 2 | `loads.solo_verificados`. En `documents`: `audience` (`camion` o `personal`), `detail` (clase de licencia) y `holder_name`. Los tipos de camión que ya existían quedan con audiencia `camion`. |
 | 14 | En `users`: contacto de respaldo (`backup_contact`, `backup_contact_type`, `backup_contact_at`) y verificación manual de solo lectura por 30 días (`manual_readonly_until`, `manual_readonly_at`, `manual_readonly_by`, `manual_readonly_by_email`). Ver `docs/VERIFICACION-RESPALDO.md`. |
+| 15 | Agente comercial (web, WhatsApp y teléfono): `agent_conversations`, `agent_messages`, `agent_leads`, `load_tracking_codes` y `agent_otp_challenges`. Solo tablas nuevas. Copia legible: `docs/migrations/015-agente-comercial.sql`. |
+| 16 | Motor de costos: `cost_params`, `cost_geocode_cache`, `cost_route_cache`, `cost_sources`, `cost_toll_plazas`, `cost_toll_rates`, `cost_diesel_prices`, `cost_job_runs` y `cost_quotes`; carga las plazas y tarifas de peaje con fuente. Solo tablas nuevas. Copia legible: `docs/migrations/016-motor-costos.sql`. El precio del diésel se llena con el job `deploy/carga360go-costos.cron`. |
 
 ## Despliegue en AlmaLinux 9
 

@@ -170,10 +170,11 @@ export function Calculator() {
               <>
                 {cost.showAmount ? (
                   <div className="price-range">
-                    {money(cost.costoTotal)}
+                    {cost.complete ? money(cost.costoTotal) : "Total pendiente"}
                     <div className="meta">
-                      Costo neto {money(cost.costoBase)} + IVA {money(cost.iva)}
-                      {cost.complete ? "" : " · incompleto: hay valores pendientes"}
+                      {cost.complete
+                        ? `Costo neto ${money(cost.costoBase)} + IVA ${money(cost.iva)}`
+                        : `Faltan datos para el total (${cost.pending.join(", ") || "valores pendientes"}). Un ejecutivo lo revisa.`}
                       {cost.rango ? ` · rango ${money(cost.rango.min)} – ${money(cost.rango.max)}` : ""}
                     </div>
                   </div>
