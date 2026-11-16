@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 25
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      # Paths fijos: ${{ runner.temp }} en env de job provocaba failure con 0 jobs.
+      # Paths fijos en /tmp (evitar contexto runner en env de job: failure con 0 jobs).
       DATABASE_PATH: /tmp/carga360go-ci/carga360go.sqlite
       UPLOAD_DIR: /tmp/carga360go-ci/uploads
       MAIL_OUTBOX: /tmp/carga360go-ci/mail
