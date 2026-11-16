@@ -6,6 +6,18 @@
 
 ---
 
+## Estado Meta (16-11-2026, lectura)
+
+Informativo Gerencia (18:18 Chile). **Sin implementar** desde este documento.
+
+- App Meta **«Carga360go API»**: modo **desarrollo**, sin publicar; caso de uso WhatsApp ya presente.
+- WABA de prueba (**«Test Messaging Account»**); el único número disponible es el **número de prueba Meta**.
+- Número real Carga360go (`+56 9 5842 8693`): **no** agregado ni verificado en la Cloud API; **no** existe token.
+- Pendiente Gerencia: verificar número real + negocio; revisión de la app; publicar; emitir **token permanente** con usuario de sistema.
+- Secretos (nombres solo; **nunca en git**; aún no dados de alta en el entorno): `WA_WABA_ID`, `WA_PHONE_NUMBER_ID`, `WA_ACCESS_TOKEN` — solo en secretos de entorno cuando Gerencia los cree. **Este documento no contiene IDs ni tokens.**
+
+---
+
 ## 1. Objetivo
 
 Que el mismo agente comercial que hoy atiende en la web (`src/lib/agent/`) responda mensajes **entrantes** en WhatsApp Business usando la **Cloud API de Meta** (proveedor por defecto ya contemplado en `src/lib/whatsapp/`), con posibilidad de proveedor alterno 360dialog vía `WA_PROVIDER`.
