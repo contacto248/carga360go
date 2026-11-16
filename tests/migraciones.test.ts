@@ -50,9 +50,9 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  assert.equal(Math.max(...v), 16);
-  for (const t of [...TABLES_15, ...TABLES_16]) assert.ok(hasTable(db, t), t);
+  for (const n of [14, 15, 16, 17, 18, 19]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  assert.equal(Math.max(...v), 19);
+  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360"]) assert.ok(hasTable(db, t), t);
   const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
   for (const c of ["backup_contact", "backup_contact_type", "manual_readonly_until", "manual_readonly_by"]) assert.ok(userCols.includes(c), c);
   assert.ok((db.prepare(`SELECT COUNT(*) AS n FROM cost_toll_rates`).get() as { n: number }).n > 0, "peajes MOP sembrados");
@@ -96,7 +96,7 @@ test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni 
   const file = process.env.DATABASE_PATH!;
   closeDb();
   const after = snapshot(file);
-  assert.deepEqual(after, { ...before, version: 16 });
+  assert.deepEqual(after, { ...before, version: 19 });
   const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
   assert.equal(mandante.backup_contact, "respaldo@demo.local");
   assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
@@ -114,6 +114,40 @@ test("una BD que ya tenía la 16 sin la 15 recibe la 15 (comprobación por núme
   const again = getDb();
   assertFinalSchema(again);
   assert.ok(hasTable(again, "agent_leads"));
+});
+
+test("reconcilia la migración 14 alternativa sin perder datos ni repetir su registro", () => {
+  closeDb();
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "c360-mig-alternativa-"));
+  const file = path.join(dir, "copia.sqlite");
+  fs.copyFileSync(path.join(FIX, "produccion-v13.sqlite"), file);
+  const raw = new Database(file);
+  raw.exec(`ALTER TABLE users ADD COLUMN ingreso_sin_documentos INTEGER NOT NULL DEFAULT 0`);
+  raw.prepare(`UPDATE users SET ingreso_sin_documentos = 1 WHERE id = (SELECT id FROM users ORDER BY id LIMIT 1)`).run();
+  const appliedAt = "2026-11-13T16:00:00.000Z";
+  raw.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(appliedAt);
+  raw.close();
+  const before = snapshot(file);
+  try {
+    process.env.DATABASE_PATH = file;
+    assertFinalSchema(getDb());
+    closeDb();
+    const after = snapshot(file);
+    assert.deepEqual(after.counts, before.counts);
+    assert.deepEqual(after.loads, before.loads);
+    assert.deepEqual(after.trucks, before.trucks);
+    after.users.forEach((user, i) => {
+      for (const [key, value] of Object.entries(before.users[i] as Record<string, unknown>)) {
+        assert.deepEqual((user as Record<string, unknown>)[key], value, key);
+      }
+    });
+    const reopened = getDb();
+    assertFinalSchema(reopened);
+    assert.deepEqual(reopened.prepare(`SELECT applied_at FROM schema_migrations WHERE version = 14`).all(), [{ applied_at: appliedAt }]);
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
 });
 
 test("abrir dos veces no repite migraciones", () => {

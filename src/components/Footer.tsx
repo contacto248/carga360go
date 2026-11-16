@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
 import { VoiceAgentLauncher } from "@/components/VoiceAgent";
 import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 import { BRAND } from "@/lib/catalog";
@@ -67,6 +69,9 @@ export function Footer() {
           con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
+      <Suspense fallback={null}>
+        <AgenteAcreditacion />
+      </Suspense>
       <VoiceAgentLauncher waNumber={waNumber} waText={waText} />
     </>
   );

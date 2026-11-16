@@ -1,0 +1,40 @@
+.page {
+  padding: 24px 0 48px;
+}
+
+.estado {
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.card,
+.timeline,
+.drop {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.drop {
+  margin-top: 16px;
+  border-style: dashed;
+  border-width: 2px;
+  border-color: #0b1633;
+}
+
+.timeline {
+  margin-top: 16px;
+}
+
+@media (min-width: 800px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

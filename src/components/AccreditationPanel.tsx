@@ -5,7 +5,7 @@ const ACTION: Record<string, { href: string; text: string }> = {
   privacidad: { href: "/privacidad", text: "Leer y aceptar" },
   correo: { href: "/cuenta-en-revision#mis-datos", text: "Revisar mi correo" },
   telefono: { href: "/cuenta-en-revision", text: "Confirmar teléfono" },
-  documentos: { href: "/cuenta-en-revision#documentos", text: "Subir documentos" },
+  documentos: { href: "/mi-cuenta", text: "Subir documentos" },
   identidad: { href: "/verificar-identidad", text: "Verificar identidad" },
 };
 

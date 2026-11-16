@@ -70,13 +70,14 @@ export async function handleWebChat(input: {
   ip: string;
   userAgent: string | null;
   now?: Date;
+  executive?: boolean;
 }): Promise<ChatResult> {
   const now = input.now ?? new Date();
   const at = now.toISOString();
   const conv = upsertWebConversation({ sessionId: input.sessionId, ipHash: hashIp(input.ip), userAgent: (input.userAgent || "").slice(0, 180) || null }, at);
   insertWebMessage({ conversationId: conv.id, direction: "in", source: "cliente", body: input.message, at });
   const history = listWebMessages(conv.id, 12);
-  const decision = await decideTextReply(input.message, history, "web");
+  const decision = await decideTextReply(input.message, history, "web", { executive: input.executive === true });
   insertWebMessage({ conversationId: conv.id, direction: "out", source: "bot", body: decision.text, engine: decision.engine, at: new Date().toISOString() });
   if (decision.handoff && !conv.handoffAt) {
     markWebHandoff(conv.id, now.toISOString());

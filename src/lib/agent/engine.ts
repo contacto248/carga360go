@@ -75,6 +75,7 @@ type TurnInput = {
   user?: PublicUser | null;
   ip?: string | null;
   now?: Date;
+  executive?: boolean;
 };
 
 type Outcome = {
@@ -492,9 +493,9 @@ async function trackingTurn(conv: AgentConversation, state: AgentState, text: st
   };
 }
 
-async function assistantTurn(conv: AgentConversation, text: string): Promise<Outcome> {
+async function assistantTurn(conv: AgentConversation, text: string, executive = false): Promise<Outcome> {
   const history = listAgentMessages(conv.id, 12).map((m) => ({ direction: m.role === "cliente" ? ("in" as const) : ("out" as const), body: m.body }));
-  const decision = await decideTextReply(text, history, conv.channel === "whatsapp" ? "whatsapp" : "web");
+  const decision = await decideTextReply(text, history, conv.channel === "whatsapp" ? "whatsapp" : "web", { executive });
   const mode: AgentMode = decision.engine.startsWith("ia:") ? "ia" : "reglas";
   return { text: stripPricingTalk(decision.text), state: { ...EMPTY_STATE }, intent: "otro", mode, engine: decision.engine, handoff: decision.handoff };
 }
@@ -563,7 +564,7 @@ export async function handleAgentTurn(input: TurnInput): Promise<AgentReply> {
     } else if (parseTrackingCode(text)) {
       outcome = await trackingTurn(conv, { ...EMPTY_STATE, step: "seguimiento_codigo" }, text, now);
     } else {
-      outcome = await assistantTurn(conv, text);
+      outcome = await assistantTurn(conv, text, input.executive === true);
       if (outcome.handoff) {
         const handed = await handoff(conv, input, "la IA derivó", at);
         outcome = { ...handed, text: `${outcome.text}\n\n${handed.text}`, mode: outcome.mode };

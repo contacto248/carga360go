@@ -1,0 +1,177 @@
+[
+  {
+    "nombre": "Codelco",
+    "rut": "61.704.000-K",
+    "direccion": "Huérfanos 1270, Santiago",
+    "rubro": "Minería Cobre",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Antofagasta Minerals",
+    "rut": "93.002.000-6",
+    "direccion": "Av. Apoquindo 4001 Piso 18, Las Condes, Santiago",
+    "rubro": "Minería",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "SQM",
+    "rut": "93.007.000-9",
+    "direccion": "El Trovador 4285, Las Condes, Santiago",
+    "rubro": "Litio",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "CMPC",
+    "rut": "90.222.000-3",
+    "direccion": "Agustinas 1343, Santiago",
+    "rubro": "Forestal",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Arauco",
+    "rut": "93.458.000-1",
+    "direccion": "El Golf 150 Piso 14, Las Condes",
+    "rubro": "Forestal",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Cencosud",
+    "rut": "93.834.000-5",
+    "direccion": "Rosario Norte 555 Piso 18, Las Condes",
+    "rubro": "Retail",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Falabella / Sodimac",
+    "rut": "90.749.000-9",
+    "direccion": "Rosario Norte 555 Piso 18, Las Condes",
+    "rubro": "Retail Construcción",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Agrosuper",
+    "rut": "76.023.018-2",
+    "direccion": "Camino La Estrella 401, Rancagua",
+    "rubro": "Agroindustrial",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "CCU",
+    "rut": "90.413.000-1",
+    "direccion": "Vitacura 2670 Piso 26, Las Condes",
+    "rubro": "Bebidas",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Copec",
+    "rut": "91.806.000-6",
+    "direccion": "El Golf 150 Piso 17, Las Condes",
+    "rubro": "Energía",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Besalco",
+    "rut": "92.746.000-1",
+    "direccion": "Av. Tajamar 183 Piso 8, Las Condes",
+    "rubro": "Construcción",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "SalfaCorp",
+    "rut": "96.885.580-0",
+    "direccion": "Av. Rondizzoni 2130, Santiago",
+    "rubro": "Construcción",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Walmart Chile",
+    "rut": "76.042.014-K",
+    "direccion": "Av. Del Valle 725, Huechuraba, Santiago",
+    "rubro": "Retail Logística",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Carozzi",
+    "rut": "96.591.040-9",
+    "direccion": "Camino Longitudinal Sur 5201, Nos, San Bernardo",
+    "rubro": "Alimentos",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "AquaChile",
+    "rut": "86.247.300-7",
+    "direccion": "Av. Cardonal 2500, Puerto Montt",
+    "rubro": "Acuícola",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Minera Escondida | BHP",
+    "rut": "79.587.210-8",
+    "direccion": "Av. Apoquindo 4001 Piso 10, Las Condes, Santiago",
+    "rubro": "Minería Cobre",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Collahuasi",
+    "rut": "96.893.530-2",
+    "direccion": "Av. Baquedano 902, Iquique",
+    "rubro": "Minería Cobre",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Anglo American",
+    "rut": "93.934.000-6",
+    "direccion": "Av. Pedro de Valdivia 291, Providencia, Santiago",
+    "rubro": "Minería",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Sierra Gorda SCM",
+    "rut": "76.081.322-1",
+    "direccion": "Apoquindo 3721 Piso 7, Las Condes",
+    "rubro": "Minería",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Teck Quebrada Blanca",
+    "rut": "89.221.200-9",
+    "direccion": "Av. Isidora Goyenechea 2800 Piso 24, Las Condes",
+    "rubro": "Minería",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Constructora Echeverría Izquierdo",
+    "rut": "87.001.400-5",
+    "direccion": "Rosario Norte 532 Piso 8, Las Condes",
+    "rubro": "Construcción",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Sigdo Koppers",
+    "rut": "91.148.000-5",
+    "direccion": "Av. Salvador 1486, Providencia, Santiago",
+    "rubro": "Construcción Minera",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Enaex",
+    "rut": "90.985.000-9",
+    "direccion": "El Trovador 4285 Piso 4, Las Condes",
+    "rubro": "Minería Explosivos",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Constructora Gardilcic",
+    "rut": "89.414.000-3",
+    "direccion": "Av. Vitacura 2939 Of 202, Las Condes",
+    "rubro": "Construcción",
+    "estado": "en_acreditacion"
+  },
+  {
+    "nombre": "Lomas Bayas | Glencore",
+    "rut": "96.891.720-7",
+    "direccion": "Cerro Colorado 5340 Piso 8, Las Condes",
+    "rubro": "Minería",
+    "estado": "en_acreditacion"
+  }
+]

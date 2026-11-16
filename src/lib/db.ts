@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "./bassam/schema";
 import { seedTolls } from "./costos/tolls-seed";
 import Database from "better-sqlite3";
 import { addDaysIso, FREE_DAYS, freeUntilFrom } from "./campaign";
@@ -663,7 +664,7 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
-  if (schemaVersion(db) < 14) {
+  if (schemaVersion(db) < 14 || MIGRATION_14_USER_COLUMNS.some((column) => !hasColumn(db, "users", column))) {
     const apply = db.transaction(() => {
       // Contacto de respaldo (teléfono o correo) para cuentas con verificación pendiente, y verificación manual
       // del administrador: acceso de solo lectura por 30 días (estado efectivo "manual_readonly", ver manual-readonly.ts).
@@ -672,7 +673,9 @@ function migrate(db: Database.Database) {
         if (!hasColumn(db, "users", column)) db.exec(`ALTER TABLE users ADD COLUMN ${column} TEXT`);
       }
       db.exec(`CREATE INDEX IF NOT EXISTS idx_users_manual_readonly ON users(manual_readonly_until)`);
-      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
+      // Algunas instalaciones usaron la versión 14 para ingreso_sin_documentos.
+      // Reconciliar las columnas faltantes conserva ese campo y el registro original.
+      db.prepare(`INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
     });
     apply();
   }
@@ -695,6 +698,37 @@ function migrate(db: Database.Database) {
       db.exec(MIGRATION_16_SQL);
       seedTolls(db);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (16, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 17)) {
+    const apply = db.transaction(() => {
+      // Tablas de solicitudes, transportistas, documentos y el historial BASSAM 360.
+      // Solo crea tablas nuevas. No inserta personas. Copia en docs/migrations/017-bassam-tablas.sql.
+      db.exec(MIGRATION_17_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (17, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasColumn(db, "transportistas", "user_id")) db.exec(`ALTER TABLE transportistas ADD COLUMN user_id TEXT`);
+  if (!hasMigration(db, 18)) {
+    db.pragma("foreign_keys = OFF");
+    try {
+      const apply = db.transaction(() => {
+        // tipo_cliente transportista o mandante. El SELECT copia filas ya guardadas y no agrega ejemplos.
+        db.exec(MIGRATION_18_SQL);
+        db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (18, ?)`).run(new Date().toISOString());
+      });
+      apply();
+    } finally {
+      db.pragma("foreign_keys = ON");
+    }
+  }
+  if (!hasMigration(db, 19)) {
+    const apply = db.transaction(() => {
+      // Columna para el RUT leído del archivo. No inserta filas.
+      if (!hasColumn(db, "documentos_acreditacion", "rut_extraido")) db.exec(`ALTER TABLE documentos_acreditacion ADD COLUMN rut_extraido TEXT`);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (19, ?)`).run(new Date().toISOString());
     });
     apply();
   }
