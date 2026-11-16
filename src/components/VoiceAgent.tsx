@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AgentAvatar, type AgentAvatarState } from "@/components/AgentAvatar";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 
 /**
  * FAB único Carga360 (texto y voz). Marca visible en textos: Carga360go.
@@ -62,7 +63,7 @@ const MIC_ERRORS: Record<string, string> = {
   network: "El reconocimiento de voz necesita conexión. Inténtelo de nuevo o escriba su consulta.",
 };
 
-export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
+export function VoiceAgentLauncher({ waNumber, waText }: { waNumber: string; waText: string }) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   useEffect(() => {
@@ -71,7 +72,7 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   if (hidden) return null;
   return (
     <div className={`help-dock${open ? " is-open" : ""}`}>
-      {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} /> : null}
+      {open ? <AgentPanel waNumber={waNumber} waText={waText} onClose={() => setOpen(false)} /> : null}
       {!open ? (
         <button
           type="button"
@@ -93,7 +94,7 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   );
 }
 
-function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }) {
+function AgentPanel({ waNumber, waText, onClose }: { waNumber: string; waText: string; onClose: () => void }) {
   const titleId = useId();
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -324,9 +325,9 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         {enabled === false ? (
           <div className="chat-bubble from-bot">
             Carga360go está en pausa en este momento. Puede{" "}
-            <a href={waHref} target="_blank" rel="noopener noreferrer">
+            <WhatsAppContactGate number={waNumber} text={waText} className="wa-text">
               continuar por WhatsApp
-            </a>{" "}
+            </WhatsAppContactGate>{" "}
             o escribir a contacto@carga360go.cl.
           </div>
         ) : null}
@@ -425,9 +426,9 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         )}
       </form>
       <div className="agent-wa-row">
-        <a className="btn wa sm agent-wa-cta" href={waHref} target="_blank" rel="noopener noreferrer">
+        <WhatsAppContactGate number={waNumber} text={waText} className="btn wa sm agent-wa-cta">
           Continuar por WhatsApp
-        </a>
+        </WhatsAppContactGate>
       </div>
       <p className="chat-note">
         {voiceSupported ? "Voz del navegador (es-CL / es-ES), sin costo. " : "Su navegador no permite dictar por voz: use el texto. "}
