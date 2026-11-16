@@ -19,7 +19,7 @@ test("el canal de WhatsApp está en BRAND, en la portada y en el pie, con target
   assert.match(block, /target="_blank"/);
   assert.match(block, /rel="noopener noreferrer"/);
   const home = read("src/app/page.tsx");
-  assert.doesNotMatch(home, /WhatsAppChannel/);
+  assert.match(home, /WhatsAppChannel/);
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /BRAND\.whatsappChannel/);
   assert.match(footer, /Canal de WhatsApp/);

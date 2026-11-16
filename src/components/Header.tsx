@@ -19,6 +19,8 @@ function abrirAgente(event: { preventDefault(): void }) {
 export function Header({ user }: { user: PublicUser | null }) {
   const pathname = usePathname();
   const router = useRouter();
+  // Decisión Gerencia 16-11: el Agente BASSAM 360 solo se abre desde /admin/* y /mi-cuenta.
+  const agenteBassam = Boolean(pathname && (pathname.startsWith("/admin") || pathname.startsWith("/mi-cuenta")));
 
   async function salir() {
     await fetch("/api/auth/salir", { method: "POST" });
@@ -28,6 +30,10 @@ export function Header({ user }: { user: PublicUser | null }) {
 
   return (
     <>
+      <div className="demo-banner">
+        <strong>Costo real y automático del flete</strong>
+        <span className="hide-sm"> · ruta, peajes por ejes, diésel y costos operacionales · trazabilidad y seguridad en una sola web</span>
+      </div>
       <header className="top">
         <div className="wrap">
           <Link href="/" className="logo" aria-label="Carga360go">
@@ -46,9 +52,11 @@ export function Header({ user }: { user: PublicUser | null }) {
                 {link.label}
               </Link>
             ))}
-            <a href="#agente-bassam" onClick={abrirAgente}>
-              Agente BASSAM 360
-            </a>
+            {agenteBassam ? (
+              <a href="#agente-bassam" onClick={abrirAgente}>
+                Agente BASSAM 360
+              </a>
+            ) : null}
             {user?.role === "admin" ? (
               <>
                 <Link href="/admin/bassam" className={pathname === "/admin/bassam" ? "on" : ""}>
@@ -77,9 +85,11 @@ export function Header({ user }: { user: PublicUser | null }) {
             {link.label}
           </Link>
         ))}
-        <a href="#agente-bassam" onClick={abrirAgente}>
-          Agente BASSAM 360
-        </a>
+        {agenteBassam ? (
+          <a href="#agente-bassam" onClick={abrirAgente}>
+            Agente BASSAM 360
+          </a>
+        ) : null}
       </nav>
     </>
   );

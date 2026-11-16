@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ENLACE_MI_CUENTA, LISTA_MANDANTE, LISTA_TRANSPORTISTA, SIN_DATOS } from "@/lib/bassam/agente-copia";
 import { DOCUMENTOS_POR_CLIENTE, type TipoCliente } from "@/lib/bassam/tipos-cliente";
 
@@ -12,8 +12,14 @@ function rolDeQuery(value: string | null): TipoCliente | null {
   return null;
 }
 
+export function agenteVisible(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/mi-cuenta" || pathname.startsWith("/mi-cuenta/");
+}
+
 export function AgenteAcreditacion() {
   const params = useSearchParams();
+  const pathname = usePathname();
   const rol = rolDeQuery(params.get("rol"));
   const [open, setOpen] = useState(false);
   useEffect(() => {
@@ -44,6 +50,10 @@ export function AgenteAcreditacion() {
     }
     setBusy(false);
   }
+
+  // Decisión Gerencia 16-11: en páginas públicas el único botón flotante es Carga360.
+  // Este agente solo aparece en /admin/* y /mi-cuenta.
+  if (!agenteVisible(pathname)) return null;
 
   function send(event: FormEvent) {
     event.preventDefault();

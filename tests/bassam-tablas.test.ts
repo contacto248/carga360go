@@ -365,7 +365,11 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.doesNotMatch(header, /Publicar camión|Buscar camión|Regiones/);
   assert.doesNotMatch(footer, /HelpLauncher|FleteButton|ChatWidget/);
   assert.match(footer, /VoiceAgentLauncher/);
-  assert.match(footer, /agentEnabled\(\)/);
+  // Decisión Gerencia 16-11: Carga360 es el único botón flotante público y siempre se muestra;
+  // el Agente BASSAM 360 solo aparece en /admin/* y /mi-cuenta.
+  const agenteSrc = fs.readFileSync(new URL("../src/components/AgenteAcreditacion.tsx", import.meta.url), "utf8");
+  assert.match(agenteSrc, /agenteVisible\(pathname\)/);
+  assert.match(header, /agenteBassam \?/);
   assert.equal((footer.match(/<AgenteAcreditacion \/>/g) || []).length, 1);
   const panelCuenta = fs.readFileSync(new URL("../src/components/AccreditationPanel.tsx", import.meta.url), "utf8");
   assert.match(panelCuenta, /documentos: \{ href: "\/mi-cuenta"/);
