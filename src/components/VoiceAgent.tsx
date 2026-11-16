@@ -63,19 +63,28 @@ const MIC_ERRORS: Record<string, string> = {
 export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [bassam, setBassam] = useState(false);
   useEffect(() => {
-    setHidden(window.location.pathname.startsWith("/admin"));
+    const path = window.location.pathname;
+    const onBassam = path === "/admin/bassam" || path.startsWith("/admin/bassam/");
+    setBassam(onBassam);
+    setHidden(path.startsWith("/admin") && !onBassam);
   }, []);
   if (hidden) return null;
   return (
     <div className={`help-dock${open ? " is-open" : ""}`}>
-      {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} /> : null}
+      {bassam ? (
+        <button type="button" className="help-fab help-exec" onClick={() => { if ("speechSynthesis" in window) window.speechSynthesis.resume(); setOpen(true); }} aria-expanded={open} aria-controls="c360-agent-panel">
+          Asistente IA ejecutivo
+        </button>
+      ) : null}
+      {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} executive={bassam} /> : null}
       {!open ? (
         <div className="help-stack">
           <a className="btn wa fab help-wa" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp">
             💬 WhatsApp
           </a>
-          <button type="button" className="help-fab agent-fab" onClick={() => setOpen(true)} aria-expanded={false} aria-controls="c360-agent-panel">
+          <button type="button" className="help-fab agent-fab" onClick={() => { if ("speechSynthesis" in window) window.speechSynthesis.resume(); setOpen(true); }} aria-expanded={false} aria-controls="c360-agent-panel">
             <span aria-hidden="true">🎙️</span>
             <span>Asistente</span>
           </button>
@@ -89,7 +98,7 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
   );
 }
 
-function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }) {
+function AgentPanel({ waHref, onClose, executive = false }: { waHref: string; onClose: () => void; executive?: boolean }) {
   const titleId = useId();
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -109,6 +118,8 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
   const [askConsent, setAskConsent] = useState(false);
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [ttsSupported, setTtsSupported] = useState(false);
+  const [greetingSpeak, setGreetingSpeak] = useState("");
+  const greetedRef = useRef(false);
 
   useEffect(() => {
     setVoiceSupported(Boolean(recognitionCtor()));
@@ -129,6 +140,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         setQuick(data.quick || []);
         setStatus(data.status || null);
         if (data.maxLength) setMaxLength(data.maxLength);
+        setGreetingSpeak(data.greetingSpeak || "");
       } catch {
         if (!cancelled) setError("No hay conexión con el asistente. Puede escribirnos por WhatsApp.");
       }
@@ -143,10 +155,16 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
     setSpeaking(false);
   }, []);
 
-  const speak = useCallback(
-    (line: string) => {
-      if (muted || !line || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
+  const speak = useCallback((line: string) => {
+    if (!line || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (muted || window.localStorage.getItem(MUTE_KEY) === "1") return;
+    const synth = window.speechSynthesis;
+    let started = false;
+    const run = () => {
+      if (started) return;
+      started = true;
+      synth.removeEventListener("voiceschanged", run);
+      if (window.localStorage.getItem(MUTE_KEY) === "1") return;
       const utter = new SpeechSynthesisUtterance(line);
       utter.lang = "es-CL";
       const voice = pickVoice();
@@ -155,10 +173,28 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
       utter.onstart = () => setSpeaking(true);
       utter.onend = () => setSpeaking(false);
       utter.onerror = () => setSpeaking(false);
-      window.speechSynthesis.speak(utter);
-    },
-    [muted],
-  );
+      // Chrome descarta el enunciado si cancel() y speak() ocurren en el mismo instante.
+      synth.cancel();
+      window.setTimeout(() => {
+        if (window.localStorage.getItem(MUTE_KEY) === "1") return;
+        synth.resume();
+        synth.speak(utter);
+      }, 40);
+    };
+    if (synth.getVoices().length) run();
+    else {
+      synth.addEventListener("voiceschanged", run);
+      synth.getVoices();
+      window.setTimeout(run, 400);
+    }
+  }, [muted]);
+
+  useEffect(() => {
+    if (!ttsSupported || greetedRef.current || !greetingSpeak || messages.length > 0) return;
+    if (window.localStorage.getItem(MUTE_KEY) === "1") return;
+    greetedRef.current = true;
+    speak(greetingSpeak);
+  }, [ttsSupported, greetingSpeak, messages.length, speak]);
 
   useEffect(() => {
     const node = logRef.current;
@@ -191,7 +227,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, via }),
+        body: JSON.stringify(executive ? { message, via, executive: true } : { message, via }),
       });
       const data = (await res.json().catch(() => null)) as Reply | null;
       if (!res.ok || !data) {
@@ -287,7 +323,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
     <section id="c360-agent-panel" className="chat-panel agent-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <header className="chat-head">
         <div>
-          <h2 id={titleId}>Asistente CARGA360</h2>
+          <h2 id={titleId}>{executive ? "Asistente IA ejecutivo" : "Asistente CARGA360"}</h2>
           <p>
             Asistente automático · español de Chile
             {aiLabel ? <span className={`agent-badge${status?.ai === "conectada" ? " ok" : ""}`}>{aiLabel}</span> : null}

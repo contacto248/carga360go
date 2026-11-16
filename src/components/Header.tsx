@@ -2,54 +2,34 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
 import type { PublicUser } from "@/lib/types";
 
 const LINKS = [
-  { href: "/cargas", label: "Cargas" },
+  { href: "/mi-cuenta?rol=mandante", label: "Publicar carga" },
   { href: "/camiones", label: "Camiones" },
-  { href: "/regiones", label: "Regiones" },
-  { href: "/cargas/nueva", label: "Publicar carga" },
-  { href: "/camiones/nuevo", label: "Publicar camión" },
-  { href: "/herramientas/calculadora", label: "Calculadora" },
-  { href: "/panel", label: "Panel" },
+  { href: "/mi-cuenta", label: "Mi cuenta" },
 ];
 
-const TABS = [
-  { href: "/cargas", label: "Cargas", icon: "📦" },
-  { href: "/camiones", label: "Camiones", icon: "🚛" },
-  { href: "/cargas/nueva", label: "Publicar", icon: "➕" },
-  { href: "/panel#alertas", label: "Alertas", icon: "🔔" },
-  { href: "/panel", label: "Panel", icon: "👤" },
-];
+function abrirAgente(event: { preventDefault(): void }) {
+  event.preventDefault();
+  window.dispatchEvent(new Event("c360-abrir-agente"));
+}
 
 export function Header({ user }: { user: PublicUser | null }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const locked = user?.role === "transportista" && user.verificationStatus !== "verificado";
-  const links = locked
-    ? [{ href: "/cuenta-en-revision", label: "Mi cuenta (en revisión)" }]
-    : user?.role === "admin"
-      ? [...LINKS.filter((link) => link.href !== "/herramientas/calculadora"), { href: "/admin", label: "Admin" }]
-      : LINKS;
 
   async function salir() {
     await fetch("/api/auth/salir", { method: "POST" });
-    setOpen(false);
     router.push("/");
     router.refresh();
   }
 
   return (
     <>
-      <div className="demo-banner">
-        <strong>Costo real y automático del flete</strong>
-        <span className="hide-sm"> · ruta, peajes por ejes, diésel y costos operacionales · trazabilidad y seguridad en una sola web</span>
-      </div>
       <header className="top">
         <div className="wrap">
-          <Link href="/" className="logo" onClick={() => setOpen(false)} aria-label="Carga360go">
+          <Link href="/" className="logo" aria-label="Carga360go">
             <img
               className="logo-img"
               src="/brand/logo-wordmark.png"
@@ -59,70 +39,47 @@ export function Header({ user }: { user: PublicUser | null }) {
               height={36}
             />
           </Link>
-          <nav className="links">
-            {links.map((link) => (
+          <nav className="links" aria-label="Principal">
+            {LINKS.map((link) => (
               <Link key={link.href} href={link.href} className={pathname === link.href ? "on" : ""}>
                 {link.label}
               </Link>
             ))}
-            {user ? (
+            <a href="#agente-bassam" onClick={abrirAgente}>
+              Agente BASSAM 360
+            </a>
+            {user?.role === "admin" ? (
               <>
-                <span className="account" title={user.razonSocial}>
-                  {user.razonSocial}
-                </span>
-                <button className="btn sm" type="button" style={{ marginLeft: 8 }} onClick={salir}>
-                  Salir
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/ingreso" className="btn sec sm" style={{ marginLeft: 8 }}>
-                  Ingresar
+                <Link href="/admin/bassam" className={pathname === "/admin/bassam" ? "on" : ""}>
+                  Panel BASSAM
                 </Link>
-                <Link href="/registro" className="btn sm">
-                  Registrarse
+                <Link href="/admin/bassam360" className={pathname === "/admin/bassam360" ? "on" : ""}>
+                  BASSAM 360
                 </Link>
               </>
-            )}
-          </nav>
-          <button className="burger" type="button" aria-label="Menú" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
-            {open ? "✕" : "☰"}
-          </button>
-        </div>
-        {open ? (
-          <div className="mobile-menu">
-            {links.map((link) => (
-              <Link key={link.href} href={link.href} onClick={() => setOpen(false)}>
-                {link.label}
-              </Link>
-            ))}
+            ) : null}
             {user ? (
-              <button className="linkish" type="button" onClick={salir} style={{ color: "#fff", textAlign: "left", padding: "12px 4px" }}>
-                Salir ({user.razonSocial})
+              <button className="btn sm" type="button" onClick={salir}>
+                Salir
               </button>
             ) : (
-              <>
-                <Link href="/ingreso" onClick={() => setOpen(false)}>
-                  Ingresar
-                </Link>
-                <Link href="/registro" onClick={() => setOpen(false)}>
-                  Registrar empresa / transportista
-                </Link>
-              </>
+              <Link href="/ingreso" className="btn sec sm">
+                Ingresar
+              </Link>
             )}
-          </div>
-        ) : null}
+          </nav>
+        </div>
       </header>
-      {locked ? null : (
-        <nav className="tabbar" aria-label="Accesos rápidos">
-          {TABS.map((tab) => (
-            <Link key={tab.label} href={tab.href} className={pathname === tab.href.split("#")[0] && tab.label !== "Alertas" ? "on" : ""}>
-              <span aria-hidden="true">{tab.icon}</span>
-              {tab.label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      <nav className="tabbar" aria-label="Accesos rápidos">
+        {LINKS.map((link) => (
+          <Link key={link.href} href={link.href} className={pathname === link.href ? "on" : ""}>
+            {link.label}
+          </Link>
+        ))}
+        <a href="#agente-bassam" onClick={abrirAgente}>
+          Agente BASSAM 360
+        </a>
+      </nav>
     </>
   );
 }

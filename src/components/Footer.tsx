@@ -1,8 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
-import { HelpLauncher } from "@/components/ChatWidget";
+import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
 import { VoiceAgentLauncher } from "@/components/VoiceAgent";
 import { agentEnabled } from "@/lib/agent/config";
-import { webChatEnabled } from "@/lib/chat/config";
 import { BRAND } from "@/lib/catalog";
 import { waLink } from "@/lib/format";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
@@ -65,7 +65,10 @@ export function Footer() {
           con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
-      {agentEnabled() ? <VoiceAgentLauncher waHref={href} /> : <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />}
+      <Suspense fallback={null}>
+        <AgenteAcreditacion />
+      </Suspense>
+      {agentEnabled() ? <VoiceAgentLauncher waHref={href} /> : null}
     </>
   );
 }
