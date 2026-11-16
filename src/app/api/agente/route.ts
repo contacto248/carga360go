@@ -6,6 +6,7 @@ import { AGENT_COOKIE, AGENT_MAX_MESSAGE, AGENT_RATE, agentCookieOptions, agentE
 import { AGENT_GREETING, DEFAULT_QUICK, handleAgentTurn, resetAgentConversation } from "@/lib/agent/engine";
 import { agentRepliesSince, findAgentConversation, listAgentMessages } from "@/lib/agent/store";
 import { cleanText, toSpeech } from "@/lib/agent/validate";
+import { avatarPublicStatus } from "@/lib/agent/avatar";
 import { voiceProvidersStatus } from "@/lib/agent/voice";
 import { AppError } from "@/lib/errors";
 import { rateLimit } from "@/lib/rate-limit";
@@ -36,6 +37,7 @@ function publicStatus() {
     ai: ai ? "conectada" : "no_configurada",
     modeLabel: ai ? "IA conectada" : "Respuestas por reglas (IA sin configurar)",
     voice: voiceProvidersStatus().map((p) => ({ id: p.id, label: p.label, connected: p.connected, state: p.state })),
+    avatar: avatarPublicStatus(),
   };
 }
 

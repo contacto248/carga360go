@@ -276,9 +276,14 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
 @media (prefers-reduced-motion:reduce){.agent-wave i{animation:none;height:12px}}
 .agent-consent{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:.84rem}
 .agent-consent p{margin:0 0 8px}
-.agent-mic{flex:0 0 auto;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1.1rem;cursor:pointer;display:grid;place-items:center}
-.agent-mic.is-on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 4px #f26b1d33}
+.agent-mic{flex:0 0 auto;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1.1rem;cursor:pointer;display:grid;place-items:center;transition:box-shadow .2s var(--ease,ease),background .2s ease}
+.agent-mic.is-on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 4px #f26b1d33;animation:agent-mic-pulse 1.4s ease-out infinite}
+.agent-mic.is-denied{border-color:#b42318;color:#b42318;box-shadow:0 0 0 3px #b4231833}
 .agent-mic:focus-visible,.chat-chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.agent-listening.is-active{background:#fff0e4;border-color:#ffb27a;box-shadow:0 0 0 3px #ff500122}
+.agent-mic-denied{align-self:stretch;background:#fff5f5;border:1px solid #f3b4b0;color:#8a1f1a;border-radius:12px;padding:8px 12px;font-size:.84rem}
+@keyframes agent-mic-pulse{0%{box-shadow:0 0 0 4px #f26b1d33}70%{box-shadow:0 0 0 10px #f26b1d00}100%{box-shadow:0 0 0 4px #f26b1d00}}
+@media (prefers-reduced-motion:reduce){.agent-mic.is-on{animation:none}}
 .agent-panel .chat-note a{color:var(--accent2);font-weight:700}
 @media (max-width:480px){.agent-panel{width:calc(100vw - 16px);height:min(82vh,640px);max-height:min(82vh,640px)}.help-dock.is-open{right:8px}}
 .agent-table td,.agent-table th{vertical-align:top}
@@ -513,6 +518,39 @@ footer.foot a:hover{color:#ffd7bd}
 .agent-fab-avatar{margin-right:2px}
 .agent-head-avatar{margin-right:2px}
 .help-fab.agent-fab{border-radius:999px}
+
+/* Zona avatar humano/video dentro del panel FAB (no otro flotante) */
+.agent-avatar-stage{flex:0 0 auto;display:grid;justify-items:center;gap:6px;padding:12px 12px 8px;background:linear-gradient(180deg,#0B1633 0%,#002451 72%,#0f1f3d 100%);border-bottom:1px solid #ffffff1a;color:#e8eef8}
+.agent-avatar-stage-frame{position:relative;width:132px;height:132px;border-radius:50%;overflow:hidden;box-shadow:0 8px 24px #0006,0 0 0 2px #FF500166;background:#0B1633}
+.agent-avatar-stage-media,.agent-avatar-stage-frame > svg{display:block;width:100%;height:100%;object-fit:cover}
+.agent-avatar-stage-glow{position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:inset 0 0 24px #ff500133}
+.agent-avatar-stage.is-listening .agent-avatar-stage-frame{box-shadow:0 8px 24px #0006,0 0 0 3px #FF5001,0 0 0 10px #ff500133}
+.agent-avatar-stage.is-speaking .agent-avatar-stage-frame{box-shadow:0 8px 24px #0006,0 0 0 3px #FF5001aa}
+.agent-avatar-stage.is-mic-denied .agent-avatar-stage-frame{box-shadow:0 8px 24px #0006,0 0 0 3px #f3b4b0}
+.agent-avatar-stage-listen-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid #FF5001;opacity:.7;animation:agent-listen-ring 1.4s ease-out infinite;pointer-events:none}
+.agent-avatar-stage-lipsync{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:inline-flex;align-items:flex-end;gap:3px;height:16px;padding:3px 6px;background:#0B1633cc;border-radius:8px}
+.agent-avatar-stage-lipsync i{display:block;width:3px;height:5px;background:#FF5001;border-radius:1px;animation:agent-wave .55s ease-in-out infinite}
+.agent-avatar-stage-lipsync i:nth-child(2){animation-delay:.08s}.agent-avatar-stage-lipsync i:nth-child(3){animation-delay:.16s}.agent-avatar-stage-lipsync i:nth-child(4){animation-delay:.24s}.agent-avatar-stage-lipsync i:nth-child(5){animation-delay:.32s}
+.agent-avatar-stage-caption{margin:0;display:inline-flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;letter-spacing:.01em;color:#dce6f5}
+.agent-avatar-stage-dot{width:8px;height:8px;border-radius:50%;background:#7a8aa3;flex:0 0 auto}
+.agent-avatar-stage-dot.is-listening{background:#FF5001;box-shadow:0 0 0 4px #ff500133;animation:agent-pulse 1.2s ease-out infinite}
+.agent-avatar-stage-dot.is-speaking{background:#4ade80;box-shadow:0 0 0 4px #4ade8033}
+.agent-avatar-stage-dot.is-denied{background:#f87171}
+.agent-avatar-stage-denied{margin:0;max-width:34ch;text-align:center;font-size:.75rem;line-height:1.35;color:#fecaca}
+.agent-human-mouth-open{opacity:0}
+.agent-human-face.is-speaking .agent-human-mouth-closed{opacity:0}
+.agent-human-face.is-speaking .agent-human-mouth-open{opacity:1;animation:agent-mouth .45s ease-in-out infinite}
+.agent-human-face.is-listening .agent-human-head{animation:agent-speak 1.6s ease-in-out infinite}
+@keyframes agent-listen-ring{0%{transform:scale(.92);opacity:.75}100%{transform:scale(1.12);opacity:0}}
+@keyframes agent-mouth{0%,100%{transform:scaleY(.55)}50%{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){
+  .agent-avatar-stage-listen-ring,.agent-avatar-stage-lipsync i,.agent-avatar-stage-dot.is-listening,.agent-human-face.is-speaking .agent-human-mouth-open,.agent-human-face.is-listening .agent-human-head{animation:none!important}
+  .agent-human-face.is-speaking .agent-human-mouth-open{opacity:1;transform:scaleY(.85)}
+}
+@media(max-width:480px){
+  .agent-avatar-stage-frame{width:112px;height:112px}
+  .agent-avatar-stage{padding:10px 10px 6px}
+}
 
 
 /* ===== Tecnología / demos T-060 ===== */

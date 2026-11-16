@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AgentAvatar, type AgentAvatarState } from "@/components/AgentAvatar";
+import { AgentAvatarStage } from "@/components/AgentAvatarStage";
 import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
+import { avatarPublicStatus, type AvatarPublicStatus } from "@/lib/agent/avatar";
 
 /**
  * FAB único Carga360 (texto y voz). Marca visible en textos: Carga360go.
@@ -19,7 +21,7 @@ type Init = {
   quick?: string[];
   messages?: Msg[];
   maxLength?: number;
-  status?: { ai: string; modeLabel: string; voice: VoiceStatus[] };
+  status?: { ai: string; modeLabel: string; voice: VoiceStatus[]; avatar?: AvatarPublicStatus };
 };
 type Reply = { reply?: string; speak?: string; quick?: string[]; messages?: Msg[]; handoff?: boolean; mode?: string; error?: string };
 
@@ -124,6 +126,8 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [ttsSupported, setTtsSupported] = useState(false);
   const [greetingSpeak, setGreetingSpeak] = useState("");
+  const [micDenied, setMicDenied] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState<AvatarPublicStatus>(() => avatarPublicStatus());
   const greetedRef = useRef(false);
 
   const avatarState: AgentAvatarState = listening ? "listening" : speaking ? "speaking" : "idle";
@@ -143,6 +147,7 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
         const data = (await res.json().catch(() => null)) as Init | null;
         if (cancelled || !data) return;
         setEnabled(Boolean(data.enabled));
+        if (data.status?.avatar) setAvatarStatus(data.status.avatar);
         if (!data.enabled) return;
         setGreeting({ id: "greeting", role: "assistant", text: data.greeting || "", at: "" });
         setMessages(data.messages || []);
@@ -286,6 +291,7 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
     }
     stopSpeaking();
     setError("");
+    setMicDenied(false);
     const rec = new Ctor();
     rec.lang = "es-CL";
     rec.interimResults = true;
@@ -302,7 +308,10 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
       setInterim(partial || finalText);
     };
     rec.onerror = (event) => {
-      if (event.error !== "aborted") setError(MIC_ERRORS[event.error] || "No pude usar el micrófono. Puede escribir su consulta.");
+      if (event.error === "aborted") return;
+      const denied = event.error === "not-allowed" || event.error === "service-not-allowed";
+      setMicDenied(denied);
+      setError(MIC_ERRORS[event.error] || "No pude usar el micrófono. Puede escribir su consulta.");
     };
     rec.onend = () => {
       setListening(false);
@@ -338,7 +347,7 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
         <AgentAvatar state={avatarState} size={44} className="agent-head-avatar" label="Carga360go" />
         <div className="chat-head-copy">
           {executive ? <h2 id={titleId}>Asistente IA ejecutivo</h2> : <h2 id={titleId}>Carga360</h2>}
-          <p>Asistente · español de Chile</p>
+          <p>Asistente · español de Chile · Carga360go</p>
         </div>
         <div className="chat-head-actions">
           {ttsSupported ? (
@@ -354,6 +363,13 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
           </button>
         </div>
       </header>
+      <AgentAvatarStage
+        state={avatarState}
+        status={avatarStatus}
+        micDenied={micDenied}
+        listeningHint={interim || "Escuchando… hable ahora"}
+        label="Carga360go"
+      />
       <div className="chat-log" ref={logRef} aria-live="polite">
         {enabled === false ? (
           <div className="chat-bubble from-bot">
@@ -370,9 +386,20 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
           </div>
         ))}
         {listening ? (
-          <div className="agent-listening" role="status">
-            <AgentAvatar state="listening" size={28} />
-            <span>{interim || "Escuchando…"}</span>
+          <div className="agent-listening is-active" role="status">
+            <span className="agent-wave" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+            <span>{interim || "Micrófono activo — escuchando…"}</span>
+          </div>
+        ) : null}
+        {micDenied && !listening ? (
+          <div className="agent-mic-denied" role="alert">
+            Sin permiso de micrófono. Puede activarlo en la configuración del sitio o seguir escribiendo.
           </div>
         ) : null}
         {busy ? <div className="chat-bubble from-bot is-wait">Procesando…</div> : null}
@@ -439,11 +466,18 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
         {voiceSupported ? (
           <button
             type="button"
-            className={`agent-mic${listening ? " is-on" : ""}`}
+            className={`agent-mic${listening ? " is-on" : ""}${micDenied ? " is-denied" : ""}`}
             onClick={listening ? stopListening : startListening}
             disabled={busy || enabled === false}
             aria-pressed={listening}
-            aria-label={listening ? "Detener el micrófono" : "Hablar con Carga360go"}
+            aria-label={
+              listening
+                ? "Detener el micrófono"
+                : micDenied
+                  ? "Reintentar permiso de micrófono"
+                  : "Hablar con Carga360go"
+            }
+            title={micDenied ? "Sin permiso de micrófono" : listening ? "Micrófono activo" : "Hablar"}
           >
             {listening ? "■" : "🎙️"}
           </button>
