@@ -23,7 +23,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Separar push vs pull_request para que ambos puedan quedar verdes en el mismo tip.
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -69,7 +70,17 @@ jobs:
         run: npm run lint
 
       - name: build
-        run: npm run build
+        # next/font (Google) a veces falla en Actions con TypeError null — reintento acotado.
+        run: |
+          set -euo pipefail
+          for i in 1 2 3; do
+            if npm run build; then
+              exit 0
+            fi
+            echo "::warning::build intento $i falló (posible flake next/font); reintento…"
+            sleep $((i * 5))
+          done
+          exit 1
 
       - name: npm audit (prod)
         # Informativo: highs conocidos (p.ej. postcss/sharp) no bloquean el gate.
