@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
 import { test } from "node:test";
 import { REQUIRED_CARRIER_DOCS } from "../src/lib/carrier";
 import { PRIVACY_VERSION, TERMS_VERSION } from "../src/lib/privacy";
@@ -12,6 +13,7 @@ import { AppError } from "../src/lib/errors";
 import { todayChile } from "../src/lib/format";
 import { createLoad, getLoad, listLoads, updateLoad } from "../src/lib/listings";
 import { acceptOffer, canOffer, closeLoad, listOffersForLoad, offersVisibleTo, submitOffer, withdrawOffer } from "../src/lib/offers";
+import { cookieSecure } from "../src/lib/auth";
 import { assertHuman, assertStrongPassword, cleanClp, normalizePatente } from "../src/lib/security";
 import { getSettings, saveSettings } from "../src/lib/settings";
 import type { PublicUser } from "../src/lib/types";
@@ -117,7 +119,38 @@ test("seguridad: contraseña, patente, montos, honeypot y CSRF", () => {
     headers: { "sec-fetch-site": "same-origin", origin: "https://www.carga360go.cl", host: "www.carga360go.cl" },
   });
   assert.doesNotThrow(() => assertSameOrigin(same));
+  // Cookie de sesión sin Origin ni Sec-Fetch-Site: rechazar (usar Bearer en clientes no-browser).
+  const blind = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { cookie: "c360_session=token-de-sesion", host: "www.carga360go.cl" },
+  });
+  assert.throws(() => assertSameOrigin(blind), /Origen/);
+  const blindOk = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { cookie: "c360_session=token-de-sesion", "sec-fetch-site": "same-origin", host: "www.carga360go.cl" },
+  });
+  assert.doesNotThrow(() => assertSameOrigin(blindOk));
   assert.throws(() => resetPassword("token-falso", "123"), AppError);
+
+  // En tests COOKIE_SECURE=false; en producción Secure queda activo salvo override.
+  assert.equal(cookieSecure(), false);
+  const prev = process.env.COOKIE_SECURE;
+  process.env.COOKIE_SECURE = "true";
+  assert.equal(cookieSecure(), true);
+  process.env.COOKIE_SECURE = prev;
+});
+
+test("hardening: next.config declara CSP y headers de seguridad (no solo nginx)", () => {
+  const conf = fs.readFileSync(new URL("../next.config.ts", import.meta.url), "utf8");
+  assert.match(conf, /Content-Security-Policy/);
+  assert.match(conf, /upgrade-insecure-requests/);
+  assert.match(conf, /X-Content-Type-Options/);
+  assert.match(conf, /Referrer-Policy/);
+  assert.match(conf, /Permissions-Policy/);
+  assert.match(conf, /Strict-Transport-Security/);
+  assert.match(conf, /X-Frame-Options/);
+  const nginx = fs.readFileSync(new URL("../deploy/nginx-carga360go.conf", import.meta.url), "utf8");
+  assert.match(nginx, /Permissions-Policy/);
 });
 
 test("documentos: solo PDF/JPG/PNG reales", () => {

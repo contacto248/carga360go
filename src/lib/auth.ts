@@ -530,12 +530,16 @@ export function setUserVerification(id: string, status: VerificationStatus, note
   return toPublicUser(updated);
 }
 
+/** Secure en prod (o COOKIE_SECURE=true). COOKIE_SECURE=false fuerza off (tests/local HTTP). */
+export function cookieSecure(): boolean {
+  return process.env.COOKIE_SECURE === "true" || (process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false");
+}
+
 export function cookieOptions() {
-  const secure = process.env.COOKIE_SECURE === "true" || (process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false");
   return {
     httpOnly: true as const,
     sameSite: "lax" as const,
-    secure,
+    secure: cookieSecure(),
     path: "/",
     maxAge: Math.floor(SESSION_MS / 1000),
   };

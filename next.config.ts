@@ -19,15 +19,34 @@ const nextConfig: NextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'self'",
+      "upgrade-insecure-requests",
     ].join("; ");
+
+    // Defense-in-depth: también en Next (nginx puede faltar en staging/preview).
+    // microphone=(self): el Agente usa Web Speech API en el mismo origen.
+    const securityHeaders = [
+      { key: "Content-Security-Policy", value: csp },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), geolocation=(), payment=(), usb=(), microphone=(self)",
+      },
+    ];
+
+    if (process.env.NODE_ENV === "production") {
+      securityHeaders.push({
+        key: "Strict-Transport-Security",
+        value: "max-age=31536000; includeSubDomains",
+      });
+    }
+
     return [
       {
         source: "/:path*",
-        // nosniff, X-Frame-Options, Referrer-Policy, Permissions-Policy y HSTS los agrega nginx.
-        headers: [
-          { key: "Content-Security-Policy", value: csp },
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-        ],
+        headers: securityHeaders,
       },
     ];
   },
