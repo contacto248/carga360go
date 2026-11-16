@@ -35,6 +35,7 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.doesNotMatch(footer, /ChatWidget|HelpLauncher|webChatEnabled/);
   const agent = read("src/components/VoiceAgent.tsx");
   assert.match(agent, />Carga360</);
+  assert.match(agent, /id=\{titleId\}>Carga360</);
   assert.match(agent, /Carga360go/);
   assert.match(agent, /Continuar por WhatsApp/);
   assert.match(agent, /speechSynthesis/);
@@ -46,6 +47,7 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(agent, /chat-head-copy/);
   assert.match(agent, /chat-head-actions/);
   assert.match(agent, /Escriba o hable/);
+  assert.doesNotMatch(agent, /id=\{titleId\}>Carga360go</);
   assert.doesNotMatch(agent, /chat-wa-mini/);
   assert.doesNotMatch(agent, /aiLabel|agent-badge|Respuestas por reglas/);
   assert.doesNotMatch(agent, /status\?\.modeLabel|status\?\.ai ===/);
@@ -60,6 +62,8 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(css, /chat-head-copy/);
   assert.match(css, /chat-head-actions/);
   const engine = read("src/lib/agent/engine.ts");
+  assert.match(engine, /bienvenido a Carga360go/);
+  assert.doesNotMatch(engine, /bienvenido a CARGA360GO/);
   assert.match(engine, /Cotizar flete/);
   assert.match(engine, /Publicar carga/);
   assert.match(engine, /Registro transportista/);

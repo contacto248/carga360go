@@ -303,7 +303,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
       <header className="chat-head">
         <AgentAvatar state={avatarState} size={44} className="agent-head-avatar" label="Carga360go" />
         <div className="chat-head-copy">
-          <h2 id={titleId}>Carga360go</h2>
+          <h2 id={titleId}>Carga360</h2>
           <p>Asistente · español de Chile</p>
         </div>
         <div className="chat-head-actions">

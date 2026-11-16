@@ -30,7 +30,7 @@ import { COST_EXPLANATION, COST_PENDING_NOTE, costSentence, freightCostProvider 
 
 /** Saludo del agente (módulo 1), ajustado a las reglas de hoy: no entrega precios y dice que es automático. */
 export const AGENT_GREETING =
-  "Hola, bienvenido a CARGA360GO, la plataforma tecnológica que conecta cargas y transportistas en todo Chile. " +
+  "Hola, bienvenido a Carga360go, la plataforma tecnológica que conecta cargas y transportistas en todo Chile. " +
   "Soy su asistente virtual automático, no una persona. Puedo ayudarle a solicitar una cotización, registrarse, " +
   "consultar el estado de su cuenta o de una carga, o pasarle con una persona del equipo. ¿Qué necesita realizar?";
 

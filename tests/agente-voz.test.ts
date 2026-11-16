@@ -143,7 +143,8 @@ test("cotización completa: lead en la base, resumen confirmado, sin precios ni 
   enable();
   const init = await GET(new Request(`${BASE}/api/agente`), ctx);
   const initData = (await init.json()) as { greeting: string; status: { ai: string; voice: { id: string; connected: boolean; state: string }[] } };
-  assert.match(initData.greeting, /CARGA360GO/);
+  assert.match(initData.greeting, /Carga360go/);
+  assert.doesNotMatch(initData.greeting, /CARGA360GO/);
   assert.match(initData.greeting, /automático, no una persona/);
   assert.equal(initData.status.ai, "no_configurada");
   assert.equal(initData.status.voice.find((v) => v.id === "twilio")?.connected, false);
