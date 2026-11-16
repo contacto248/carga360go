@@ -83,9 +83,11 @@ test("T-008 residual: soloVerificados excluye docs faltantes, acepta vigentes y 
   setDocumentVerification(padronExpired.id, "verificado", null);
   const listedExpired = getLoad(expired.load.id);
   assert.ok(listedExpired);
-  assert.equal(listedExpired!.matches.find((m) => m.truck.id === expired.truck.id), undefined, "docs vencidos no deben calzar");
+  // Match público no expone ownerId/ownerDocsOk (T-007); se valida por id del camión.
   assert.equal(
-    listedExpired!.matches.some((m) => m.truck.ownerId === expired.carrier.user.id && m.truck.ownerDocsOk),
-    false,
+    listedExpired!.matches.find((m) => m.truck.id === expired.truck.id),
+    undefined,
+    "docs vencidos no deben calzar",
   );
+  assert.equal(publicVerifiedSeal("verificado", false), false);
 });
