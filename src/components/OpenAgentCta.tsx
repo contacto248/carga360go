@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * CTA de la sección de video: abre el Agente Carga360go (FAB del pie)
+ * CTA de la sección de video: abre el FAB único Carga360 (pie)
  * sin autoplay de video ni sonido.
  */
 export function OpenAgentCta() {
@@ -19,7 +19,7 @@ export function OpenAgentCta() {
         document.getElementById("c360-agent-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }}
     >
-      Hablar con el Agente Carga360go
+      Hablar con Carga360go
     </button>
   );
 }

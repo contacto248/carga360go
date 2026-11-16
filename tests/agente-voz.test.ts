@@ -91,12 +91,16 @@ test("migración 15: solo crea tablas nuevas y no toca datos existentes", () => 
 test("intenciones: cotizar, registro, estado, persona, costos y otras", () => {
   assert.equal(detectAgentIntent("Quiero cotizar un flete"), "cotizar");
   assert.equal(detectAgentIntent("Solicitar transporte"), "cotizar");
+  assert.equal(detectAgentIntent("Cotizar flete"), "cotizar");
+  assert.equal(detectAgentIntent("Publicar carga"), "cotizar");
   assert.equal(detectAgentIntent("Necesito un camión para mover una carga"), "cotizar");
   assert.equal(detectAgentIntent("Quiero registrarme"), "registro");
   assert.equal(detectAgentIntent("Registrar mi camión"), "registro");
+  assert.equal(detectAgentIntent("Registro transportista"), "registro");
   assert.equal(detectAgentIntent("quiero crear mi cuenta"), "registro");
   assert.equal(detectAgentIntent("¿Cuál es el estado de mi carga?"), "estado");
   assert.equal(detectAgentIntent("Consultar un servicio"), "estado");
+  assert.equal(detectAgentIntent("Seguimiento de carga"), "estado");
   assert.equal(detectAgentIntent("Quiero hablar con una persona"), "humano");
   assert.equal(detectAgentIntent("Hablar con soporte"), "humano");
   assert.equal(detectAgentIntent("me cobraron dos veces"), "humano");
@@ -139,7 +143,8 @@ test("cotización completa: lead en la base, resumen confirmado, sin precios ni 
   enable();
   const init = await GET(new Request(`${BASE}/api/agente`), ctx);
   const initData = (await init.json()) as { greeting: string; status: { ai: string; voice: { id: string; connected: boolean; state: string }[] } };
-  assert.match(initData.greeting, /CARGA360GO/);
+  assert.match(initData.greeting, /Carga360go/);
+  assert.doesNotMatch(initData.greeting, /CARGA360GO/);
   assert.match(initData.greeting, /automático, no una persona/);
   assert.equal(initData.status.ai, "no_configurada");
   assert.equal(initData.status.voice.find((v) => v.id === "twilio")?.connected, false);

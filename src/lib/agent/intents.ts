@@ -30,9 +30,10 @@ export function detectAgentIntent(text: string): AgentIntent {
   if (HANDOFF_INTENTS.includes(base)) return "humano";
   if (/\bhablar con soporte\b/.test(t)) return "humano";
   if (/\b(crear|abrir) (una |mi )?cuenta\b/.test(t)) return "registro";
-  if (ESTADO.test(t) || base === "estado_cuenta" || base === "seguimiento_carga" || base === "documentos_rechazo") return "estado";
-  if (COTIZAR.test(t) || base === "publicar_carga") return "cotizar";
-  if (REGISTRO.test(t) || base === "registro_transportista" || base === "publicar_camion") return "registro";
+  if (ESTADO.test(t) || base === "estado_cuenta" || base === "seguimiento_carga" || base === "documentos_rechazo" || /\bseguimiento( de carga)?\b/.test(t))
+    return "estado";
+  if (COTIZAR.test(t) || base === "publicar_carga" || /\bpublicar carga\b/.test(t) || /\bcotizar flete\b/.test(t)) return "cotizar";
+  if (REGISTRO.test(t) || base === "registro_transportista" || base === "publicar_camion" || /\bregistro transportista\b/.test(t)) return "registro";
   return "otro";
 }
 

@@ -28,21 +28,56 @@ test("T-049 home v2: marca, torre de control y flujos sin precios/comisiones", (
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
 });
 
-test("T-049 solo Agente Carga360go en el pie (sin ChatWidget ni FAB WhatsApp)", () => {
+test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", () => {
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /VoiceAgentLauncher/);
-  assert.match(footer, /Agente Carga360go|VoiceAgent/);
+  assert.match(footer, /VoiceAgent/);
   assert.doesNotMatch(footer, /ChatWidget|HelpLauncher|webChatEnabled/);
   const agent = read("src/components/VoiceAgent.tsx");
-  assert.match(agent, /Agente Carga360go/);
+  assert.match(agent, />Carga360</);
+  assert.match(agent, /id=\{titleId\}>Carga360</);
+  assert.match(agent, /Carga360go/);
+  assert.match(agent, /Continuar por WhatsApp/);
   assert.match(agent, /speechSynthesis/);
   assert.match(agent, /es-CL/);
   assert.match(agent, /es-ES/);
   assert.match(agent, /AgentAvatar/);
-  assert.match(agent, /chat-wa-mini/);
-  assert.doesNotMatch(agent, /help-wa|btn wa fab/);
+  assert.match(agent, /agent-wa-cta/);
+  assert.match(agent, /Continuar por WhatsApp/);
+  assert.match(agent, /chat-head-copy/);
+  assert.match(agent, /chat-head-actions/);
+  assert.match(agent, /Escriba o hable/);
+  assert.doesNotMatch(agent, /id=\{titleId\}>Carga360go</);
+  assert.doesNotMatch(agent, /chat-wa-mini/);
+  assert.doesNotMatch(agent, /aiLabel|agent-badge|Respuestas por reglas/);
+  assert.doesNotMatch(agent, /status\?\.modeLabel|status\?\.ai ===/);
+  assert.doesNotMatch(agent, /help-wa|help-stack|btn wa fab/);
+  assert.doesNotMatch(agent, /Agente BASSAM|BASSAM 360/);
+  const chat = read("src/components/ChatWidget.tsx");
+  assert.match(chat, /return null/);
+  assert.doesNotMatch(chat, /help-fab|btn wa fab|help-wa/);
+  const css = read("src/app/globals.css");
+  assert.match(css, /cookie-banner/);
+  assert.match(css, /body:has\(\.cookie-banner\) \.help-dock/);
+  assert.match(css, /chat-head-copy/);
+  assert.match(css, /chat-head-actions/);
+  const engine = read("src/lib/agent/engine.ts");
+  assert.match(engine, /bienvenido a Carga360go/);
+  assert.doesNotMatch(engine, /bienvenido a CARGA360GO/);
+  assert.match(engine, /Cotizar flete/);
+  assert.match(engine, /Publicar carga/);
+  assert.match(engine, /Registro transportista/);
+  assert.match(engine, /Seguimiento de carga/);
+  assert.match(engine, /Hablar con soporte/);
   assert.ok(fs.existsSync(path.join(ROOT, "src/components/AgentAvatar.tsx")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/brand/agent-mark.svg")));
+  const waDoc = read("docs/diseno-whatsapp-cloud-api-agente.md");
+  assert.match(waDoc, /Estado Meta \(16-11-2026, lectura\)/);
+  assert.match(waDoc, /Test Messaging Account/);
+  assert.match(waDoc, /WA_WABA_ID/);
+  assert.match(waDoc, /WA_PHONE_NUMBER_ID/);
+  assert.match(waDoc, /WA_ACCESS_TOKEN/);
+  assert.doesNotMatch(waDoc, /EAA[A-Za-z0-9]{20,}/);
 });
 
 test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => {
