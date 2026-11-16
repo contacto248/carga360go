@@ -671,5 +671,28 @@ footer.foot a:hover{color:#ffd7bd}
 
 .home-live-band .tower-live{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 10px 28px #0b163312}
 .home-live-band .lb-empty{padding:8px 4px}
+/* Bolsa reciente (banda clara): filas con contraste AA ≥4.5:1 — no heredar fondo navy de .tower-live */
+.home-live-band .tower-live .lb-head{color:var(--navy)}
+.home-live-band .tower-live .lb-list a{
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--ink);
+}
+.home-live-band .tower-live .lb-route{color:#0f1b2d}
+.home-live-band .tower-live .lb-meta,
+.home-live-band .tower-live .lb-time,
+.home-live-band .tower-live .lb-empty p{color:#3d4c63}
+.home-live-band .tower-live .lb-empty strong{color:#0f1b2d}
+.home-live-band .tower-live .lb-all{color:var(--brand-navy);font-weight:700}
 .cta-band .btn.ghost{color:#fff;border-color:#ffffff55}
 .cta-band .btn.ghost:hover{background:#ffffff18}
+
+/* T-066: en móvil el FAB no tapa «Soy transportista» (CTA full-width a la derecha / abajo) */
+@media(max-width:819px){
+  .hero-v3 .cta{
+    padding-right:calc(60px + 12px);
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));
+    row-gap:12px;
+  }
+  .hero-v3 .hero-legal{padding-right:calc(60px + 12px)}
+}

@@ -168,6 +168,19 @@ test("T-065 torre animada y CTA del agente sin segundo FAB", () => {
   assert.doesNotMatch(cta, /help-wa|btn wa fab|FAB WhatsApp/i);
 });
 
+test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA", () => {
+  const css = read("src/app/globals.css");
+  assert.match(css, /hero-v3 \.cta/);
+  assert.match(css, /padding-right:calc\(60px/);
+  assert.match(css, /home-live-band \.tower-live \.lb-list a/);
+  assert.match(css, /#3d4c63/);
+  assert.match(css, /home-live-band \.tower-live \.lb-route\{color:#0f1b2d\}/);
+  const home = read("src/app/page.tsx");
+  assert.match(home, /Soy transportista: encuentra cargas/);
+  assert.match(home, /home-live-band/);
+  assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
+});
+
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {
   const header = read("src/components/Header.tsx");
   assert.match(header, /Costo real y automático del flete/);
