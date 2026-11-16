@@ -43,11 +43,21 @@ function account(role: "transportista" | "mandante", name: string, city = "Santi
 }
 
 test("la portada usa el copy del paquete y no promete acreditación 100% ni auditorías de calidad", () => {
-  const home = read("src/app/page.tsx");
-  assert.match(home, /Conectamos cargas y camiones\. Movemos la industria de Chile\./);
-  assert.match(home, /Soy transportista: encuentra cargas/);
-  assert.match(home, /Soy empresa: encuentra camiones/);
-  assert.match(home, /Calcular un flete referencial/);
+  const home = `${read("src/app/page.tsx")}\n${read("src/components/HomeShowcase.tsx")}`;
+  assert.match(home, /La plataforma para gestionar el transporte de carga en Chile/);
+  assert.match(home, /Publica tu carga/);
+  assert.match(home, /Soy transportista/);
+  assert.match(home, /href="\/cargas\/nueva"/);
+  assert.match(home, /href="\/registro"/);
+  assert.match(home, /Operamos en diferentes industrias/);
+  assert.match(home, /Trazabilidad en tiempo real/);
+  assert.match(home, /Transportistas validados/);
+  assert.match(home, /Menos viajes vacíos = menos CO₂/);
+  assert.match(home, /IA que asiste la coordinación/);
+  assert.match(home, /Documentos validados/);
+  assert.match(home, /En tránsito · Antofagasta → Santiago/);
+  assert.doesNotMatch(home, /Carga Retorno 360/);
+  assert.doesNotMatch(home, /271\s*K/);
   assert.match(home, /Carga360go conecta a las partes/);
   assert.match(home, /\/como-verificamos/);
   assert.match(home, /\/transporte-minero-chile/);
@@ -169,6 +179,6 @@ test("no se modificaron los textos legales de privacidad ni términos en este pa
   assert.match(privacy, /requisitos de calidad, seguridad y medio ambiente/);
   assert.match(terms, /cuentas 100% acreditadas/);
   // La suavización pública está en la portada y en /como-verificamos, no en estos archivos.
-  const home = read("src/app/page.tsx");
+  const home = `${read("src/app/page.tsx")}\n${read("src/components/HomeShowcase.tsx")}`;
   assert.doesNotMatch(home, /100% acreditad/);
 });

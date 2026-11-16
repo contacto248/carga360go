@@ -264,3 +264,60 @@ body:has(.help-stack) footer.foot{padding-bottom:140px}
 .wa-channel strong{display:block;color:var(--ink)}
 .wa-channel span{display:block;color:var(--muted);font-size:.9rem}
 .wa-channel .btn{flex:0 0 auto}
+
+/* ===== Portada SaaS ===== */
+.hero-saas{position:relative;background:
+  linear-gradient(#e7edf5 1px,transparent 1px),
+  linear-gradient(90deg,#e7edf5 1px,transparent 1px),
+  linear-gradient(180deg,#f8fbff,#fff);
+  background-size:28px 28px,28px 28px,auto;
+  padding:36px 0 28px;color:var(--ink)}
+@media(min-width:960px){.hero-saas{padding:64px 0 36px}}
+.hero-saas h1{color:var(--navy);font-size:2.05rem;letter-spacing:-.03em;max-width:16ch}
+@media(min-width:820px){.hero-saas h1{font-size:3rem}}
+.hero-saas .pill{margin-bottom:14px;background:#e8eef7}
+.hero-saas p{color:#3d4c63;font-size:1.05rem;max-width:38rem}
+.hero-saas .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.hero-saas .hero-legal{color:var(--muted);margin-top:14px}
+.hero-saas .qsearch{box-shadow:0 10px 28px #0b163314;border:1px solid var(--line)}
+.saas-stage{margin:0}
+.saas-panel{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 40px #0b163318;padding:12px;color:var(--ink)}
+.saas-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 6px 10px;font-size:.86rem}
+.saas-bar strong{color:var(--navy)}
+.saas-bar span{background:#eef2f8;color:var(--muted);border-radius:99px;padding:2px 8px;font-size:.72rem;font-weight:800}
+.saas-map{position:relative;background:#f4f7fb;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.saas-map svg{display:block;width:100%;height:auto}
+.saas-gridline{stroke:#d5deea;stroke-width:1}
+.saas-route{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round}
+.saas-dot{fill:var(--navy)}
+.saas-map text{fill:var(--navy);font-size:13px;font-weight:700}
+.saas-floats{display:grid;gap:8px;margin:-22px 8px 0;position:relative;z-index:1}
+@media(min-width:720px){.saas-floats{grid-template-columns:1fr 1fr}}
+.saas-chip{display:flex;gap:8px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 10px;box-shadow:0 8px 18px #0b163314;min-width:0}
+.saas-chip strong,.saas-chip small{display:block}
+.saas-chip strong{font-size:.78rem;color:var(--navy);line-height:1.25}
+.saas-chip small{color:var(--muted);font-size:.7rem}
+.saas-chip-ic{flex:0 0 28px;width:28px;height:28px;color:var(--accent)}
+.saas-chip-ic svg{width:28px;height:28px}
+.saas-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 0}
+.saas-kpis div{background:#f5f7fa;border:1px solid var(--line);border-radius:10px;padding:8px}
+.saas-kpis dt{color:var(--muted);font-size:.68rem}
+.saas-kpis dd{margin:2px 0 0;font-size:1.35rem;font-weight:800;color:var(--navy)}
+.saas-stage figcaption{margin:8px 2px 0;color:var(--muted);font-size:.75rem}
+.saas-kicker{margin:0 0 6px;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2)}
+.industry-grid,.pillar-grid{display:grid;gap:12px;margin-top:16px;grid-template-columns:1fr}
+@media(min-width:640px){.industry-grid{grid-template-columns:1fr 1fr}.pillar-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:980px){.industry-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.industry-card,.pillar-card{min-width:0}
+.industry-card h3,.pillar-card h3{margin:8px 0 4px;font-size:1rem}
+.industry-card p,.pillar-card p{margin:0;color:var(--muted);font-size:.9rem}
+.industry-ic{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#eef2f8;color:var(--navy)}
+.industry-ic svg{width:26px;height:26px}
+.live-board-light{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.live-board-light .lb-head{color:var(--navy)}
+.live-board-light .lb-all{color:var(--accent2)}
+@media(max-width:560px){
+  .hero-saas .cta .btn{width:100%}
+  .saas-floats{margin-top:8px}
+  .saas-kpis{grid-template-columns:1fr}
+}

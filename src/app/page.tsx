@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FreeBanner } from "@/components/FreeBanner";
+import { HeroPanel, IndustrySection, PillarSection } from "@/components/HomeShowcase";
 import { WhatsAppChannel } from "@/components/WhatsAppChannel";
 import { QuickSearch } from "@/components/QuickSearch";
 import { getCurrentUser } from "@/lib/current-user";
@@ -11,7 +12,11 @@ import { formatDateCL, waLink } from "@/lib/format";
 import { RegionsDashboard } from "@/components/RegionsDashboard";
 import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
 
-export const metadata: Metadata = { alternates: { canonical: "/" } };
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  description:
+    "La plataforma para gestionar el transporte de carga en Chile. Conecta mandantes y transportistas validados, cargas y retornos, trazabilidad y torre de control, todo en un solo lugar.",
+};
 
 const FAQ = [
   {
@@ -78,52 +83,45 @@ export default async function HomePage() {
       <div className="wrap" style={{ paddingTop: 12 }}>
         <FreeBanner user={user} />
       </div>
-      <section className="hero hero2">
+      <section className="hero-saas">
         <div className="wrap hero-grid">
           <div>
-            <span className="pill hero-pill">30 días gratis por cuenta · 16 regiones · de Arica a Punta Arenas</span>
-            <h1>Conectamos cargas y camiones. Movemos la industria de Chile.</h1>
+            <span className="pill">De Arica a Punta Arenas · 16 regiones</span>
+            <h1>La plataforma para gestionar el transporte de carga en Chile.</h1>
             <p>
-              Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y coordina en directo. Menos
-              viajes en vacío, sin comisión por el flete.
+              Conecta mandantes y transportistas validados, cargas y retornos, trazabilidad y torre de control, todo en un
+              solo lugar.
             </p>
-            <QuickSearch />
             <div className="cta">
-              <Link className="btn" href="/cargas">
-                Soy transportista: encuentra cargas
+              <Link className="btn" href="/cargas/nueva">
+                Publica tu carga
               </Link>
-              <Link className="btn ghost" href="/camiones">
-                Soy empresa: encuentra camiones
-              </Link>
-              <Link className="btn ghost" href="/herramientas/calculadora">
-                Calcular un flete referencial
+              <Link className="btn sec" href="/registro">
+                Soy transportista
               </Link>
             </div>
+            <QuickSearch />
             <p className="hero-legal">
               Carga360go conecta a las partes. El acuerdo y el pago son directos. {BRAND.company} · RUT {BRAND.rut}.
             </p>
           </div>
-          <aside className="live-board" aria-label="Últimas publicaciones">
-            <div className="lb-head">
-              <span className="dot-live" /> Bolsa en vivo
-              <Link href="/cargas" className="lb-all">
-                Ver todo →
-              </Link>
-            </div>
-            {recent.length === 0 ? (
-              <div className="lb-empty">
-                <strong>Todavía no hay avisos activos.</strong>
-                <p>Sé de los primeros en publicar: tu aviso aparece aquí y avisamos a quienes calzan.</p>
-                <div className="row">
-                  <Link className="btn sm" href="/cargas/nueva">
-                    Publicar carga
-                  </Link>
-                  <Link className="btn sec sm" href="/camiones/nuevo">
-                    Publicar camión
-                  </Link>
-                </div>
+          <HeroPanel />
+        </div>
+      </section>
+
+      <IndustrySection />
+      <PillarSection />
+
+      {recent.length > 0 ? (
+        <section className="block alt">
+          <div className="wrap">
+            <div className="live-board live-board-light" aria-label="Últimas publicaciones">
+              <div className="lb-head">
+                <span className="dot-live" /> Bolsa en vivo
+                <Link href="/cargas" className="lb-all">
+                  Ver todo →
+                </Link>
               </div>
-            ) : (
               <ul className="lb-list">
                 {recent.map((item) => {
                   const eq = equipmentById(item.equipment);
@@ -144,10 +142,10 @@ export default async function HomePage() {
                   );
                 })}
               </ul>
-            )}
-          </aside>
-        </div>
-      </section>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {visibleCounters.length > 0 ? (
         <section className="counters-band">
