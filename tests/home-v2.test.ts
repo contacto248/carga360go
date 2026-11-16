@@ -86,13 +86,12 @@ test("T-061 home referencia video corporativo Carga360go", () => {
   assert.match(home, /playsInline/);
   assert.match(home, /aria-label="Video corporativo de Carga360go"/);
   assert.match(home, /poster="\/video\/carga360go-corporativo-poster\.jpg"/);
-  assert.match(home, /OpenAgentCta/);
+  assert.doesNotMatch(home, /OpenAgentCta/);
+  assert.doesNotMatch(home, /home-video-brand/);
+  assert.doesNotMatch(home, /Sin reproducción automática/);
   assert.doesNotMatch(home, /autoPlay|autoplay/i);
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo.mp4")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo-poster.jpg")));
-  const cta = read("src/components/OpenAgentCta.tsx");
-  assert.match(cta, /agent-fab/);
-  assert.match(cta, /Hablar con el Agente Carga360go/);
 });
 
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {

@@ -10,7 +10,6 @@ import { TruckArt } from "@/components/TruckArt";
 import { BRAND, EQUIPMENT, equipmentById } from "@/lib/catalog";
 import { formatDateCL, waLink } from "@/lib/format";
 import { RegionsDashboard } from "@/components/RegionsDashboard";
-import { OpenAgentCta } from "@/components/OpenAgentCta";
 import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -199,7 +198,6 @@ export default async function HomePage() {
       <section className="home-video-band" aria-labelledby="home-video-title">
         <div className="home-video-atmosphere" aria-hidden="true" />
         <div className="wrap home-video-inner">
-          <p className="home-video-brand">Carga360go</p>
           <h2 id="home-video-title" className="home-video-title">
             Conoce <span>Carga360go</span>
           </h2>
@@ -219,10 +217,6 @@ export default async function HomePage() {
                 <source src="/video/carga360go-corporativo.mp4" type="video/mp4" />
               </video>
             </div>
-          </div>
-          <div className="home-video-actions">
-            <OpenAgentCta />
-            <p className="home-video-note">Sin reproducción automática con sonido. Tú eliges cuándo verlo.</p>
           </div>
         </div>
       </section>
