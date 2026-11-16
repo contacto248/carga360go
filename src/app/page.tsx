@@ -195,6 +195,32 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="home-video-band" aria-labelledby="home-video-title">
+        <div className="home-video-atmosphere" aria-hidden="true" />
+        <div className="wrap home-video-inner">
+          <h2 id="home-video-title" className="home-video-title">
+            Conoce <span>Carga360go</span>
+          </h2>
+          <p className="home-video-lead">
+            La torre de control que conecta cargas y camiones en Chile — mira cómo se mueve la operación.
+          </p>
+          <div className="home-video-stage">
+            <div className="home-video-frame">
+              <video
+                className="home-video"
+                controls
+                preload="metadata"
+                playsInline
+                poster="/video/carga360go-corporativo-poster.jpg"
+                aria-label="Video corporativo de Carga360go"
+              >
+                <source src="/video/carga360go-corporativo.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {visibleCounters.length > 0 ? (
         <section className="counters-band">
           <div className="wrap">
