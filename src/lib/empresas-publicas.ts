@@ -150,7 +150,7 @@ export function vistaEmpresa(empresa: EmpresaPublica): VistaEmpresa {
       return {
         ...base,
         estado: "certificada",
-        badge: "EMPRESA CERTIFICADA CARGA360GO",
+        badge: "EMPRESA CERTIFICADA Carga360go",
         badgeClass: "pill ok",
         sello: "4 documentos verificados",
         cargasMes: empresa.cargasMes,
@@ -159,7 +159,7 @@ export function vistaEmpresa(empresa: EmpresaPublica): VistaEmpresa {
       return {
         ...base,
         estado: "en_acreditacion",
-        badge: "EN PROCESO DE ACREDITACIÓN CARGA360GO",
+        badge: "EN PROCESO DE ACREDITACIÓN Carga360go",
         badgeClass: "pill warn",
         sello: null,
         cargasMes: null,

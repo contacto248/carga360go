@@ -111,7 +111,7 @@ test("la proyección pública omite mail, teléfono y cargas/mes mientras están
     assert.equal("cargasMes" in empresa, false);
     assert.equal("cert" in empresa, false);
     const vista = vistaEmpresa(empresa);
-    assert.equal(vista.badge, "EN PROCESO DE ACREDITACIÓN CARGA360GO");
+    assert.equal(vista.badge, "EN PROCESO DE ACREDITACIÓN Carga360go");
     assert.equal(vista.badgeClass, "pill warn");
     assert.equal(vista.sello, null);
     assert.equal(vista.cargasMes, null);
@@ -126,7 +126,7 @@ test("una empresa certificada muestra sello y cargas/mes, sin contacto", () => {
   if (publica.estado !== "certificada") return;
   assert.equal(publica.cargasMes, "15+");
   const vista = vistaEmpresa(publica);
-  assert.equal(vista.badge, "EMPRESA CERTIFICADA CARGA360GO");
+  assert.equal(vista.badge, "EMPRESA CERTIFICADA Carga360go");
   assert.equal(vista.badgeClass, "pill ok");
   assert.equal(vista.sello, "4 documentos verificados");
   assert.equal(vista.cargasMes, "15+");
@@ -178,8 +178,9 @@ test("la marca pública del directorio es Carga360go, no BASSAM", () => {
   assert.match(page, /Carga360go/);
   assert.doesNotMatch(page, /BASSAM/i);
   assert.doesNotMatch(lib, /BASSAM/i);
-  assert.match(lib, /EMPRESA CERTIFICADA CARGA360GO/);
-  assert.match(lib, /EN PROCESO DE ACREDITACIÓN CARGA360GO/);
+  assert.match(lib, /EMPRESA CERTIFICADA Carga360go/);
+  assert.match(lib, /EN PROCESO DE ACREDITACIÓN Carga360go/);
+  assert.doesNotMatch(lib, /CARGA360GO/);
   assert.match(css, /\.empresa-card/);
   assert.match(css, /\/\* Directorio \/empresas \*\//);
 });
