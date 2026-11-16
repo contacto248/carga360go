@@ -561,3 +561,12 @@ footer.foot a:hover{color:#ffd7bd}
   .cookie-banner-actions{width:100%}
   .cookie-banner-actions .btn{flex:1 1 auto}
 }
+
+/* Directorio /empresas */
+.empresa-card{display:flex;flex-direction:column;gap:10px;min-width:0}
+.empresa-card h2{margin:0;font-size:1.2rem;letter-spacing:-.02em}
+.empresa-badges{display:flex;flex-wrap:wrap;gap:6px}
+.empresa-badges .pill{max-width:100%;white-space:normal;line-height:1.35}
+.empresa-card .campo{margin:0}
+.empresa-card .campo span{display:block;font-size:.72rem;font-weight:800;letter-spacing:.03em;color:var(--muted)}
+.empresa-card .btn{margin-top:auto}
