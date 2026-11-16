@@ -34,7 +34,14 @@ export const AGENT_GREETING =
   "Soy su asistente virtual automático, no una persona. Puedo ayudarle a solicitar una cotización, registrarse, " +
   "consultar el estado de su cuenta o de una carga, o pasarle con una persona del equipo. ¿Qué necesita realizar?";
 
-export const DEFAULT_QUICK = ["Solicitar transporte", "Encontrar cargas", "Registrar mi camión", "Consultar un servicio", "Hablar con soporte"];
+/** Acciones del panel unificado (absorbe el antiguo Asistente): cotizar, publicar, registro, seguimiento, soporte. */
+export const DEFAULT_QUICK = [
+  "Cotizar flete",
+  "Publicar carga",
+  "Registro transportista",
+  "Seguimiento de carga",
+  "Hablar con soporte",
+];
 
 const NO_PRICE_NOTE = COST_EXPLANATION;
 

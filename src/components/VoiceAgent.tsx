@@ -4,7 +4,8 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AgentAvatar, type AgentAvatarState } from "@/components/AgentAvatar";
 
 /**
- * Agente Carga360go (texto y voz).
+ * FAB único Carga360 (texto y voz). Marca visible en textos: Carga360go.
+ * Absorbe WhatsApp y las acciones del antiguo Asistente/chat web.
  * Voz: Web Speech API del navegador (speechSynthesis + SpeechRecognition) en es-CL / es-ES.
  * No se graba ni se guarda audio: solo se envía el texto reconocido. Sin claves ni servicios de pago.
  */
@@ -72,12 +73,19 @@ export function VoiceAgentLauncher({ waHref }: { waHref: string }) {
     <div className={`help-dock${open ? " is-open" : ""}`}>
       {open ? <AgentPanel waHref={waHref} onClose={() => setOpen(false)} /> : null}
       {!open ? (
-        <button type="button" className="help-fab agent-fab" onClick={() => setOpen(true)} aria-expanded={false} aria-controls="c360-agent-panel">
-          <AgentAvatar state="idle" size={28} className="agent-fab-avatar" />
-          <span>Agente Carga360go</span>
+        <button
+          type="button"
+          className="help-fab agent-fab"
+          onClick={() => setOpen(true)}
+          aria-expanded={false}
+          aria-controls="c360-agent-panel"
+          aria-label="Abrir Carga360"
+        >
+          <AgentAvatar state="idle" size={28} className="agent-fab-avatar" label="Carga360go" />
+          <span>Carga360</span>
         </button>
       ) : (
-        <button type="button" className="help-fab is-close" onClick={() => setOpen(false)} aria-expanded={true} aria-controls="c360-agent-panel" aria-label="Cerrar Agente Carga360go">
+        <button type="button" className="help-fab is-close" onClick={() => setOpen(false)} aria-expanded={true} aria-controls="c360-agent-panel" aria-label="Cerrar Carga360">
           ✕
         </button>
       )}
@@ -136,7 +144,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
       } catch {
         if (!cancelled) {
           setEnabled(false);
-          setError("No hay conexión con el Agente Carga360go. Puede escribirnos por WhatsApp.");
+          setError("No hay conexión con Carga360go. Puede continuar por WhatsApp.");
         }
       }
     })();
@@ -296,37 +304,37 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
   return (
     <section id="c360-agent-panel" className="chat-panel agent-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <header className="chat-head">
-        <AgentAvatar state={avatarState} size={44} className="agent-head-avatar" />
+        <AgentAvatar state={avatarState} size={44} className="agent-head-avatar" label="Carga360go" />
         <div>
-          <h2 id={titleId}>Agente Carga360go</h2>
+          <h2 id={titleId}>Carga360go</h2>
           <p>
-            Trazabilidad y automatización · español de Chile
+            Asistente · trazabilidad y automatización · español de Chile
             {aiLabel ? <span className={`agent-badge${status?.ai === "conectada" ? " ok" : ""}`}>{aiLabel}</span> : null}
           </p>
         </div>
         <a className="chat-wa-mini" href={waHref} target="_blank" rel="noopener noreferrer">
-          WhatsApp
+          Continuar por WhatsApp
         </a>
         {ttsSupported ? (
-          <button type="button" className="chat-x" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Activar la voz del agente" : "Silenciar la voz del agente"} title={muted ? "Voz silenciada" : "Voz activada"}>
+          <button type="button" className="chat-x" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Activar la voz de Carga360go" : "Silenciar la voz de Carga360go"} title={muted ? "Voz silenciada" : "Voz activada"}>
             {muted ? "🔇" : "🔊"}
           </button>
         ) : null}
         <button type="button" className="chat-x" onClick={reset} aria-label="Nueva conversación" title="Nueva conversación" disabled={enabled === false}>
           ↺
         </button>
-        <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar Agente Carga360go">
+        <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar Carga360">
           ✕
         </button>
       </header>
       <div className="chat-log" ref={logRef} aria-live="polite">
         {enabled === false ? (
           <div className="chat-bubble from-bot">
-            El Agente Carga360go está en pausa en este momento. Puede escribirnos por{" "}
+            Carga360go está en pausa en este momento. Puede{" "}
             <a href={waHref} target="_blank" rel="noopener noreferrer">
-              WhatsApp
+              continuar por WhatsApp
             </a>{" "}
-            o a contacto@carga360go.cl.
+            o escribir a contacto@carga360go.cl.
           </div>
         ) : null}
         {all.map((msg) => (
@@ -408,7 +416,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
             onClick={listening ? stopListening : startListening}
             disabled={busy || enabled === false}
             aria-pressed={listening}
-            aria-label={listening ? "Detener el micrófono" : "Hablar con Agente Carga360go"}
+            aria-label={listening ? "Detener el micrófono" : "Hablar con Carga360go"}
           >
             {listening ? "■" : "🎙️"}
           </button>
@@ -423,12 +431,14 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
           </button>
         )}
       </form>
+      <div className="agent-wa-row">
+        <a className="btn wa sm agent-wa-cta" href={waHref} target="_blank" rel="noopener noreferrer">
+          Continuar por WhatsApp
+        </a>
+      </div>
       <p className="chat-note">
         {voiceSupported ? "Voz del navegador (es-CL / es-ES), sin costo. " : "Su navegador no permite dictar por voz: use el texto. "}
-        El costo que entrega es referencial y calculado por el sistema; no aprueba cuentas ni documentos.{" "}
-        <a href={waHref} target="_blank" rel="noopener noreferrer">
-          WhatsApp
-        </a>
+        El costo que entrega es referencial y calculado por el sistema; no aprueba cuentas ni documentos. Marca Carga360go.
       </p>
     </section>
   );

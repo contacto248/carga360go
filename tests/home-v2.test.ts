@@ -28,21 +28,37 @@ test("T-049 home v2: marca, torre de control y flujos sin precios/comisiones", (
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
 });
 
-test("T-049 solo Agente Carga360go en el pie (sin ChatWidget ni FAB WhatsApp)", () => {
+test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", () => {
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /VoiceAgentLauncher/);
-  assert.match(footer, /Agente Carga360go|VoiceAgent/);
+  assert.match(footer, /VoiceAgent/);
   assert.doesNotMatch(footer, /ChatWidget|HelpLauncher|webChatEnabled/);
   const agent = read("src/components/VoiceAgent.tsx");
-  assert.match(agent, /Agente Carga360go/);
+  assert.match(agent, />Carga360</);
+  assert.match(agent, /Carga360go/);
+  assert.match(agent, /Continuar por WhatsApp/);
   assert.match(agent, /speechSynthesis/);
   assert.match(agent, /es-CL/);
   assert.match(agent, /es-ES/);
   assert.match(agent, /AgentAvatar/);
   assert.match(agent, /chat-wa-mini/);
-  assert.doesNotMatch(agent, /help-wa|btn wa fab/);
+  assert.doesNotMatch(agent, /help-wa|help-stack|btn wa fab/);
+  assert.doesNotMatch(agent, /Agente BASSAM|BASSAM 360/);
+  const chat = read("src/components/ChatWidget.tsx");
+  assert.match(chat, /return null/);
+  assert.doesNotMatch(chat, /help-fab|btn wa fab|help-wa/);
+  const css = read("src/app/globals.css");
+  assert.match(css, /cookie-banner/);
+  assert.match(css, /body:has\(\.cookie-banner\) \.help-dock/);
+  const engine = read("src/lib/agent/engine.ts");
+  assert.match(engine, /Cotizar flete/);
+  assert.match(engine, /Publicar carga/);
+  assert.match(engine, /Registro transportista/);
+  assert.match(engine, /Seguimiento de carga/);
+  assert.match(engine, /Hablar con soporte/);
   assert.ok(fs.existsSync(path.join(ROOT, "src/components/AgentAvatar.tsx")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/brand/agent-mark.svg")));
+  assert.ok(fs.existsSync(path.join(ROOT, "docs/diseno-whatsapp-cloud-api-agente.md")));
 });
 
 test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => {

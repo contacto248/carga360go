@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Avatar del Agente Carga360go derivado del isotipo de marca (navy + naranjo).
+ * Avatar de Carga360go derivado del isotipo de marca (navy + naranjo).
  * Estados animados: reposo | escuchando | hablando.
  */
 export type AgentAvatarState = "idle" | "listening" | "speaking";
@@ -13,7 +13,7 @@ type Props = {
   label?: string;
 };
 
-export function AgentAvatar({ state = "idle", size = 56, className, label = "Agente Carga360go" }: Props) {
+export function AgentAvatar({ state = "idle", size = 56, className, label = "Carga360go" }: Props) {
   return (
     <span
       className={`agent-avatar is-${state}${className ? ` ${className}` : ""}`}
