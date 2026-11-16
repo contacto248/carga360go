@@ -46,8 +46,7 @@ export default function TecnologiaPage() {
             <p className="brand-hero">Carga360go</p>
             <h1>Tecnología para trazabilidad y automatización</h1>
             <p>
-              Una torre de control propia: publicar, calzar, seguir y comprobar. Sin cifras de cobro ni comisiones en la
-              interfaz pública. {BRAND.company} · RUT {BRAND.rut}.
+              Una torre de control propia: publicar, calzar, seguir y comprobar. {BRAND.company} · RUT {BRAND.rut}.
             </p>
             <div className="cta">
               <Link className="btn" href="/cargas/nueva">

@@ -17,6 +17,9 @@ test("T-049 home v2: marca, torre de control y flujos sin precios/comisiones", (
   assert.match(home, /Publicar carga/);
   assert.match(home, /Encontrar camión/);
   assert.match(home, /Seguimiento en vivo/);
+  assert.match(home, /Eventos registrados con fecha y hora: publicación, ofertas y adjudicación/);
+  assert.match(home, /Así funciona/);
+  assert.doesNotMatch(home, /tower-tag">en vivo/);
   assert.match(home, /Comprobante digital/);
   assert.match(home, /Empresas y mandantes/);
   assert.match(home, /Transportistas/);
@@ -60,7 +63,7 @@ test("T-060 página /tecnologia con demos marcadas y controles reales (sin sello
   assert.match(tech, /como-verificamos/);
   assert.match(tech, /No es sello ISO ni SOC 2/);
   assert.doesNotMatch(tech, /certificad[oa]s?\s+ISO|certificaci[oó]n SOC|sello ISO vigente/i);
-  assert.match(tech, /Sin cifras de cobro ni comisiones/);
+  assert.doesNotMatch(tech, /Sin cifras de cobro ni comisiones/);
   assert.doesNotMatch(tech, /\$\d|CLP\s*\d|%\s*fee|marketplace fee/i);
   const demo = read("src/components/TraceAutomationDemo.tsx");
   assert.match(demo, /Demostración/);

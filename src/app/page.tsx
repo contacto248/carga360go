@@ -28,7 +28,7 @@ const FLOW = [
   {
     n: "03",
     title: "Seguimiento en vivo",
-    text: "Cada operación deja eventos con fecha y hora: publicación, ofertas, adjudicación y viaje.",
+    text: "Eventos registrados con fecha y hora: publicación, ofertas y adjudicación. Sin GPS ni telemetría en vivo.",
   },
   {
     n: "04",
@@ -135,7 +135,7 @@ export default async function HomePage() {
           <aside className="tower-board" aria-label="Torre de control Carga360go">
             <div className="tower-head">
               <span className="dot-live" /> Torre de control
-              <span className="tower-tag">en vivo</span>
+              <span className="tower-tag">Así funciona</span>
             </div>
             <ol className="tower-steps">
               {FLOW.map((step) => (
