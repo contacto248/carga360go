@@ -76,6 +76,19 @@ test("T-060 página /tecnologia con demos marcadas y controles reales (sin sello
   assert.match(sitemap, /\/tecnologia/);
 });
 
+test("T-061 home referencia video corporativo Carga360go", () => {
+  const home = read("src/app/page.tsx");
+  assert.match(home, /Conoce Carga360go/);
+  assert.match(home, /\/video\/carga360go-corporativo\.mp4/);
+  assert.match(home, /preload="metadata"/);
+  assert.match(home, /playsInline/);
+  assert.match(home, /aria-label="Video corporativo de Carga360go"/);
+  assert.match(home, /poster="\/video\/carga360go-corporativo-poster\.jpg"/);
+  assert.doesNotMatch(home, /autoPlay|autoplay/i);
+  assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo.mp4")));
+  assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo-poster.jpg")));
+});
+
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {
   const header = read("src/components/Header.tsx");
   assert.match(header, /Costo real y automático del flete/);

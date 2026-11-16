@@ -195,6 +195,24 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="block home-video-band" aria-labelledby="home-video-title">
+        <div className="wrap">
+          <h2 id="home-video-title">Conoce Carga360go</h2>
+          <div className="home-video-frame">
+            <video
+              className="home-video"
+              controls
+              preload="metadata"
+              playsInline
+              poster="/video/carga360go-corporativo-poster.jpg"
+              aria-label="Video corporativo de Carga360go"
+            >
+              <source src="/video/carga360go-corporativo.mp4" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      </section>
+
       {visibleCounters.length > 0 ? (
         <section className="counters-band">
           <div className="wrap">

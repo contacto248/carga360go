@@ -527,3 +527,8 @@ footer.foot a:hover{color:#ffd7bd}
 .sec-card h3{margin:0 0 6px;color:var(--navy);font-size:1.05rem}
 .sec-card p{margin:0;color:var(--muted)}
 .home-tech-preview{margin-top:8px}
+
+/* Video corporativo (home) */
+.home-video-band{background:#fff}
+.home-video-frame{margin-top:16px;max-width:920px}
+.home-video{display:block;width:100%;height:auto;max-width:100%;border-radius:16px;background:#0B1633;aspect-ratio:16/9;object-fit:cover}
