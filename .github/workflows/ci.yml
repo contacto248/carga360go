@@ -5,11 +5,16 @@ name: CI
 
 on:
   pull_request:
+    branches:
+      - main
+      - "fix/**"
+      - "release/**"
+      - "cursor/**"
   push:
     branches:
       - main
-      - "release/**"
       - "fix/**"
+      - "release/**"
       - "cursor/**"
 
 permissions:
@@ -21,15 +26,15 @@ concurrency:
 
 jobs:
   verify:
-    name: ci
+    name: typecheck, lint, test, build
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      # Placeholders locales para que next build compile sin secretos ni APIs de pago.
-      DATABASE_PATH: ${{ runner.temp }}/carga360go.sqlite
-      UPLOAD_DIR: ${{ runner.temp }}/uploads
-      MAIL_OUTBOX: ${{ runner.temp }}/mail
+      # Paths fijos: ${{ runner.temp }} en env de job provocaba failure con 0 jobs.
+      DATABASE_PATH: /tmp/carga360go-ci/carga360go.sqlite
+      UPLOAD_DIR: /tmp/carga360go-ci/uploads
+      MAIL_OUTBOX: /tmp/carga360go-ci/mail
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,6 +44,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Prepare local dirs
+        run: mkdir -p /tmp/carga360go-ci/uploads /tmp/carga360go-ci/mail
 
       - name: npm ci
         run: |
