@@ -135,7 +135,7 @@ export const HANDOFF_REPLY =
 
 export const WEB_HANDOFF_REPLY =
   "Entendido 🙌 Le paso su mensaje a una persona del equipo de Carga 360 Go y le responderemos a la brevedad. " +
-  `También puede escribirnos por WhatsApp: https://wa.me/${BRAND.whatsapp} o a ${BRAND.email}.`;
+  `También puede usar el botón de WhatsApp (pide su nombre y celular antes de abrir la conversación) o escribir a ${BRAND.email}.`;
 
 export const WEB_GREETING =
   "¡Hola! 👋 Soy el asistente virtual de Carga 360 Go. " +

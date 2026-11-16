@@ -11,7 +11,8 @@ import { getCurrentUser } from "@/lib/current-user";
 import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
 import { TruckArt } from "@/components/TruckArt";
 import { BRAND, EQUIPMENT, equipmentById } from "@/lib/catalog";
-import { formatDateCL, waLink } from "@/lib/format";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
+import { formatDateCL } from "@/lib/format";
 import { RegionsDashboard } from "@/components/RegionsDashboard";
 import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
 
@@ -185,7 +186,8 @@ function Counter({ value, label }: { value: number; label: string }) {
 
 export default async function HomePage() {
   const user = await getCurrentUser();
-  const whatsapp = waLink(BRAND.whatsapp, BRAND.infoMessage);
+  const whatsappNumber = BRAND.whatsapp;
+  const whatsappText = BRAND.infoMessage;
   const stats = liveStats();
   const recent = recentListings(5);
   const indicators = regionIndicators();
@@ -623,9 +625,9 @@ export default async function HomePage() {
           <p>
             Oficina: {BRAND.address}. Correo:{" "}
             <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>. WhatsApp:{" "}
-            <a href={whatsapp} target="_blank" rel="noopener noreferrer">
+            <WhatsAppContactGate number={whatsappNumber} text={whatsappText} className="wa-text">
               {BRAND.whatsappDisplay}
-            </a>
+            </WhatsAppContactGate>
             .
           </p>
           <p>
@@ -682,9 +684,9 @@ export default async function HomePage() {
               <Link className="btn" href="/registro">
                 Crear cuenta
               </Link>
-              <a className="btn wa" href={whatsapp} target="_blank" rel="noopener noreferrer">
+              <WhatsAppContactGate number={whatsappNumber} text={whatsappText} className="btn wa">
                 WhatsApp {BRAND.whatsappDisplay}
-              </a>
+              </WhatsAppContactGate>
               <Link className="btn ghost" href="/contacto">
                 Ir a contacto
               </Link>

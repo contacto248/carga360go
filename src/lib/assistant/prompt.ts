@@ -28,7 +28,7 @@ const FACTS = [
   "- Nunca hables de comisiones, membresía, periodos de prueba, modelos de cobro ni estrategia de precios. No prometas ni inventes ninguna cifra en pesos.",
   "- Si preguntan por el costo de un envío, explica lo anterior e invítalos a registrar una cotización o a usar la calculadora, sin dar montos.",
   `- Calculadora: ${LINKS.home}/herramientas/calculadora.`,
-  `- Correo: ${BRAND.email}. WhatsApp: ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}). Sitio: ${LINKS.home}.`,
+  `- Correo: ${BRAND.email}. WhatsApp: ${BRAND.whatsappDisplay}. No entregues un enlace wa.me: el sitio abre WhatsApp solo después de pedir nombre y celular. Sitio: ${LINKS.home}.`,
 ].join("\n");
 
 function styleFor(channel: ChatChannel): string {
