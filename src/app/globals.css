@@ -528,7 +528,22 @@ footer.foot a:hover{color:#ffd7bd}
 .sec-card p{margin:0;color:var(--muted)}
 .home-tech-preview{margin-top:8px}
 
-/* Video corporativo (home) */
-.home-video-band{background:#fff}
-.home-video-frame{margin-top:16px;max-width:920px}
-.home-video{display:block;width:100%;height:auto;max-width:100%;border-radius:16px;background:#0B1633;aspect-ratio:16/9;object-fit:cover}
+/* Video corporativo (home) — presentación premium T-061 */
+.home-video-band{position:relative;isolation:isolate;overflow:hidden;padding:clamp(48px,8vw,96px) 0;background:radial-gradient(1200px 520px at 78% -10%,#ff500126,transparent 58%),radial-gradient(900px 480px at 8% 110%,#22b8cf18,transparent 55%),linear-gradient(165deg,#070e1c 0%,#0B1633 48%,#0f2748 100%);color:#E8EEF8}
+.home-video-atmosphere{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#ffffff08 0%,transparent 28%,transparent 72%,#00000033 100%),repeating-linear-gradient(0deg,transparent,transparent 47px,#ffffff05 48px),repeating-linear-gradient(90deg,transparent,transparent 47px,#ffffff05 48px);opacity:.55;z-index:0}
+.home-video-inner{position:relative;z-index:1;max-width:1080px}
+.home-video-brand{margin:0 0 10px;font-family:var(--font-display),var(--font-body),ui-sans-serif,system-ui,sans-serif;font-size:clamp(2.4rem,1.4rem + 3.6vw,4.2rem);font-weight:800;letter-spacing:-.04em;line-height:.95;color:#fff;text-shadow:0 10px 40px #0008;animation:home-video-rise .7s var(--ease) both}
+.home-video-title{margin:0 0 12px;font-size:clamp(1.35rem,1.05rem + 1.1vw,1.85rem);font-weight:700;letter-spacing:-.02em;color:#F5F8FC;animation:home-video-rise .75s .06s var(--ease) both}
+.home-video-title span{color:#FF8A4C}
+.home-video-title::after{content:none}
+.home-video-lead{margin:0 0 22px;max-width:36rem;font-size:1.05rem;line-height:1.55;color:#c5d3e8;animation:home-video-rise .75s .1s var(--ease) both}
+.home-video-stage{animation:home-video-rise .85s .14s var(--ease) both}
+.home-video-frame{position:relative;max-width:100%;border-radius:18px;overflow:hidden;box-shadow:0 28px 64px #00000066,0 0 0 1px #ffffff1a;background:#050a14}
+.home-video-frame::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 80px #00000055;z-index:1}
+.home-video{display:block;width:100%;height:auto;max-width:100%;aspect-ratio:16/9;object-fit:cover;background:#050a14;vertical-align:middle}
+.home-video-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:20px;animation:home-video-rise .8s .18s var(--ease) both}
+.home-video-agent-btn{background:var(--brand-orange);border-color:transparent;color:#fff;box-shadow:0 8px 24px #c8430040}
+.home-video-agent-btn:hover{background:var(--accent2)}
+.home-video-note{margin:0;font-size:.82rem;color:#9eb0c9;max-width:28rem}
+@keyframes home-video-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.home-video-brand,.home-video-title,.home-video-lead,.home-video-stage,.home-video-actions{animation:none}}

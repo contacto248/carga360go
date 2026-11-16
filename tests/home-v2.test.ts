@@ -78,15 +78,21 @@ test("T-060 página /tecnologia con demos marcadas y controles reales (sin sello
 
 test("T-061 home referencia video corporativo Carga360go", () => {
   const home = read("src/app/page.tsx");
-  assert.match(home, /Conoce Carga360go/);
+  assert.match(home, /Conoce/);
+  assert.match(home, /Carga360go/);
+  assert.match(home, /home-video-band/);
   assert.match(home, /\/video\/carga360go-corporativo\.mp4/);
   assert.match(home, /preload="metadata"/);
   assert.match(home, /playsInline/);
   assert.match(home, /aria-label="Video corporativo de Carga360go"/);
   assert.match(home, /poster="\/video\/carga360go-corporativo-poster\.jpg"/);
+  assert.match(home, /OpenAgentCta/);
   assert.doesNotMatch(home, /autoPlay|autoplay/i);
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo.mp4")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo-poster.jpg")));
+  const cta = read("src/components/OpenAgentCta.tsx");
+  assert.match(cta, /agent-fab/);
+  assert.match(cta, /Hablar con el Agente Carga360go/);
 });
 
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {

@@ -10,6 +10,7 @@ import { TruckArt } from "@/components/TruckArt";
 import { BRAND, EQUIPMENT, equipmentById } from "@/lib/catalog";
 import { formatDateCL, waLink } from "@/lib/format";
 import { RegionsDashboard } from "@/components/RegionsDashboard";
+import { OpenAgentCta } from "@/components/OpenAgentCta";
 import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -195,20 +196,33 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="block home-video-band" aria-labelledby="home-video-title">
-        <div className="wrap">
-          <h2 id="home-video-title">Conoce Carga360go</h2>
-          <div className="home-video-frame">
-            <video
-              className="home-video"
-              controls
-              preload="metadata"
-              playsInline
-              poster="/video/carga360go-corporativo-poster.jpg"
-              aria-label="Video corporativo de Carga360go"
-            >
-              <source src="/video/carga360go-corporativo.mp4" type="video/mp4" />
-            </video>
+      <section className="home-video-band" aria-labelledby="home-video-title">
+        <div className="home-video-atmosphere" aria-hidden="true" />
+        <div className="wrap home-video-inner">
+          <p className="home-video-brand">Carga360go</p>
+          <h2 id="home-video-title" className="home-video-title">
+            Conoce <span>Carga360go</span>
+          </h2>
+          <p className="home-video-lead">
+            La torre de control que conecta cargas y camiones en Chile — mira cómo se mueve la operación.
+          </p>
+          <div className="home-video-stage">
+            <div className="home-video-frame">
+              <video
+                className="home-video"
+                controls
+                preload="metadata"
+                playsInline
+                poster="/video/carga360go-corporativo-poster.jpg"
+                aria-label="Video corporativo de Carga360go"
+              >
+                <source src="/video/carga360go-corporativo.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
+          <div className="home-video-actions">
+            <OpenAgentCta />
+            <p className="home-video-note">Sin reproducción automática con sonido. Tú eliges cuándo verlo.</p>
           </div>
         </div>
       </section>
