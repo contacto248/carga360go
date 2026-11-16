@@ -10,12 +10,14 @@ on:
       - "fix/**"
       - "release/**"
       - "cursor/**"
+      - "feat/**"
   push:
     branches:
       - main
       - "fix/**"
       - "release/**"
       - "cursor/**"
+      - "feat/**"
 
 permissions:
   contents: read

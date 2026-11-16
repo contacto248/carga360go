@@ -13,6 +13,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/camiones/nuevo",
     "/registro",
     "/herramientas/calculadora",
+    "/tecnologia",
+    "/guias",
     "/regiones",
     "/contacto",
     "/como-verificamos",

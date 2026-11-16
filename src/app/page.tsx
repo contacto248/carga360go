@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FreeBanner } from "@/components/FreeBanner";
 import { WhatsAppChannel } from "@/components/WhatsAppChannel";
 import { QuickSearch } from "@/components/QuickSearch";
+import { TraceAutomationDemo } from "@/components/TraceAutomationDemo";
 import { getCurrentUser } from "@/lib/current-user";
 import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
 import { TruckArt } from "@/components/TruckArt";
@@ -12,6 +13,29 @@ import { RegionsDashboard } from "@/components/RegionsDashboard";
 import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+const FLOW = [
+  {
+    n: "01",
+    title: "Publicar carga",
+    text: "Origen, destino, fecha, peso y equipo. El sistema calcula el costo real referencial del flete.",
+  },
+  {
+    n: "02",
+    title: "Encontrar camión",
+    text: "Carga360 Match compara ruta, fechas y capacidad, y muestra calces con razones claras.",
+  },
+  {
+    n: "03",
+    title: "Seguimiento en vivo",
+    text: "Eventos registrados con fecha y hora: publicación, ofertas y adjudicación. Sin GPS ni telemetría en vivo.",
+  },
+  {
+    n: "04",
+    title: "Comprobante digital",
+    text: "El historial queda en la plataforma: trazabilidad de punta a punta, sin papeles sueltos.",
+  },
+];
 
 const FAQ = [
   {
@@ -78,14 +102,19 @@ export default async function HomePage() {
       <div className="wrap" style={{ paddingTop: 12 }}>
         <FreeBanner user={user} />
       </div>
-      <section className="hero hero2">
+
+      <section className="hero hero2 hero-v2">
         <div className="wrap hero-grid">
-          <div>
-            <span className="pill hero-pill">Costo real del flete · 16 regiones · de Arica a Punta Arenas</span>
-            <h1>Conectamos cargas y camiones. Movemos la industria de Chile.</h1>
+          <div className="hero-copy">
+            <p className="brand-hero" aria-label="Marca">
+              Carga360go
+            </p>
+            <h1>
+              Trazabilidad y automatización para mover carga en Chile
+            </h1>
             <p>
-              Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y conoce el costo real del viaje:
-              ruta, peajes según ejes, diésel y costos operacionales. Menos viajes en vacío.
+              Publica tu carga, encuentra el camión, sigue la operación en vivo y conserva el comprobante digital.
+              Una torre de control simple: menos vacío, más claridad entre mandantes y transportistas.
             </p>
             <QuickSearch />
             <div className="cta">
@@ -103,49 +132,92 @@ export default async function HomePage() {
               Carga360go conecta a las partes, con trazabilidad de cada operación. {BRAND.company} · RUT {BRAND.rut}.
             </p>
           </div>
-          <aside className="live-board" aria-label="Últimas publicaciones">
-            <div className="lb-head">
-              <span className="dot-live" /> Bolsa en vivo
-              <Link href="/cargas" className="lb-all">
-                Ver todo →
-              </Link>
+          <aside className="tower-board" aria-label="Torre de control Carga360go">
+            <div className="tower-head">
+              <span className="dot-live" /> Torre de control
+              <span className="tower-tag">Así funciona</span>
             </div>
-            {recent.length === 0 ? (
-              <div className="lb-empty">
-                <strong>Todavía no hay avisos activos.</strong>
-                <p>Sé de los primeros en publicar: tu aviso aparece aquí y avisamos a quienes calzan.</p>
-                <div className="row">
-                  <Link className="btn sm" href="/cargas/nueva">
-                    Publicar carga
-                  </Link>
-                  <Link className="btn sec sm" href="/camiones/nuevo">
-                    Publicar camión
-                  </Link>
-                </div>
+            <ol className="tower-steps">
+              {FLOW.map((step) => (
+                <li key={step.n}>
+                  <span className="tower-n">{step.n}</span>
+                  <div>
+                    <strong>{step.title}</strong>
+                    <p>{step.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="tower-live">
+              <div className="lb-head">
+                <span>Bolsa reciente</span>
+                <Link href="/cargas" className="lb-all">
+                  Ver todo →
+                </Link>
               </div>
-            ) : (
-              <ul className="lb-list">
-                {recent.map((item) => {
-                  const eq = equipmentById(item.equipment);
-                  return (
-                    <li key={`${item.kind}-${item.id}`}>
-                      <Link href={`/${item.kind === "carga" ? "cargas" : "camiones"}/${item.id}`}>
-                        <span className={`lb-kind ${item.kind}`}>{item.kind === "carga" ? "Carga" : "Camión"}</span>
-                        <span className="lb-route">
-                          {item.origin} → {item.destination}
-                        </span>
-                        <span className="lb-meta">
-                          {eq.icon} {eq.label} · {item.amount} · {item.kind === "carga" ? "retiro" : "desde"} {formatDateCL(item.date)}
-                          {item.verified ? " · ✔ verificado" : ""}
-                        </span>
-                        <span className="lb-time">{timeAgo(item.createdAt)}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+              {recent.length === 0 ? (
+                <div className="lb-empty">
+                  <strong>Todavía no hay avisos activos.</strong>
+                  <p>Sé de los primeros en publicar: tu aviso aparece aquí y avisamos a quienes calzan.</p>
+                  <div className="row">
+                    <Link className="btn sm" href="/cargas/nueva">
+                      Publicar carga
+                    </Link>
+                    <Link className="btn sec sm" href="/camiones/nuevo">
+                      Publicar camión
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <ul className="lb-list">
+                  {recent.map((item) => {
+                    const eq = equipmentById(item.equipment);
+                    return (
+                      <li key={`${item.kind}-${item.id}`}>
+                        <Link href={`/${item.kind === "carga" ? "cargas" : "camiones"}/${item.id}`}>
+                          <span className={`lb-kind ${item.kind}`}>{item.kind === "carga" ? "Carga" : "Camión"}</span>
+                          <span className="lb-route">
+                            {item.origin} → {item.destination}
+                          </span>
+                          <span className="lb-meta">
+                            {eq.icon} {eq.label} · {item.amount} · {item.kind === "carga" ? "retiro" : "desde"} {formatDateCL(item.date)}
+                            {item.verified ? " · ✔ verificado" : ""}
+                          </span>
+                          <span className="lb-time">{timeAgo(item.createdAt)}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </aside>
+        </div>
+      </section>
+
+      <section className="home-video-band" aria-labelledby="home-video-title">
+        <div className="home-video-atmosphere" aria-hidden="true" />
+        <div className="wrap home-video-inner">
+          <h2 id="home-video-title" className="home-video-title">
+            Conoce <span>Carga360go</span>
+          </h2>
+          <p className="home-video-lead">
+            La torre de control que conecta cargas y camiones en Chile — mira cómo se mueve la operación.
+          </p>
+          <div className="home-video-stage">
+            <div className="home-video-frame">
+              <video
+                className="home-video"
+                controls
+                preload="metadata"
+                playsInline
+                poster="/video/carga360go-corporativo-poster.jpg"
+                aria-label="Video corporativo de Carga360go"
+              >
+                <source src="/video/carga360go-corporativo.mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -164,9 +236,12 @@ export default async function HomePage() {
       <section className="block">
         <div className="wrap">
           <h2>Cómo funciona para cada lado</h2>
+          <p className="lead">Flujos claros para mandantes y transportistas, con la misma trazabilidad de punta a punta.</p>
           <div className="grid c2 paths" style={{ marginTop: 16 }}>
             <div className="card path">
-              <span className="path-ic">🏢</span>
+              <span className="path-ic" aria-hidden="true">
+                🏢
+              </span>
               <h3>Empresas y mandantes</h3>
               <p>
                 1) Crea tu cuenta y acepta términos y privacidad. 2) Publica la carga: origen, destino, fecha, peso, equipo y
@@ -178,7 +253,9 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="card path">
-              <span className="path-ic">🚛</span>
+              <span className="path-ic" aria-hidden="true">
+                🚛
+              </span>
               <h3>Transportistas</h3>
               <p>
                 1) Crea tu cuenta, confirma correo y teléfono y sube tus documentos. 2) Cuando un administrador aprueba,
@@ -195,7 +272,39 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="block alt">
+      <section className="block alt auto-band">
+        <div className="wrap">
+          <h2>Automatización que se ve</h2>
+          <p className="lead">
+            Costo real del flete, Carga360 Match y eventos de viaje: la plataforma hace el trabajo repetitivo y deja la
+            decisión en las partes. Mira la demo o abre la página de tecnología.
+          </p>
+          <div className="auto-grid">
+            <div>
+              <strong>Costo real automático</strong>
+              <p>Ruta, peajes por ejes, diésel y operación, calculados al publicar o cotizar.</p>
+            </div>
+            <div>
+              <strong>Carga360 Match</strong>
+              <p>Calces por equipo, capacidad, medidas, ruta y fechas, con razones a la vista.</p>
+            </div>
+            <div>
+              <strong>Agente Carga360go</strong>
+              <p>Asistente de voz y texto en el sitio (Web Speech API, es-CL / es-ES), sin claves de pago.</p>
+            </div>
+          </div>
+          <div className="home-tech-preview">
+            <TraceAutomationDemo compact />
+            <p style={{ marginTop: 12 }}>
+              <Link className="btn sec sm" href="/tecnologia">
+                Tecnología Carga360go →
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="block">
         <div className="wrap">
           <h2>Minería, cama baja y retornos</h2>
           <p className="lead">
@@ -228,7 +337,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="block">
+      <section className="block alt">
         <div className="wrap">
           <div className="rdash-head">
             <div>
@@ -255,7 +364,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="block alt">
+      <section className="block">
         <div className="wrap">
           <h2>Qué significa verificado</h2>
           <p className="lead">
@@ -289,7 +398,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="block">
+      <section className="block alt">
         <div className="wrap">
           <h2>Equipos con ficha técnica</h2>
           <p className="lead">
@@ -309,7 +418,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="block alt">
+      <section className="block">
         <div className="wrap">
           <h2>Próximamente</h2>
           <p className="lead">Estamos trabajando en estas funciones. Todavía no están activas:</p>
@@ -319,7 +428,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="block">
+      <section className="block alt">
         <div className="wrap">
           <h2>Preguntas frecuentes</h2>
           <div className="faq" style={{ marginTop: 12 }}>

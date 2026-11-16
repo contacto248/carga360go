@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/cargas/nueva", label: "Publicar carga" },
   { href: "/camiones/nuevo", label: "Publicar camión" },
   { href: "/herramientas/calculadora", label: "Calculadora" },
+  { href: "/tecnologia", label: "Tecnología" },
   { href: "/panel", label: "Panel" },
 ];
 

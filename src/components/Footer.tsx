@@ -1,8 +1,5 @@
 import Link from "next/link";
-import { HelpLauncher } from "@/components/ChatWidget";
 import { VoiceAgentLauncher } from "@/components/VoiceAgent";
-import { agentEnabled } from "@/lib/agent/config";
-import { webChatEnabled } from "@/lib/chat/config";
 import { BRAND } from "@/lib/catalog";
 import { waLink } from "@/lib/format";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
@@ -18,8 +15,8 @@ export function Footer() {
             <img className="foot-logo" src="/brand/logo-wordmark.png" alt="Carga360go" width={177} height={40} />
             <p>Bolsa de carga y camiones para transporte de carga general y masiva en las 16 regiones de Chile, de Arica a Punta Arenas.</p>
             <p>
-              <strong>Costo real y automático del flete:</strong> ruta, peajes según ejes, diésel y costos operacionales. Trazabilidad
-              de cada operación y seguridad en una sola web automatizada.
+              <strong>Automatización y trazabilidad:</strong> costo real del flete, seguimiento de cada operación y comprobante digital en
+              una sola web.
             </p>
           </div>
           <div>
@@ -36,6 +33,8 @@ export function Footer() {
           <div>
             <h4>Herramientas</h4>
             <Link href="/herramientas/calculadora">Calculadora de flete</Link>
+            <Link href="/cotizador">Cotizador</Link>
+            <Link href="/tecnologia">Tecnología</Link>
             <Link href="/regiones">Panel de regiones</Link>
             <Link href="/panel#alertas">Alertas por correo</Link>
             <Link href="/panel">Mi panel</Link>
@@ -51,10 +50,11 @@ export function Footer() {
             <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
             <span>{BRAND.address}</span>
             <Link href="/contacto">Contacto</Link>
+            <Link href="/guias">Guías</Link>
             <Link href="/como-verificamos">Cómo verificamos</Link>
             <Link href="/transporte-minero-chile">Transporte minero</Link>
             <Link href="/cama-baja-y-maquinaria">Cama baja</Link>
-            <Link href="/cargas-de-retorno-mineras">Cargas de retorno</Link>
+            <Link href="/cargas-de-retorno">Cargas de retorno</Link>
             <Link href="/terminos">Términos de uso</Link>
             <Link href="/privacidad">Política de privacidad</Link>
             {payments ? <Link href="/politica-de-pagos">Política de pagos</Link> : null}
@@ -65,7 +65,7 @@ export function Footer() {
           con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
-      {agentEnabled() ? <VoiceAgentLauncher waHref={href} /> : <HelpLauncher chatEnabled={webChatEnabled()} waHref={href} />}
+      <VoiceAgentLauncher waHref={href} />
     </>
   );
 }
