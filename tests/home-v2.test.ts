@@ -102,16 +102,17 @@ test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => 
   assert.match(conf, /destination:\s*"\/cargas-de-retorno-mineras"/);
 });
 
-test("T-066 alias E2E /empresas /seguimiento /login /ayuda redirigen; /faq tiene página", () => {
+test("T-066 alias E2E /seguimiento /login /ayuda /registro-transportista; /faq tiene página", () => {
   const conf = read("next.config.ts");
-  assert.match(conf, /source:\s*"\/empresas"/);
-  assert.match(conf, /destination:\s*"\/registro"/);
+  assert.doesNotMatch(conf, /source:\s*"\/empresas"/);
   assert.match(conf, /source:\s*"\/seguimiento"/);
   assert.match(conf, /destination:\s*"\/tecnologia"/);
   assert.match(conf, /source:\s*"\/login"/);
   assert.match(conf, /destination:\s*"\/ingreso"/);
   assert.match(conf, /source:\s*"\/ayuda"/);
   assert.match(conf, /destination:\s*"\/guias"/);
+  assert.match(conf, /source:\s*"\/registro-transportista"/);
+  assert.match(conf, /destination:\s*"\/registro"/);
   assert.ok(fs.existsSync(path.join(ROOT, "src/app/faq/page.tsx")));
   const faqPage = read("src/app/faq/page.tsx");
   assert.match(faqPage, /canonical:\s*"\/faq"/);

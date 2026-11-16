@@ -42,11 +42,12 @@ const nextConfig: NextConfig = {
       // T-062: singular → hub de guías (marketing apunta a /guias/).
       { source: "/guia", destination: "/guias", permanent: false },
       // T-066 auditoría E2E: alias públicos esperados (nunca 404).
-      // /faq tiene página propia (el fragmento #faq no viaja en redirects HTTP).
-      { source: "/empresas", destination: "/registro", permanent: false },
+      // /faq tiene página propia. /empresas lo aporta el directorio (PR #18); no redirigir.
       { source: "/seguimiento", destination: "/tecnologia", permanent: false },
       { source: "/login", destination: "/ingreso", permanent: false },
       { source: "/ayuda", destination: "/guias", permanent: false },
+      // CTA del directorio /empresas (PR #7/#18) apunta aquí; la ruta real es /registro.
+      { source: "/registro-transportista", destination: "/registro", permanent: false },
     ];
   },
 };
