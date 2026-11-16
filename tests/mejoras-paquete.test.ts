@@ -52,7 +52,9 @@ test("la portada usa el copy del paquete y no promete acreditación 100% ni audi
   assert.match(home, /Operamos en diferentes industrias/);
   assert.match(home, /Trazabilidad en tiempo real/);
   assert.match(home, /Transportistas validados/);
-  assert.match(home, /Menos viajes vacíos = menos CO₂/);
+  assert.match(home, /Menos viajes vacíos/);
+  assert.match(home, /Sostenible/);
+  assert.doesNotMatch(home, /\d+\s*(t|ton|kg)\s*de\s*CO/i);
   assert.match(home, /IA que asiste la coordinación/);
   assert.match(home, /Documentos validados/);
   assert.match(home, /En tránsito · Antofagasta → Santiago/);

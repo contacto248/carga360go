@@ -305,19 +305,42 @@ body:has(.help-stack) footer.foot{padding-bottom:140px}
 .saas-kpis dd{margin:2px 0 0;font-size:1.35rem;font-weight:800;color:var(--navy)}
 .saas-stage figcaption{margin:8px 2px 0;color:var(--muted);font-size:.75rem}
 .saas-kicker{margin:0 0 6px;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2)}
-.industry-grid,.pillar-grid{display:grid;gap:12px;margin-top:16px;grid-template-columns:1fr}
-@media(min-width:640px){.industry-grid{grid-template-columns:1fr 1fr}.pillar-grid{grid-template-columns:1fr 1fr}}
+.industry-grid{display:grid;gap:12px;margin-top:16px;grid-template-columns:1fr}
+.pillar-grid{display:grid;gap:14px;margin-top:28px;grid-template-columns:1fr}
+@media(min-width:640px){.industry-grid{grid-template-columns:1fr 1fr}}
+@media(min-width:800px){.pillar-grid{grid-template-columns:1fr 1fr}}
 @media(min-width:980px){.industry-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.industry-card,.pillar-card{min-width:0}
-.industry-card h3,.pillar-card h3{margin:8px 0 4px;font-size:1rem}
-.industry-card p,.pillar-card p{margin:0;color:var(--muted);font-size:.9rem}
+.industry-card{min-width:0}
+.industry-card h3{margin:8px 0 4px;font-size:1rem}
+.industry-card p{margin:0;color:var(--muted);font-size:.9rem}
+.pillar-band{position:relative;overflow:hidden;background:#06111f;color:#fff;padding:64px 0 52px}
+.pillar-glow{position:absolute;inset:0;pointer-events:none;background:
+  radial-gradient(420px 280px at 12% 0%,#134e4a55,transparent 70%),
+  radial-gradient(480px 320px at 96% 88%,#0f766e40,transparent 68%),
+  linear-gradient(#ffffff14 1px,transparent 1px),
+  linear-gradient(90deg,#ffffff14 1px,transparent 1px);
+  background-size:auto,auto,52px 52px,52px 52px}
+.pillar-band .wrap{position:relative;z-index:1}
+.pillar-kicker{margin:0 0 10px;color:#3ee0d0;font-size:.78rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.pillar-band h2{margin:0;color:#fff;font-size:clamp(2.1rem,5vw,3.3rem);letter-spacing:-.035em;line-height:1.02;max-width:12ch}
+.pillar-lead{margin:16px 0 0;color:#d5e2ef;font-size:1.08rem;max-width:38rem}
+.pillar-card{min-width:0;background:linear-gradient(180deg,rgba(14,40,62,.78),rgba(8,22,38,.62));border:1px solid rgba(62,224,208,.38);border-radius:18px;padding:22px 20px 24px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(8px)}
+.pillar-ic{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:#3ee0d0;border:1px solid rgba(62,224,208,.75);background:rgba(6,36,44,.8)}
+.pillar-ic svg{width:22px;height:22px}
+.pillar-card h3{margin:16px 0 8px;color:#fff;font-size:1.2rem;line-height:1.25}
+.pillar-card p{margin:0;color:#c5d4e4;font-size:1rem}
+.sost-badge{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:99px;border:1px solid #1f9d6a;color:#4ade9a;background:rgba(8,64,42,.65);font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;vertical-align:3px}
+.pillar-actions{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:32px}
+.pillar-actions .btn{border-radius:999px;padding:14px 36px;letter-spacing:.08em;text-transform:uppercase;background:var(--accent);color:#fff}
+.pillar-url{color:#3ee0d0;font-weight:800;text-decoration:none}
+.pillar-url:hover{color:#7cf0e4}
 .industry-ic{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#eef2f8;color:var(--navy)}
 .industry-ic svg{width:26px;height:26px}
 .live-board-light{background:#fff;border:1px solid var(--line);color:var(--ink)}
 .live-board-light .lb-head{color:var(--navy)}
 .live-board-light .lb-all{color:var(--accent2)}
 @media(max-width:560px){
-  .hero-saas .cta .btn{width:100%}
+  .hero-saas .cta .btn,.pillar-actions .btn{width:100%;max-width:320px}
   .saas-floats{margin-top:8px}
   .saas-kpis{grid-template-columns:1fr}
 }

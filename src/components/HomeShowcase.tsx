@@ -1,4 +1,6 @@
-type IconName = "mine" | "road" | "forest" | "food" | "retail" | "factory" | "energy" | "trace" | "badge" | "leaf" | "spark";
+import Link from "next/link";
+
+type IconName = "mine" | "road" | "forest" | "food" | "retail" | "factory" | "energy" | "trace" | "badge" | "pin" | "shield" | "loop" | "bot";
 
 const INDUSTRIES: { icon: IconName; title: string; text: string }[] = [
   { icon: "mine", title: "Minería", text: "Graneles, mineral y carga pesada." },
@@ -10,26 +12,27 @@ const INDUSTRIES: { icon: IconName; title: string; text: string }[] = [
   { icon: "energy", title: "Energía", text: "Equipos e insumos para faenas y proyectos." },
 ];
 
-const PILLARS: { icon: IconName; title: string; text: string }[] = [
+const PILLARS: { icon: IconName; title: string; text: string; badge?: string }[] = [
   {
-    icon: "trace",
+    icon: "pin",
     title: "Trazabilidad en tiempo real",
-    text: "La torre de control reúne publicación, ofertas y el avance que declaran mandante y transportista. Es el estado del viaje, no una ubicación GPS.",
+    text: "Sigue cada etapa de la carga, de origen a destino.",
   },
   {
-    icon: "badge",
+    icon: "shield",
     title: "Transportistas validados",
-    text: "El transportista confirma contacto y sube documentos vigentes. Un administrador los revisa antes de habilitar la publicación. No es un aval de solvencia ni de seguridad operacional.",
+    text: "Trabajas con perfiles validados en la plataforma.",
   },
   {
-    icon: "leaf",
-    title: "Menos viajes vacíos = menos CO₂",
-    text: "Publicar el retorno ayuda a ocupar el viaje de vuelta. Menos kilómetros en vacío es una forma concreta de bajar emisiones, sin cifras de adorno: cada ruta se mira sola.",
+    icon: "loop",
+    title: "Menos viajes vacíos",
+    text: "El retorno con carga reduce kilómetros en vacío y emisiones.",
+    badge: "Sostenible",
   },
   {
-    icon: "spark",
+    icon: "bot",
     title: "IA que asiste la coordinación",
-    text: "El calce y el asistente ordenan equipo, ruta y fechas para que las partes hablen con mejor contexto. No contrata el viaje ni lo garantiza.",
+    text: "Un asistente que te ayuda a publicar, postular y coordinar.",
   },
 ];
 
@@ -101,16 +104,34 @@ function Icon({ name }: { name: IconName }) {
           <path d="M10 25l2.2-6M22 25l-2.2-6M12.5 13.2l2.2 2.2 4.6-4.8" />
         </svg>
       );
-    case "leaf":
+    case "pin":
       return (
         <svg {...common}>
-          <path d="M8 24c8-1 14-8 16-16-8 1-14 7-16 16zM10 22c3-4 7-7 12-9" />
+          <path d="M16 27s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z" />
+          <circle cx="16" cy="15" r="2.2" />
         </svg>
       );
-    case "spark":
+    case "shield":
       return (
         <svg {...common}>
-          <path d="M16 4v6M16 22v6M4 16h6M22 16h6M8 8l4 4M20 20l4 4M24 8l-4 4M12 20l-4 4" />
+          <path d="M16 5l8 3v6.5c0 5.2-3.2 8.4-8 10.5-4.8-2.1-8-5.3-8-10.5V8l8-3z" />
+          <path d="M12.2 15.2l2.3 2.3 5-5.2" />
+        </svg>
+      );
+    case "loop":
+      return (
+        <svg {...common}>
+          <path d="M9 13a7 7 0 0 1 11-3l2 2" />
+          <path d="M22 8v5h-5" />
+          <path d="M23 19a7 7 0 0 1-11 3l-2-2" />
+          <path d="M10 24v-5h5" />
+        </svg>
+      );
+    case "bot":
+      return (
+        <svg {...common}>
+          <rect x="8" y="11" width="16" height="11" rx="3" />
+          <path d="M16 11V7M12.5 16h.01M19.5 16h.01M11 22.5h2M19 22.5h2" />
         </svg>
       );
     default: {
@@ -206,21 +227,33 @@ export function IndustrySection() {
 
 export function PillarSection() {
   return (
-    <section className="block">
+    <section className="pillar-band" aria-labelledby="pilares-titulo">
+      <div className="pillar-glow" aria-hidden="true" />
       <div className="wrap">
-        <p className="saas-kicker">Cómo operamos</p>
-        <h2>Proactividad, control y coordinación</h2>
-        <p className="lead">Cuatro pilares para mover carga en Chile con contexto, documentos en orden y menos viajes de vuelta vacíos.</p>
+        <p className="pillar-kicker">Cómo opera</p>
+        <h2 id="pilares-titulo">Más control, de origen a destino.</h2>
+        <p className="pillar-lead">Una plataforma para mandantes y transportistas, con menos intermediarios.</p>
         <div className="pillar-grid">
           {PILLARS.map((item) => (
-            <article key={item.title} className="card pillar-card">
-              <span className="industry-ic">
+            <article key={item.title} className="pillar-card">
+              <span className="pillar-ic">
                 <Icon name={item.icon} />
               </span>
-              <h3>{item.title}</h3>
+              <h3>
+                {item.title}
+                {item.badge ? <span className="sost-badge">{item.badge}</span> : null}
+              </h3>
               <p>{item.text}</p>
             </article>
           ))}
+        </div>
+        <div className="pillar-actions">
+          <Link className="btn" href="/registro">
+            Conócela
+          </Link>
+          <a className="pillar-url" href="https://www.carga360go.cl">
+            www.carga360go.cl
+          </a>
         </div>
       </div>
     </section>
