@@ -1,14 +1,21 @@
 "use client";
 
+type Props = {
+  className?: string;
+  label?: string;
+};
+
 /**
- * CTA de la sección de video: abre el FAB único Carga360 (pie)
- * sin autoplay de video ni sonido.
+ * Abre el FAB único «Carga360» del pie (T-064). No crea un segundo FAB.
  */
-export function OpenAgentCta() {
+export function OpenAgentCta({
+  className = "btn home-video-agent-btn",
+  label = "Hablar con Carga360go",
+}: Props) {
   return (
     <button
       type="button"
-      className="btn home-video-agent-btn"
+      className={className}
       onClick={() => {
         const fab = document.querySelector<HTMLButtonElement>("button.agent-fab");
         if (fab) {
@@ -19,7 +26,7 @@ export function OpenAgentCta() {
         document.getElementById("c360-agent-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }}
     >
-      Hablar con Carga360go
+      {label}
     </button>
   );
 }
