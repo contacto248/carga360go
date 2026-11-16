@@ -109,6 +109,7 @@ export const POST = guard(async (request) => {
     message,
     ip,
     userAgent: request.headers.get("user-agent"),
+    executive: body.executive === true,
   });
   const response = NextResponse.json({
     enabled: true,

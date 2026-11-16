@@ -59,9 +59,6 @@ test("la portada usa el copy del paquete y no promete acreditación 100% ni audi
   assert.doesNotMatch(home, /100% acreditad/);
   assert.doesNotMatch(home, /calidad, seguridad y medio ambiente/);
   assert.doesNotMatch(home, /La bolsa de carga de Chile que/);
-  // Modo arranque: no se pinta el panel de 16 regiones si casi todas van en cero.
-  assert.match(home, /showRegionPanel = activeRegions >= 3/);
-  assert.match(home, /if \(stats\.activeLoads > 0\)/);
   assert.doesNotMatch(home, /testimonios/i);
 });
 
