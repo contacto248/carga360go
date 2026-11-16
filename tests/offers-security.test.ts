@@ -117,6 +117,17 @@ test("seguridad: contraseña, patente, montos, honeypot y CSRF", () => {
     headers: { "sec-fetch-site": "same-origin", origin: "https://www.carga360go.cl", host: "www.carga360go.cl" },
   });
   assert.doesNotThrow(() => assertSameOrigin(same));
+  // Cookie de sesión sin Origin ni Sec-Fetch-Site: rechazar (usar Bearer en clientes no-browser).
+  const blind = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { cookie: "c360_session=token-de-sesion", host: "www.carga360go.cl" },
+  });
+  assert.throws(() => assertSameOrigin(blind), /Origen/);
+  const blindOk = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { cookie: "c360_session=token-de-sesion", "sec-fetch-site": "same-origin", host: "www.carga360go.cl" },
+  });
+  assert.doesNotThrow(() => assertSameOrigin(blindOk));
   assert.throws(() => resetPassword("token-falso", "123"), AppError);
 });
 

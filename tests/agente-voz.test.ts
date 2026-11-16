@@ -54,7 +54,7 @@ function cookieFrom(response: Response): string | undefined {
 }
 
 async function post(body: unknown, cookie?: string, extra: Record<string, string> = {}) {
-  const headers: Record<string, string> = { "content-type": "application/json", ...extra };
+  const headers: Record<string, string> = { "content-type": "application/json", "sec-fetch-site": "same-origin", host: "127.0.0.1:4317", ...extra };
   if (cookie) headers.cookie = cookie;
   const response = await POST(new Request(`${BASE}/api/agente`, { method: "POST", headers, body: JSON.stringify(body) }), ctx);
   const data = (await response.json()) as Record<string, unknown>;

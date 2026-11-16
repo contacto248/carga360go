@@ -87,7 +87,11 @@ function pedirCsv(cookie?: string) {
 }
 
 function pedirConsulta(cookie: string, consulta: string) {
-  const headers = new Headers({ host: "127.0.0.1:4317", "content-type": "application/json" });
+  const headers = new Headers({
+    host: "127.0.0.1:4317",
+    "content-type": "application/json",
+    "sec-fetch-site": "same-origin",
+  });
   headers.set("cookie", `${COOKIE_NAME}=${cookie}`);
   return new Request("http://127.0.0.1:4317/api/admin/bassam360", { method: "POST", headers, body: JSON.stringify({ consulta }) });
 }
