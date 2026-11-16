@@ -102,7 +102,6 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
   const [greeting, setGreeting] = useState<Msg | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [quick, setQuick] = useState<string[]>([]);
-  const [status, setStatus] = useState<Init["status"] | null>(null);
   const [maxLength, setMaxLength] = useState(500);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -136,7 +135,6 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
         setGreeting({ id: "greeting", role: "assistant", text: data.greeting || "", at: "" });
         setMessages(data.messages || []);
         setQuick(data.quick || []);
-        setStatus(data.status || null);
         if (data.maxLength) setMaxLength(data.maxLength);
         if (data.greetingSpeak) {
           // Saludo hablado solo si el usuario ya abrió el panel (aquí) y no está silenciado.
@@ -299,33 +297,28 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
   }
 
   const all = greeting ? [greeting, ...messages] : messages;
-  const aiLabel = status?.modeLabel;
 
   return (
     <section id="c360-agent-panel" className="chat-panel agent-panel" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <header className="chat-head">
         <AgentAvatar state={avatarState} size={44} className="agent-head-avatar" label="Carga360go" />
-        <div>
+        <div className="chat-head-copy">
           <h2 id={titleId}>Carga360go</h2>
-          <p>
-            Asistente · trazabilidad y automatización · español de Chile
-            {aiLabel ? <span className={`agent-badge${status?.ai === "conectada" ? " ok" : ""}`}>{aiLabel}</span> : null}
-          </p>
+          <p>Asistente · español de Chile</p>
         </div>
-        <a className="chat-wa-mini" href={waHref} target="_blank" rel="noopener noreferrer">
-          Continuar por WhatsApp
-        </a>
-        {ttsSupported ? (
-          <button type="button" className="chat-x" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Activar la voz de Carga360go" : "Silenciar la voz de Carga360go"} title={muted ? "Voz silenciada" : "Voz activada"}>
-            {muted ? "🔇" : "🔊"}
+        <div className="chat-head-actions">
+          {ttsSupported ? (
+            <button type="button" className="chat-x" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Activar la voz de Carga360go" : "Silenciar la voz de Carga360go"} title={muted ? "Voz silenciada" : "Voz activada"}>
+              {muted ? "🔇" : "🔊"}
+            </button>
+          ) : null}
+          <button type="button" className="chat-x" onClick={reset} aria-label="Nueva conversación" title="Nueva conversación" disabled={enabled === false}>
+            ↺
           </button>
-        ) : null}
-        <button type="button" className="chat-x" onClick={reset} aria-label="Nueva conversación" title="Nueva conversación" disabled={enabled === false}>
-          ↺
-        </button>
-        <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar Carga360">
-          ✕
-        </button>
+          <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar Carga360">
+            ✕
+          </button>
+        </div>
       </header>
       <div className="chat-log" ref={logRef} aria-live="polite">
         {enabled === false ? (
@@ -400,7 +393,7 @@ function AgentPanel({ waHref, onClose }: { waHref: string; onClose: () => void }
           maxLength={maxLength}
           value={text}
           disabled={busy || enabled === false}
-          placeholder={voiceSupported ? "Escriba o toque el micrófono…" : "Escriba su consulta…"}
+          placeholder={voiceSupported ? "Escriba o hable…" : "Escriba aquí…"}
           onChange={(event) => setText(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {

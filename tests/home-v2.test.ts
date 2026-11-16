@@ -41,7 +41,14 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(agent, /es-CL/);
   assert.match(agent, /es-ES/);
   assert.match(agent, /AgentAvatar/);
-  assert.match(agent, /chat-wa-mini/);
+  assert.match(agent, /agent-wa-cta/);
+  assert.match(agent, /Continuar por WhatsApp/);
+  assert.match(agent, /chat-head-copy/);
+  assert.match(agent, /chat-head-actions/);
+  assert.match(agent, /Escriba o hable/);
+  assert.doesNotMatch(agent, /chat-wa-mini/);
+  assert.doesNotMatch(agent, /aiLabel|agent-badge|Respuestas por reglas/);
+  assert.doesNotMatch(agent, /status\?\.modeLabel|status\?\.ai ===/);
   assert.doesNotMatch(agent, /help-wa|help-stack|btn wa fab/);
   assert.doesNotMatch(agent, /Agente BASSAM|BASSAM 360/);
   const chat = read("src/components/ChatWidget.tsx");
@@ -50,6 +57,8 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   const css = read("src/app/globals.css");
   assert.match(css, /cookie-banner/);
   assert.match(css, /body:has\(\.cookie-banner\) \.help-dock/);
+  assert.match(css, /chat-head-copy/);
+  assert.match(css, /chat-head-actions/);
   const engine = read("src/lib/agent/engine.ts");
   assert.match(engine, /Cotizar flete/);
   assert.match(engine, /Publicar carga/);

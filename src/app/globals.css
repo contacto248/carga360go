@@ -225,10 +225,13 @@ label.f,.form-grid>*,.calc>*{min-width:0}select{max-width:100%;text-overflow:ell
 .help-fab.is-close:hover{background:var(--accent2)}
 body:has(.help-dock) footer.foot{padding-bottom:100px}
 .chat-panel{width:min(380px,calc(100vw - 24px));height:min(72vh,560px);max-height:min(72vh,560px);display:flex;flex-direction:column;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 40px #0005;overflow:hidden}
-.chat-head{display:flex;align-items:flex-start;gap:8px;background:var(--navy);color:#fff;padding:12px 12px 12px 14px}
-.chat-head h2{margin:0;font-size:1rem;color:#fff}
-.chat-head p{margin:2px 0 0;font-size:.75rem;color:#d3def0}
-.chat-head > div{flex:1;min-width:0}
+.chat-head{display:flex;align-items:center;gap:10px;background:var(--navy);color:#fff;padding:12px 12px 12px 14px}
+.chat-head h2{margin:0;font-size:1rem;color:#fff;line-height:1.2}
+.chat-head p{margin:2px 0 0;font-size:.75rem;color:#d3def0;line-height:1.35}
+.chat-head-copy{flex:1;min-width:0}
+.chat-head-copy h2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-head-copy p{white-space:normal}
+.chat-head-actions{display:flex;align-items:center;gap:2px;flex:0 0 auto}
 .chat-wa-mini{color:#fff;background:#25d366;border-radius:99px;padding:6px 10px;font-size:.75rem;font-weight:800;text-decoration:none;white-space:nowrap}
 .chat-x{background:transparent;border:0;color:#fff;font-size:1.1rem;cursor:pointer;padding:4px 6px}
 .chat-log{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f5f7fa}
@@ -261,9 +264,8 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
 /* ===== Agente comercial (voz y texto) ===== */
 .agent-fab{background:var(--accent)}
 .agent-fab:hover{background:var(--accent2)}
-.agent-panel .chat-head p{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.agent-badge{display:inline-block;background:#ffffff1f;color:#ffd9bf;border-radius:99px;padding:1px 8px;font-size:.68rem;font-weight:700}
-.agent-badge.ok{color:#bbf7d0}
+.agent-panel .chat-head{align-items:center}
+.agent-panel .chat-form textarea{min-width:0}
 .agent-listening{align-self:flex-end;display:flex;align-items:center;gap:8px;max-width:85%;background:#fff4e8;border:1px solid #ffd2ad;color:#7a3e00;border-radius:14px;padding:8px 12px;font-size:.88rem}
 .agent-wave{display:inline-flex;align-items:flex-end;gap:2px;height:18px}
 .agent-wave i{display:block;width:3px;height:6px;background:var(--accent);border-radius:2px;animation:agent-wave 1s ease-in-out infinite}
@@ -285,7 +287,6 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
 /* FAB único Carga360: no solapar tabbar móvil ni banner de cookies (PR #13). */
 .agent-wa-row{display:flex;justify-content:stretch;padding:0 12px 8px}
 .agent-wa-cta{width:100%;justify-content:center;text-align:center}
-.chat-wa-mini{max-width:11rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:819px){
   .help-dock{bottom:calc(72px + env(safe-area-inset-bottom))}
   .chat-panel{max-height:calc(100dvh - 160px - env(safe-area-inset-bottom))}
