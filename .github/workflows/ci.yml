@@ -23,8 +23,8 @@ permissions:
   contents: read
 
 concurrency:
-  # Misma rama → un solo job (push y pull_request no se pisan entre sí por número/ref distinto).
-  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  # Separar push vs pull_request para que ambos puedan quedar verdes en el mismo tip.
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
