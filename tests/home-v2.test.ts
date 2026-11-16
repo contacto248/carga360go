@@ -35,8 +35,11 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   assert.match(home, /Quiénes somos/);
   assert.match(home, /Ecosistema y canales/);
   assert.doesNotMatch(home, /comisi[oó]n/i);
+  assert.doesNotMatch(home, /membres[ií]a/i);
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
+  assert.match(home, /id="faq"/);
+  assert.match(home, /operación continua/);
 });
 
 test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", () => {
@@ -97,6 +100,25 @@ test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => 
   assert.match(conf, /destination:\s*"\/herramientas\/calculadora"/);
   assert.match(conf, /source:\s*"\/cargas-de-retorno"/);
   assert.match(conf, /destination:\s*"\/cargas-de-retorno-mineras"/);
+});
+
+test("T-066 alias E2E /empresas /seguimiento /login /ayuda redirigen; /faq tiene página", () => {
+  const conf = read("next.config.ts");
+  assert.match(conf, /source:\s*"\/empresas"/);
+  assert.match(conf, /destination:\s*"\/registro"/);
+  assert.match(conf, /source:\s*"\/seguimiento"/);
+  assert.match(conf, /destination:\s*"\/tecnologia"/);
+  assert.match(conf, /source:\s*"\/login"/);
+  assert.match(conf, /destination:\s*"\/ingreso"/);
+  assert.match(conf, /source:\s*"\/ayuda"/);
+  assert.match(conf, /destination:\s*"\/guias"/);
+  assert.ok(fs.existsSync(path.join(ROOT, "src/app/faq/page.tsx")));
+  const faqPage = read("src/app/faq/page.tsx");
+  assert.match(faqPage, /canonical:\s*"\/faq"/);
+  assert.match(faqPage, /Preguntas frecuentes/);
+  assert.match(faqPage, /from "\@\/lib\/faq"/);
+  const faqLib = read("src/lib/faq.ts");
+  assert.doesNotMatch(faqLib, /membres[ií]a|comisi[oó]n|TrackChain/i);
 });
 
 test("T-062 página /guias existe (hub marketing; nunca 404)", () => {

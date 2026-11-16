@@ -52,6 +52,7 @@ export function Footer() {
             <span>{BRAND.address}</span>
             <Link href="/contacto">Contacto</Link>
             <Link href="/guias">Guías</Link>
+            <Link href="/faq">Preguntas frecuentes</Link>
             <Link href="/como-verificamos">Cómo verificamos</Link>
             <Link href="/transporte-minero-chile">Transporte minero</Link>
             <Link href="/cama-baja-y-maquinaria">Cama baja</Link>
