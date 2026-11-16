@@ -51,7 +51,6 @@ test("la portada usa el copy del paquete y no promete acreditación 100% ni audi
   assert.match(home, /Calcular un flete referencial/);
   assert.match(home, /Carga360go conecta a las partes/);
   assert.match(home, /\/como-verificamos/);
-  assert.match(home, /\/transporte-minero-chile/);
   assert.match(home, /Carga360 Match/);
   assert.match(home, /Publicar carga/);
   assert.match(home, /Seguimiento en vivo/);
@@ -60,6 +59,9 @@ test("la portada usa el copy del paquete y no promete acreditación 100% ni audi
   assert.doesNotMatch(home, /calidad, seguridad y medio ambiente/);
   assert.doesNotMatch(home, /La bolsa de carga de Chile que/);
   assert.doesNotMatch(home, /testimonios/i);
+  // Verticales mineras viven en /tecnologia (portada corta).
+  const tech = read("src/app/tecnologia/page.tsx");
+  assert.match(tech, /\/transporte-minero-chile/);
 });
 
 test("las seis landings SEO y Cómo verificamos existen con metas propias, sin cifras inventadas", () => {

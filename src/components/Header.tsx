@@ -46,6 +46,16 @@ export function Header({ user }: { user: PublicUser | null }) {
               height={36}
             />
           </Link>
+          {/* CTA compacto en móvil: logo + Ingresar/Salir (sin apilar el menú en el header). */}
+          {user ? (
+            <button className="btn sm mobile-cta" type="button" onClick={salir}>
+              Salir
+            </button>
+          ) : (
+            <Link href="/ingreso" className="btn sec sm mobile-cta">
+              Ingresar
+            </Link>
+          )}
           <nav className="links" aria-label="Principal">
             {LINKS.map((link) => (
               <Link key={link.href} href={link.href} className={pathname === link.href ? "on" : ""}>
