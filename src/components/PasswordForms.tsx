@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PASSWORD_MIN } from "@/lib/security";
 
 export function ForgotForm() {
   const [email, setEmail] = useState("");
@@ -69,6 +70,7 @@ export function ResetForm({ token }: { token: string }) {
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (password !== password2) return setError("Las contraseñas no coinciden.");
+    if (password.length < PASSWORD_MIN) return setError(`La contraseña debe tener al menos ${PASSWORD_MIN} caracteres.`);
     setPending(true);
     setError("");
     const response = await fetch("/api/auth/restablecer", {
@@ -102,11 +104,11 @@ export function ResetForm({ token }: { token: string }) {
       <div className="form-grid">
         <label className="f">
           Nueva contraseña *
-          <input type="password" autoComplete="new-password" minLength={10} value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <input type="password" autoComplete="new-password" minLength={PASSWORD_MIN} value={password} onChange={(event) => setPassword(event.target.value)} required />
         </label>
         <label className="f">
           Repite la contraseña *
-          <input type="password" autoComplete="new-password" minLength={10} value={password2} onChange={(event) => setPassword2(event.target.value)} required />
+          <input type="password" autoComplete="new-password" minLength={PASSWORD_MIN} value={password2} onChange={(event) => setPassword2(event.target.value)} required />
         </label>
       </div>
       {error ? (

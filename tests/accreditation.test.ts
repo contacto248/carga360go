@@ -56,9 +56,11 @@ test("contactos ocultos en listados para todos salvo dueño y admin", () => {
     assert.equal(seen.notes, null);
     assert.doesNotMatch(seen.description, /8765/);
     assert.equal(seen.matches[0].truck.whatsapp, "");
+    assert.equal("ownerId" in seen, false, "la vista pública no debe exponer ownerId");
   }
   const own = redactLoad(load, owner);
   assert.equal(own.whatsapp, "56955551234");
+  assert.equal(own.ownerId, owner.id);
   assert.equal(own.matches[0].truck.whatsapp, "", "el dueño no ve el contacto de camiones sugeridos");
   assert.equal(redactLoad(load, admin).matches[0].truck.whatsapp, "56911112222");
 
