@@ -68,14 +68,19 @@ const BENEFITS = [
 /** Módulos / funciones de la plataforma. */
 const MODULES = [
   {
+    title: "Bolsa de cargas y camiones",
+    text: "Publica y encuentra avisos vigentes: carga general, minería, cama baja, retornos y fletes livianos (incl. 3/4).",
+    href: "/cargas",
+  },
+  {
     title: "Cotizador",
     text: "Estima el costo real referencial del flete con ruta, peajes según ejes, diésel y operación. No es cotización cerrada.",
     href: "/herramientas/calculadora",
   },
   {
-    title: "Publicación de cargas",
-    text: "Origen, destino, fecha, peso, equipo y medidas. Tu aviso entra a la bolsa y recibe ofertas en el plazo definido.",
-    href: "/cargas/nueva",
+    title: "Carga360 Match",
+    text: "Calce a pedido por equipo, capacidad, medidas, ruta y fechas — con razones a la vista. No garantiza contratación.",
+    href: "/cargas",
   },
   {
     title: "Trazabilidad",
@@ -89,13 +94,8 @@ const MODULES = [
   },
   {
     title: "Asistente Carga360",
-    text: "Agente Carga360go de voz y texto en el sitio (Web Speech API, es-CL / es-ES), sin claves de pago.",
+    text: "Agente Carga360go con IA de voz y texto en el sitio (Web Speech API, es-CL / es-ES). Se abre desde el FAB único.",
     href: "/tecnologia",
-  },
-  {
-    title: "Carga360 Match",
-    text: "Calces por equipo, capacidad, medidas, ruta y fechas, con razones a la vista. No garantiza contratación.",
-    href: "/cargas",
   },
 ];
 
@@ -214,8 +214,9 @@ export default async function HomePage() {
             </p>
             <h1>Trazabilidad y automatización para mover carga en Chile</h1>
             <p>
-              Publicar una carga o un camión hoy se fragmenta entre llamadas, planillas y chats. Carga360go concentra la
-              operación: publica, encuentra calce, sigue eventos y guarda el comprobante digital.
+              Bolsa de cargas y camiones, match a pedido y torre de control en una sola web. Pensada para mandantes y
+              transportistas — con foco de entrada en el corredor minero del norte (Calama–Antofagasta) — sin fragmentar
+              la operación entre planillas y chats.
             </p>
             <div className="cta">
               <Link className="btn" href="/cargas">
@@ -454,7 +455,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Industrias (recuperado portada-saas) */}
+      {/* Industrias (recuperado portada-saas) + modelo de plataforma */}
       <section className="block alt" aria-labelledby="industrias-titulo">
         <div className="wrap">
           <p className="saas-kicker">Operamos en</p>
@@ -467,6 +468,15 @@ export default async function HomePage() {
               </li>
             ))}
           </ul>
+          <div className="platform-model" aria-labelledby="modelo-titulo">
+            <h3 id="modelo-titulo">Plataforma para operar, no solo publicar</h3>
+            <p className="lead">
+              Carga360go se orienta a membresía de la plataforma, contratos y licitaciones entre partes, bolsas de carga,
+              match a pedido (incluye fletes 3/4) y reputación del transportista con categorías claras. El segmento de
+              entrada es el corredor minero del norte — Calama y Antofagasta — con expansión nacional. Los montos y
+              condiciones comerciales se informan por canales privados, nunca en esta portada.
+            </p>
+          </div>
         </div>
       </section>
 
