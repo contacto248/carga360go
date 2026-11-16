@@ -50,6 +50,7 @@ export function Footer() {
             <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
             <span>{BRAND.address}</span>
             <Link href="/contacto">Contacto</Link>
+            <Link href="/guias">Guías</Link>
             <Link href="/como-verificamos">Cómo verificamos</Link>
             <Link href="/transporte-minero-chile">Transporte minero</Link>
             <Link href="/cama-baja-y-maquinaria">Cama baja</Link>

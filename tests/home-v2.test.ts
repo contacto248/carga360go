@@ -53,6 +53,24 @@ test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => 
   assert.match(conf, /destination:\s*"\/cargas-de-retorno-mineras"/);
 });
 
+test("T-062 página /guias existe (hub marketing; nunca 404)", () => {
+  const page = path.join(ROOT, "src/app/guias/page.tsx");
+  assert.ok(fs.existsSync(page));
+  const guias = read("src/app/guias/page.tsx");
+  assert.match(guias, /canonical:\s*"\/guias"/);
+  assert.match(guias, /Guías de Carga360go/);
+  assert.match(guias, /\/como-verificamos/);
+  assert.match(guias, /\/herramientas\/calculadora/);
+  assert.match(guias, /\/cargas\/nueva/);
+  const conf = read("next.config.ts");
+  assert.match(conf, /source:\s*"\/guia"/);
+  assert.match(conf, /destination:\s*"\/guias"/);
+  const sitemap = read("src/app/sitemap.ts");
+  assert.match(sitemap, /\/guias/);
+  const footer = read("src/components/Footer.tsx");
+  assert.match(footer, /href="\/guias"/);
+});
+
 test("T-060 página /tecnologia con demos marcadas y controles reales (sin sellos falsos)", () => {
   const page = path.join(ROOT, "src/app/tecnologia/page.tsx");
   assert.ok(fs.existsSync(page));
