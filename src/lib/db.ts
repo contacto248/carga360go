@@ -742,6 +742,18 @@ CREATE TABLE IF NOT EXISTS ops_operation_counters (
 );
 `;
 
+/**
+ * Migración 031: columna severity en ops_alerts.
+ * La 030 es el alta de operación. Esta no la modifica.
+ * Aditiva. No cambia los kinds atraso, detencion y sin_senal.
+ * No altera users, loads, offers, trip_events, trip_gps_points ni las migraciones 022–030.
+ * Copia en docs/migrations/031-ops-alertas-severity.sql.
+ * Reversa: docs/migrations/031-ops-alertas-severity-rollback.sql.
+ */
+export const MIGRATION_31_SQL = `
+ALTER TABLE ops_alerts ADD COLUMN severity TEXT NOT NULL DEFAULT 'media' CHECK (severity IN ('baja', 'media', 'alta'));
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1274,6 +1286,16 @@ function migrate(db: Database.Database) {
       // Copia en docs/migrations/030-ops-operacion.sql. Reversa: 030-ops-operacion-rollback.sql.
       db.exec(MIGRATION_30_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (30, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // Severidad de alertas (031). La 030 (alta de operación) queda intacta. Se comprueba el número 31, no el máximo.
+  if (!hasMigration(db, 31)) {
+    const apply = db.transaction(() => {
+      // Una columna nueva. Las filas previas quedan en 'media'. No cambia los kinds ni toca 022–030.
+      // Copia en docs/migrations/031-ops-alertas-severity.sql. Reversa: 031-ops-alertas-severity-rollback.sql.
+      if (!hasColumn(db, "ops_alerts", "severity")) db.exec(MIGRATION_31_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (31, ?)`).run(new Date().toISOString());
     });
     apply();
   }

@@ -9,7 +9,7 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
   throw new Error("DATABASE_PATH de prueba no está configurada. Ejecuta npm test.");
 }
 
-import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL, MIGRATION_28_SQL, MIGRATION_29_SQL, MIGRATION_30_SQL } from "../src/lib/db";
+import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL, MIGRATION_28_SQL, MIGRATION_29_SQL, MIGRATION_30_SQL, MIGRATION_31_SQL } from "../src/lib/db";
 
 const FIX = path.join(__dirname, "fixtures", "db");
 const ORIGINAL_PATH = process.env.DATABASE_PATH;
@@ -50,8 +50,8 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  assert.equal(Math.max(...v), 30);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  assert.equal(Math.max(...v), 31);
   for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_carrier_scores", "ops_score_events", "ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs", "ops_allocation_traces", "ops_telematics_sources", "ops_gps_receipts", "ops_geofences", "ops_eta_snapshots", "ops_alert_rules", "ops_alerts", "ops_tracking_links", "ops_operations", "ops_operation_keys", "ops_operation_counters"]) assert.ok(hasTable(db, t), t);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
@@ -117,7 +117,7 @@ test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni 
   const file = process.env.DATABASE_PATH!;
   closeDb();
   const after = snapshot(file);
-  assert.deepEqual(after, { ...before, version: 30 });
+  assert.deepEqual(after, { ...before, version: 31 });
   const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
   assert.equal(mandante.backup_contact, "respaldo@demo.local");
   assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
@@ -192,7 +192,7 @@ test("reversa 022 borra solo organizaciones y deja la 023 y la 027", () => {
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(versions(db).includes(23));
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 30);
+    assert.equal(Math.max(...versions(db)), 31);
     assert.equal(hasTable(db, "ops_telematics_sources"), true);
     assert.equal(hasTable(db, "ops_gps_receipts"), true);
     assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
@@ -293,14 +293,14 @@ test("023 sobre base vacía y sobre producción v14 no altera tablas previas; la
       assert.equal(afterVersions.includes(23), false);
       assert.ok(afterVersions.includes(22));
       assert.ok(afterVersions.includes(27));
-      assert.equal(Math.max(...afterVersions), 30);
+      assert.equal(Math.max(...afterVersions), 31);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_telematics_sources'`).get()), true);
       assert.deepEqual(protectedCols(raw), colsBefore);
       raw.exec(rollback22);
       const unwound = (raw.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all() as { version: number }[]).map((row) => row.version);
       assert.equal(unwound.includes(22), false);
       assert.ok(unwound.includes(27));
-      assert.equal(Math.max(...unwound), 30);
+      assert.equal(Math.max(...unwound), 31);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_organizations'`).get()), false);
       assert.equal((raw.prepare(`PRAGMA foreign_key_check`).all() as unknown[]).length, 0);
       assert.equal((raw.prepare(`PRAGMA integrity_check`).get() as { integrity_check: string }).integrity_check, "ok");
@@ -338,7 +338,7 @@ test("reversa 024 borra solo procurement y deja la 023", () => {
     assert.equal(versions(db).includes(24), false);
     assert.equal(versions(db).includes(23), true);
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 30);
+    assert.equal(Math.max(...versions(db)), 31);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_telematics_sources"));
@@ -374,7 +374,7 @@ test("reversa 025 borra puntajes y conserva 022, 023, 024 y 027", () => {
     assert.equal(hasTable(db, "ops_score_events"), false);
     assert.equal(versions(db).includes(25), false);
     for (const n of [22, 23, 24, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 30);
+    assert.equal(Math.max(...versions(db)), 31);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
@@ -465,7 +465,7 @@ test("reversa 026 borra la asignación y conserva 022, 023, 024, 025 y 027", () 
     }
     assert.equal(versions(db).includes(26), false);
     for (const n of [22, 23, 24, 25, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 30);
+    assert.equal(Math.max(...versions(db)), 31);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
@@ -568,6 +568,59 @@ test("la copia SQL de 030 coincide, es idempotente y la reversa solo borra el al
     assert.ok(versions(db).includes(29));
     assert.ok(hasTable(db, "ops_geofences"));
     assert.ok(hasTable(db, "ops_shipments"));
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
+});
+
+test("la copia SQL de 031 agrega severity y la reversa solo quita esa columna", () => {
+  const doc = fs.readFileSync(path.join(__dirname, "../docs/migrations/031-ops-alertas-severity.sql"), "utf8");
+  assert.equal(sqlBody(doc), sqlBody(MIGRATION_31_SQL));
+  assert.match(sqlBody(doc), /ALTER TABLE ops_alerts ADD COLUMN severity/);
+  assert.equal(/atraso|detencion|sin_senal|users|loads|offers|trip_gps_points|ops_operations/i.test(sqlBody(doc)), false);
+  const rollback = fs.readFileSync(path.join(__dirname, "../docs/migrations/031-ops-alertas-severity-rollback.sql"), "utf8");
+  assert.match(rollback, /ALTER TABLE ops_alerts DROP COLUMN severity/);
+  assert.match(rollback, /DELETE FROM schema_migrations WHERE version = 31/);
+  assert.equal(/DROP TABLE|ops_operations|ops_shipments|trip_gps_points/.test(rollback.replace(/--.*$/gm, "")), false);
+  const db = openCopy(null);
+  try {
+    const names = (database: ReturnType<typeof getDb>) =>
+      (database.prepare(`PRAGMA table_info(ops_alerts)`).all() as { name: string }[]).map((column) => column.name);
+    assert.ok(names(db).includes("severity"));
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version = 31`).get() as { n: number }).n, 1);
+    const kindSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'ops_alerts'`).get() as { sql: string }).sql;
+    assert.match(kindSql, /'atraso', 'detencion', 'sin_senal'/);
+    db.exec(rollback);
+    assert.equal(names(db).includes("severity"), false);
+    const shipmentId = "11111111-1111-4111-8111-111111111111";
+    const stamp = "2026-01-01T00:00:00.000Z";
+    db.prepare(
+      `INSERT INTO ops_shipments (
+        id, load_id, shipper_org_id, carrier_org_id, rate_card_id, lane_id, assigned_offer_id,
+        stage, planned_pickup_at, planned_delivery_at, created_at, updated_at
+      ) VALUES (?, NULL, NULL, NULL, NULL, NULL, NULL, 'ejecucion', NULL, NULL, ?, ?)`,
+    ).run(shipmentId, stamp, stamp);
+    db.prepare(
+      `INSERT INTO ops_alerts (id, shipment_id, kind, status, evidence_json, opened_at, updated_at) VALUES (?, ?, 'detencion', 'abierta', '{}', ?, ?)`,
+    ).run("alerta-previa", shipmentId, stamp, stamp);
+    closeDb();
+    const migrated = getDb();
+    assert.equal(names(migrated).filter((name) => name === "severity").length, 1);
+    assert.equal((migrated.prepare(`SELECT severity FROM ops_alerts WHERE id = 'alerta-previa'`).get() as { severity: string }).severity, "media");
+    assert.throws(() => migrated.prepare(`UPDATE ops_alerts SET severity = 'critica' WHERE id = 'alerta-previa'`).run());
+    migrated.prepare(`DELETE FROM schema_migrations WHERE version = 31`).run();
+    closeDb();
+    const retried = getDb();
+    assert.equal(names(retried).filter((name) => name === "severity").length, 1);
+    assert.equal((retried.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version = 31`).get() as { n: number }).n, 1);
+    retried.exec(rollback);
+    assert.equal(names(retried).includes("severity"), false);
+    assert.equal(versions(retried).includes(31), false);
+    assert.ok(versions(retried).includes(30));
+    assert.ok(hasTable(retried, "ops_alerts"));
+    assert.ok(hasTable(retried, "ops_operations"));
+    assert.equal((retried.prepare(`SELECT COUNT(*) AS n FROM ops_alerts WHERE id = 'alerta-previa'`).get() as { n: number }).n, 1);
   } finally {
     closeDb();
     process.env.DATABASE_PATH = ORIGINAL_PATH;

@@ -4,7 +4,6 @@ import { auditStrict } from "../audit";
 import { getDb } from "../db";
 import { AppError } from "../errors";
 import type { PublicUser } from "../types";
-import { reviewAlerts } from "./alerts";
 import { latestPublicEta } from "./eta";
 import { canReadShipment, type OpsShipment, type ShipmentStage } from "./shipments";
 
@@ -16,7 +15,6 @@ export type TrackingView = {
   position: { lat: number; lng: number; recordedAt: string } | null;
   etaAt: string | null;
   truckAware: false;
-  alerts: { kind: "atraso" | "detencion" | "sin_senal" }[];
 };
 
 type ShipmentRow = {
@@ -73,7 +71,6 @@ function viewFor(shipmentId: string, token: string): TrackingView {
     )
     .get(shipmentId) as { stage: string; origin: string | null; destination: string | null; loadId: string | null } | undefined;
   if (!row) throw new AppError("No encontrado.", 404);
-  if (row.loadId) reviewAlerts(row.loadId, latestPublicEta(shipmentId), null);
   const gpsReady = Boolean(getDb().prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'trip_gps_points'`).get());
   const position =
     row.loadId && gpsReady
@@ -85,9 +82,6 @@ function viewFor(shipmentId: string, token: string): TrackingView {
           .get(row.loadId) as { lat: number; lng: number; recordedAt: string } | undefined)
       : undefined;
   const eta = latestPublicEta(shipmentId);
-  const alerts = getDb()
-    .prepare(`SELECT kind FROM ops_alerts WHERE shipment_id = ? AND status = 'abierta' ORDER BY kind`)
-    .all(shipmentId) as { kind: TrackingView["alerts"][number]["kind"] }[];
   return {
     token,
     stage: row.stage,
@@ -96,11 +90,10 @@ function viewFor(shipmentId: string, token: string): TrackingView {
     position: position ?? null,
     etaAt: eta?.etaAt ?? null,
     truckAware: false,
-    alerts,
   };
 }
 
-/** Un token por envío. No incluye correo, teléfono ni nombre. */
+/** Un token por envío. No incluye correo, teléfono, nombre ni alertas internas. */
 export function issueTrackingLink(user: PublicUser, shipmentId: string): { token: string; path: string; created: boolean } {
   const shipment = requireShipment(user, shipmentId);
   const db = getDb();
@@ -115,6 +108,7 @@ export function issueTrackingLink(user: PublicUser, shipmentId: string): { token
   return { token, path: `/seguimiento/${token}`, created: true };
 }
 
+/** Estado, posición y ETA para el cliente. No lee ni devuelve ops_alerts. */
 export function readTracking(token: string): TrackingView {
   if (!/^[A-Za-z0-9_-]{16,80}$/.test(token)) throw new AppError("No encontrado.", 404);
   const row = getDb().prepare(`SELECT shipment_id AS shipmentId FROM ops_tracking_links WHERE token = ?`).get(token) as
