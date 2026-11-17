@@ -5,7 +5,7 @@ Contraste entre el blueprint de Gerencia (17 noviembre 2026) y el código de est
 - `docs/arquitectura/blueprint-v1.0/Carga360GO_Arquitectura_AI_Automatizaciones_v1.docx` y la transcripción `docs/arquitectura/blueprint-v1.0/Carga360GO_Arquitectura_AI_Automatizaciones_v1.md`.
 - Paquete de referencia, copiado tal cual y sin cablear, en `docs/arquitectura/blueprint-v1.0/plataforma/`.
 
-Este documento no implementa streams, no agrega dependencias y no modifica `src/`, los tests, las migraciones ni `src/app/admin/ops/`.
+Este documento no implementa streams, no agrega dependencias y no modifica `src/`, los tests, las migraciones ni `src/app/admin/ops/`. La punta de `release/2026-11-15` ya incluye el PR #50 (panel y API de lectura). Esas rutas se citan abajo y no se editan aquí.
 
 ## Secretos
 
@@ -14,6 +14,14 @@ El docx no trae claves, tokens, contraseñas ni un `.env`. Las palabras «secret
 El paquete incluye `plataforma/.env.example` solo con placeholders: `POSTGRES_PASSWORD=change-this-db-password` y `C360_API_KEY=change-me-now`. No hay claves reales. Se conserva el archivo. Los mismos placeholders figuran como valor por defecto de demostración en `plataforma/docker-compose.yml`, `plataforma/services/api/main.py`, `plataforma/apps/web/index.html` y `plataforma/README.md`.
 
 ## 1. Qué del blueprint ya existe, y dónde
+
+### Panel `/admin/ops` y API de lectura
+
+El PR #50, ya en esta release, agrega el panel y una API de solo lectura. No es el core del blueprint.
+
+- Panel: `src/app/admin/ops/page.tsx` y `src/app/admin/ops/board.tsx`. Queda en 404 si `OPS_FEATURE_ENABLED` no es exactamente `true` o quien entra no es admin de plataforma (`src/lib/ops/page-gate.ts`).
+- Lectura: `GET /api/ops/v1/contratos`, `GET /api/ops/v1/tarifas`, `GET /api/ops/v1/envios/{id}` y `GET /api/ops/v1/asignaciones/{runId}`. `apiV1Guard` en `src/lib/ops/http.ts` exige además `OPS_API_V1_ENABLED`. La lógica está en `src/lib/ops/v1.ts` y `src/lib/ops/panel.ts`. El contrato está en `docs/ops/API-v1.md` y `docs/ops/openapi-v1.yaml`.
+- No crea operaciones, no adjudica y no cobra. No son las rutas de la sección 15 del blueprint (`POST /v1/rfqs`, `POST /v1/quotes/{id}/accept`, `POST /v1/orders/{id}/matching`, y el resto de esa tabla).
 
 ### FastAPI
 
