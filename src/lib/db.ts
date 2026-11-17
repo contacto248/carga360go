@@ -754,6 +754,45 @@ export const MIGRATION_31_SQL = `
 ALTER TABLE ops_alerts ADD COLUMN severity TEXT NOT NULL DEFAULT 'media' CHECK (severity IN ('baja', 'media', 'alta'));
 `;
 
+/**
+ * Migración 032: uso del orquestador interno. La 031 (severidad) queda intacta.
+ * Solo una tabla nueva. Sin filas de ejemplo. No altera ops_alerts ni 022–031.
+ * Copia en docs/migrations/032-ai-router-uso.sql.
+ * Reversa: docs/migrations/032-ai-router-uso-rollback.sql.
+ */
+export const MIGRATION_32_SQL = `
+CREATE TABLE IF NOT EXISTS ai_router_usage (
+  id TEXT PRIMARY KEY,
+  trace_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  tenant_id TEXT,
+  provider TEXT NOT NULL CHECK (provider IN ('openai', 'xai')),
+  model TEXT NOT NULL,
+  mode TEXT NOT NULL CHECK (mode IN ('auto', 'openai', 'xai', 'both')),
+  input_tokens INTEGER NOT NULL DEFAULT 0 CHECK (input_tokens >= 0),
+  output_tokens INTEGER NOT NULL DEFAULT 0 CHECK (output_tokens >= 0),
+  cost_usd REAL NOT NULL DEFAULT 0 CHECK (cost_usd >= 0),
+  latency_ms INTEGER NOT NULL DEFAULT 0 CHECK (latency_ms >= 0),
+  fallback_used INTEGER NOT NULL CHECK (fallback_used IN (0, 1)),
+  result TEXT NOT NULL CHECK (result IN ('ok', 'error')),
+  error_code TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ai_router_usage_trace ON ai_router_usage(trace_id);
+
+CREATE TRIGGER IF NOT EXISTS ai_router_usage_no_update
+BEFORE UPDATE ON ai_router_usage
+BEGIN
+  SELECT RAISE(ABORT, 'uso inmutable');
+END;
+
+CREATE TRIGGER IF NOT EXISTS ai_router_usage_no_delete
+BEFORE DELETE ON ai_router_usage
+BEGIN
+  SELECT RAISE(ABORT, 'uso inmutable');
+END;
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1296,6 +1335,14 @@ function migrate(db: Database.Database) {
       // Copia en docs/migrations/031-ops-alertas-severity.sql. Reversa: 031-ops-alertas-severity-rollback.sql.
       if (!hasColumn(db, "ops_alerts", "severity")) db.exec(MIGRATION_31_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (31, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // Uso del orquestador (032). La 031 queda intacta. Se comprueba el número 32, no el máximo.
+  if (!hasMigration(db, 32)) {
+    const apply = db.transaction(() => {
+      db.exec(MIGRATION_32_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (32, ?)`).run(new Date().toISOString());
     });
     apply();
   }
