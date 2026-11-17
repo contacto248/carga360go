@@ -50,9 +50,13 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  assert.equal(Math.max(...v), 21);
-  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360"]) assert.ok(hasTable(db, t), t);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  assert.equal(Math.max(...v), 22);
+  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members"]) assert.ok(hasTable(db, t), t);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
+  const usersSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql;
+  assert.match(usersSql, /'transportista', 'mandante', 'admin'/);
   const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
   for (const c of ["backup_contact", "backup_contact_type", "manual_readonly_until", "manual_readonly_by"]) assert.ok(userCols.includes(c), c);
   assert.ok((db.prepare(`SELECT COUNT(*) AS n FROM cost_toll_rates`).get() as { n: number }).n > 0, "peajes MOP sembrados");
@@ -96,7 +100,7 @@ test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni 
   const file = process.env.DATABASE_PATH!;
   closeDb();
   const after = snapshot(file);
-  assert.deepEqual(after, { ...before, version: 21 });
+  assert.deepEqual(after, { ...before, version: 22 });
   const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
   assert.equal(mandante.backup_contact, "respaldo@demo.local");
   assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
@@ -145,6 +149,36 @@ test("reconcilia la migración 14 alternativa sin perder datos ni repetir su reg
     assertFinalSchema(reopened);
     assert.deepEqual(reopened.prepare(`SELECT applied_at FROM schema_migrations WHERE version = 14`).all(), [{ applied_at: appliedAt }]);
   } finally {
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
+});
+
+test("reversa 022 borra solo las tablas OPS y deja el esquema en 21", () => {
+  const db = openCopy("produccion-v14.sqlite");
+  const file = process.env.DATABASE_PATH!;
+  try {
+    assert.ok(hasTable(db, "ops_organizations"));
+    const before = {
+      users: db.prepare(`SELECT * FROM users ORDER BY id`).all(),
+      loads: db.prepare(`SELECT * FROM loads ORDER BY id`).all(),
+      trucks: db.prepare(`SELECT * FROM trucks ORDER BY id`).all(),
+      usersSql: (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql,
+    };
+    db.exec(fs.readFileSync(path.join(process.cwd(), "docs/migrations/022-ops-organizaciones-rollback.sql"), "utf8"));
+    assert.equal(hasTable(db, "ops_organizations"), false);
+    assert.equal(hasTable(db, "ops_org_members"), false);
+    assert.equal(versions(db).includes(22), false);
+    assert.equal(Math.max(...versions(db)), 21);
+    assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
+    assert.deepEqual(db.prepare(`SELECT * FROM loads ORDER BY id`).all(), before.loads);
+    assert.deepEqual(db.prepare(`SELECT * FROM trucks ORDER BY id`).all(), before.trucks);
+    assert.equal((db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql, before.usersSql);
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = file;
+    // Reabrir aplica de nuevo la 022: el sitio vuelve a quedar en el esquema vigente.
+    assertFinalSchema(getDb());
     closeDb();
     process.env.DATABASE_PATH = ORIGINAL_PATH;
   }

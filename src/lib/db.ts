@@ -308,6 +308,33 @@ export function getDb(): Database.Database {
   return db;
 }
 
+/** Migración 22: organizaciones y miembros OPS. Solo tablas nuevas (docs/migrations/022-ops-organizaciones.sql). */
+export const MIGRATION_22_SQL = `
+CREATE TABLE IF NOT EXISTS ops_organizations (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK (kind IN ('mandante', 'transportista', 'plataforma')),
+  razon_social TEXT NOT NULL,
+  rut_norm TEXT NOT NULL UNIQUE,
+  created_by TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ops_org_members (
+  id TEXT PRIMARY KEY,
+  org_id TEXT NOT NULL REFERENCES ops_organizations(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  area TEXT,
+  ops_role TEXT NOT NULL CHECK (ops_role IN ('org_admin', 'procurement', 'trafico', 'finanzas', 'auditor', 'lectura')),
+  status TEXT NOT NULL CHECK (status IN ('activo', 'suspendido')),
+  created_at TEXT NOT NULL,
+  UNIQUE (org_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ops_org_members_user ON ops_org_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_ops_org_members_org ON ops_org_members(org_id);
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -747,6 +774,16 @@ function migrate(db: Database.Database) {
       // No borra plazas ni tarifas anteriores. Copia en docs/migrations/021-peaje-itata.sql.
       seedTolls(db);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (21, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 22)) {
+    const apply = db.transaction(() => {
+      // Organizaciones y miembros del núcleo operativo. Solo tablas nuevas, sin filas de ejemplo.
+      // No altera users. Copia en docs/migrations/022-ops-organizaciones.sql.
+      // Reversa: docs/migrations/022-ops-organizaciones-rollback.sql.
+      db.exec(MIGRATION_22_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (22, ?)`).run(new Date().toISOString());
     });
     apply();
   }

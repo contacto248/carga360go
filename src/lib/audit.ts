@@ -67,6 +67,9 @@ export const AUDIT_LABELS: Record<string, string> = {
   "bassam.qr": "QR de origen y destino emitido",
   "bassam.agente": "Agente de calidad: decisión automática",
   "bassam.aprobado": "Gerencia aprobó un caso de severidad muy alta",
+  "ops.organizacion_creada": "Organización operativa creada",
+  "ops.miembro_agregado": "Miembro de organización agregado",
+  "ops.miembro_actualizado": "Miembro de organización actualizado",
 };
 
 function writeAudit(
@@ -158,6 +161,7 @@ const TARGETS: Record<string, string> = {
   agente_lead: "Solicitud del agente",
   costos: "Motor de costos",
   cotizacion: "Cotización",
+  ops_organizacion: "Organización",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */
