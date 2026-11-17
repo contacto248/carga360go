@@ -7,6 +7,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const pages = [
     "",
+    "/marketplace",
+    "/control-tower",
     "/cargas",
     "/camiones",
     "/cargas/nueva",

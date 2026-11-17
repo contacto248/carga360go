@@ -9,45 +9,37 @@ function read(rel: string): string {
   return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
-test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones", () => {
+test("T-049/T-065 home: marca, calce y flujos sin precios ni funciones apagadas", () => {
   const home = read("src/app/page.tsx");
   assert.match(home, /brand-hero/);
   assert.match(home, /Carga360go/);
-  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
-  assert.match(home, /Publicar carga/);
-  assert.match(home, /Encontrar camión/);
-  assert.match(home, /Historial de eventos/);
-  assert.doesNotMatch(home, /Seguimiento en vivo/);
-  assert.match(home, /registra publicación, ofertas y adjudicación con fecha y hora/);
-  assert.match(home, /HomeTowerBoard/);
-  assert.match(home, /compact/);
-  const tower = read("src/components/HomeTowerBoard.tsx");
-  assert.match(tower, /Así funciona/);
-  assert.match(tower, /tower-board-compact/);
-  assert.doesNotMatch(home, /tower-tag">en vivo/);
-  assert.doesNotMatch(tower, /tower-tag">en vivo/);
-  assert.match(home, /Historial en tu panel/);
+  assert.match(home, /Cargas, camiones y retornos en Chile, de Arica a Punta Arenas\./);
+  assert.match(home, /Tengo carga/);
+  assert.match(home, /Tengo camión o retorno/);
+  assert.match(home, /Abrir el cotizador \(sin registro\)/);
+  assert.match(home, /Así funciona Carga360go/);
+  assert.match(home, /Proximamente/);
+  const piezas = read("src/components/rediseno/Piezas.tsx");
+  assert.match(piezas, /Próximamente/);
+  assert.match(piezas, /Carga360go conecta a mandantes y transportistas/);
+  assert.match(home, /AI\.CARGA360/);
+  assert.match(piezas, /href="\/terminos"/);
+  assert.match(piezas, /href="\/privacidad"/);
+  assert.match(home, /href="\/como-verificamos"/);
+  assert.match(home, /href="\/cargas-de-retorno-mineras"/);
+  assert.match(home, /href="\/transporte-minero-chile"/);
+  assert.doesNotMatch(home, /href="\/(seguimiento|rastreo|cotizador|cargas-de-retorno)"/);
+  assert.doesNotMatch(home, /Seguimiento en vivo|También puedes hablarle|También puede hablarte|Hablar con el Agente/i);
   assert.doesNotMatch(home, /Comprobante digital/);
   assert.doesNotMatch(home, /costo real/i);
-  assert.match(home, /Empresas y mandantes/);
-  assert.match(home, /Transportistas/);
-  assert.match(home, /AI\.CARGA360/);
-  assert.match(home, /Decide mejor y más rápido/);
-  assert.match(home, /Eficiencia operativa/);
-  assert.match(home, /Crece con respaldo/);
-  assert.match(home, /Libera recursos y reduce riesgo/);
-  assert.match(home, /\/tecnologia/);
   assert.doesNotMatch(home, /comisi[oó]n/i);
   assert.doesNotMatch(home, /membres[ií]a/i);
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
   assert.match(home, /id="faq"/);
-  assert.match(home, /Escribe a AI\.CARGA360/);
-  assert.doesNotMatch(home, /Hablar con el Agente|También puede hablarte/i);
-  // Portada corta: verticales/equipos viven en /tecnologia (no en el fold).
+  assert.doesNotMatch(home, /FreeBanner/);
   assert.doesNotMatch(home, /Equipos con ficha técnica/);
   assert.doesNotMatch(home, /Industrias que mueven carga/);
-  assert.doesNotMatch(home, /FreeBanner/);
 });
 
 test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", () => {
@@ -176,7 +168,6 @@ test("T-060 página /tecnologia con demos marcadas y controles reales (sin sello
   assert.match(demo, /DEMO-SEG/);
   assert.match(demo, /No corresponden a cargas/);
   const home = read("src/app/page.tsx");
-  assert.match(home, /\/tecnologia/);
   assert.doesNotMatch(home, /TraceAutomationDemo/);
   const sitemap = read("src/app/sitemap.ts");
   assert.match(sitemap, /\/tecnologia/);
@@ -213,7 +204,6 @@ test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; un CT
   const home = read("src/app/page.tsx");
   assert.match(home, /Tengo camión o retorno/);
   assert.match(home, /Abrir el cotizador/);
-  assert.match(home, /home-live-band/);
   assert.match(home, /hero-fold/);
   assert.match(home, /href="\/cargas\/nueva"/);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);

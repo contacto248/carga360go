@@ -1,148 +1,120 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { HomeTowerBoard } from "@/components/HomeTowerBoard";
 import { WhatsAppChannel } from "@/components/WhatsAppChannel";
-import { QuickSearch } from "@/components/QuickSearch";
-import { BRAND, equipmentById } from "@/lib/catalog";
-import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
-import { formatDateCL } from "@/lib/format";
-import { FAQ } from "@/lib/faq";
-import { liveStats, recentListings, timeAgo } from "@/lib/stats";
+import { DestinoPendiente, Proximamente, Transparencia } from "@/components/rediseno/Piezas";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/" },
+  title: { absolute: "Carga360go · Cargas, camiones y retornos en Chile" },
   description:
-    "Carga360go conecta cargas, camiones y retornos en Chile desde una sola torre de control. Publica tu carga o tu camión, ve el calce y un costo de referencia desglosado.",
+    "Publica tu carga, tu camión o tu retorno, encuentra el calce por ruta, fecha y equipo, y ve un costo de referencia desglosado. De Arica a Punta Arenas.",
+  alternates: { canonical: "/" },
 };
 
-/** Pasos de operación (torre de control + cómo funciona) — variantes seguras T-065. */
-const FLOW = [
+const PASOS = [
   {
-    n: "01",
-    title: "Publicar carga",
-    text: "Origen, destino, fecha, peso y equipo. El sistema calcula un costo de referencia desglosado del flete.",
+    title: "Publica.",
+    text: "Tu carga, tu camión o tu viaje de vuelta, con ruta, fechas y equipo.",
   },
   {
-    n: "02",
-    title: "Encontrar camión",
-    text: "Carga360 Match compara ruta, fechas y capacidad, y muestra calces con razones claras.",
+    title: "Calza.",
+    text: "Carga360go cruza equipo, capacidad, ruta y fechas, y te muestra por qué calza.",
   },
   {
-    n: "03",
-    title: "Historial de eventos",
-    text: "Cada carga registra publicación, ofertas y adjudicación con fecha y hora. Sin GPS ni telemetría.",
+    title: "Te avisamos.",
+    text: "Si no hay calce hoy, guarda una alerta y te escribimos por correo cuando aparezca uno.",
   },
   {
-    n: "04",
-    title: "Historial en tu panel",
-    text: "El estado de la publicación, las ofertas y la adjudicación quedan registrados. El contacto se abre solo al adjudicar.",
+    title: "Eliges y coordinas.",
+    text: "El mandante adjudica la oferta y recién ahí se abre el contacto entre las partes.",
   },
 ];
 
-/** Cuatro beneficios (variantes seguras; sin comprobante digital ni voz como activos). */
-const BENEFITS = [
+const FAQ = [
   {
-    title: "Decide mejor y más rápido",
-    text: "Ruta, equipo, fechas y costo de referencia desglosado a la vista: menos ida y vuelta por WhatsApp y más criterio para adjudicar.",
+    q: "¿Carga360go transporta mi carga?",
+    a: "No. Carga360go conecta a mandantes con transportistas. El transporte, el acuerdo y el valor final quedan entre las partes.",
   },
   {
-    title: "Eficiencia operativa",
-    text: "Publicar, ofertar y seguir eventos en una sola web. La plataforma hace el trabajo repetitivo; la decisión queda en las partes.",
+    q: "¿Necesito registrarme para cotizar?",
+    a: "No. El cotizador se usa sin registro. Para publicar u ofertar necesitas una cuenta acreditada.",
   },
   {
-    title: "Crece con respaldo",
-    text: "Cobertura de Arica a Punta Arenas, con foco en minería, cama baja y retornos cuando el viaje pide equipo concreto.",
+    q: "¿Funciona fuera del norte?",
+    a: "Sí. Puedes publicar en todo Chile, de Arica a Punta Arenas. El norte minero es nuestro foco de entrada.",
   },
   {
-    title: "Libera recursos y reduce riesgo",
-    text: "Contacto protegido hasta adjudicar, cuentas revisadas por un administrador e historial de cada operación en tu panel.",
+    q: "¿Cuándo veo el contacto de la otra parte?",
+    a: "Cuando el mandante adjudica la oferta, y solo para ese flete.",
   },
 ];
 
-function Counter({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="counter">
-      <strong>{value.toLocaleString("es-CL")}</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-export default async function HomePage() {
-  const whatsappNumber = BRAND.whatsapp;
-  const whatsappText = BRAND.infoMessage;
-  const stats = liveStats();
-  const recent = recentListings(5);
-  const visibleCounters: { value: number; label: string }[] = [];
-  if (stats.activeLoads > 0) visibleCounters.push({ value: stats.activeLoads, label: "cargas activas" });
-  if (stats.activeTrucks > 0) visibleCounters.push({ value: stats.activeTrucks, label: "camiones y retornos" });
-  if (stats.matches > 0) visibleCounters.push({ value: stats.matches, label: "calces posibles hoy" });
-  if (stats.verifiedCarriers > 0) visibleCounters.push({ value: stats.verifiedCarriers, label: "transportistas verificados" });
-  if (stats.regionsActive > 0) visibleCounters.push({ value: stats.regionsActive, label: "regiones con avisos" });
-
+export default function HomePage() {
   return (
     <>
-      {/* 1. Hero: marca + titular seguro T-065 + torre + un CTA principal */}
-      <section className="hero hero2 hero-v2 hero-v3 hero-fold">
-        <div className="wrap hero-grid">
-          <div className="hero-copy">
-            <p className="brand-hero" aria-label="Marca">
-              Carga360go
-            </p>
-            <h1>Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas.</h1>
-            <p className="hero-lead">
-              En Carga360go publicas tu carga o tu camión, ves el calce —también en retornos— y un costo de referencia
-              desglosado: ruta, peajes según ejes, diésel y costos de operación. Ves el historial de la publicación, las
-              ofertas y la adjudicación en tu panel.
-            </p>
-            <p className="hero-cost-line" aria-label="Costo de referencia desglosado del flete">
-              Costo de referencia desglosado: ruta · peajes · diésel · operación
-            </p>
-            <div className="cta">
-              <Link className="btn" href="/cargas/nueva">
-                Tengo carga
-              </Link>
-            </div>
-            <p className="hero-secondary-links">
-              <Link href="/camiones/nuevo">Tengo camión o retorno</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/herramientas/calculadora">Abrir el cotizador</Link>
-            </p>
-            <p className="hero-legal">
-              Carga360go conecta a mandantes y transportistas. No es transportista y no garantiza el viaje. Solo se
-              muestran avisos reales y vigentes. {BRAND.company} · RUT {BRAND.rut}.
-            </p>
+      <section className="hero hero-fold" aria-labelledby="inicio-titulo">
+        <div className="wrap hero-copy">
+          <p className="brand-hero">Carga360go</p>
+          <h1 id="inicio-titulo">Cargas, camiones y retornos en Chile, de Arica a Punta Arenas.</h1>
+          <p className="hero-lead">
+            Publica tu carga o tu camión y encuentra el calce por ruta, fecha y equipo, también en retornos. Ve un costo
+            de referencia desglosado: ruta, peajes según ejes, diésel y costos de operación, cada uno con su fuente.
+          </p>
+          <div className="cta">
+            <Link className="btn" href="/cargas/nueva">
+              Tengo carga
+            </Link>
           </div>
-          <HomeTowerBoard steps={FLOW} compact />
+          <p className="hero-secondary-links">
+            <Link href="/camiones/nuevo">Tengo camión o retorno</Link>
+            <span aria-hidden="true"> · </span>
+            <Link href="/herramientas/calculadora">Abrir el cotizador (sin registro)</Link>
+          </p>
+          <Transparencia />
         </div>
       </section>
 
-      {/* 2. Cuatro beneficios */}
-      <section className="benefits-band" aria-labelledby="beneficios-titulo">
+      <section className="block" aria-labelledby="caminos-titulo">
         <div className="wrap">
-          <h2 id="beneficios-titulo">Por qué operar en Carga360go</h2>
-          <p className="lead">Cuatro resultados concretos para mandantes y transportistas en Chile.</p>
-          <ul className="benefits-grid">
-            {BENEFITS.map((item) => (
-              <li key={item.title}>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </li>
-            ))}
-          </ul>
+          <h2 id="caminos-titulo">Elige tu camino</h2>
+          <div className="grid c2">
+            <article className="card">
+              <h3>Si tienes carga</h3>
+              <p>
+                Publica tu carga y encuentra el camión que calza, con el costo del flete a la vista. Indicas ruta, fecha
+                y equipo, recibes ofertas de transportistas acreditados y eliges. El contacto se abre solo cuando
+                adjudicas.
+              </p>
+              <div className="rediseno-acciones">
+                <Link className="btn sm" href="/cargas/nueva">
+                  Publicar carga
+                </Link>
+                <DestinoPendiente>Conocer Carga360go para empresas</DestinoPendiente>
+              </div>
+            </article>
+            <article className="card">
+              <h3>Si tienes camión o retorno</h3>
+              <p>
+                Publica tu camión o tu retorno y te avisamos por correo cuando aparezca una carga que calza. Dejas tu
+                corredor, tus fechas y la ficha de tu equipo, y ofreces tú el valor.
+              </p>
+              <div className="rediseno-acciones">
+                <Link className="btn sm" href="/camiones/nuevo">
+                  Publicar camión o retorno
+                </Link>
+                <DestinoPendiente>Conocer Carga360go para transportistas</DestinoPendiente>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
 
-      {/* 3. Cómo funciona */}
-      <section className="block" aria-labelledby="pasos-titulo">
+      <section className="block alt" aria-labelledby="pasos-titulo">
         <div className="wrap">
-          <h2 id="pasos-titulo">Cómo funciona</h2>
-          <p className="lead">Cuatro pasos, de la publicación a la adjudicación.</p>
-          <ol className="steps-rail">
-            {FLOW.map((step) => (
-              <li key={step.n}>
-                <span className="steps-n">{step.n}</span>
-                <h3>{step.title}</h3>
+          <h2 id="pasos-titulo">Así funciona Carga360go</h2>
+          <ol className="pasos-rediseno">
+            {PASOS.map((step) => (
+              <li key={step.title}>
+                <strong>{step.title}</strong>
                 <p>{step.text}</p>
               </li>
             ))}
@@ -150,172 +122,141 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Bolsa reciente */}
-      <section className="block home-live-band alt">
+      <section className="block" aria-labelledby="costo-titulo">
         <div className="wrap">
-          <QuickSearch />
-          <div className="tower-live" style={{ marginTop: 16 }}>
-            <div className="lb-head">
-              <span>Bolsa reciente</span>
-              <Link href="/cargas" className="lb-all">
-                Ver todo →
-              </Link>
-            </div>
-            {recent.length === 0 ? (
-              <div className="lb-empty">
-                <strong>Todavía no hay avisos activos.</strong>
-                <p>Sé de los primeros en publicar: tu aviso aparece aquí y avisamos a quienes calzan.</p>
-                <div className="row">
-                  <Link className="btn sm" href="/cargas/nueva">
-                    Publicar carga
-                  </Link>
-                  <Link className="btn sec sm" href="/camiones/nuevo">
-                    Publicar camión
-                  </Link>
-                </div>
-              </div>
-            ) : (
-              <ul className="lb-list">
-                {recent.map((item) => {
-                  const eq = equipmentById(item.equipment);
-                  return (
-                    <li key={`${item.kind}-${item.id}`}>
-                      <Link href={`/${item.kind === "carga" ? "cargas" : "camiones"}/${item.id}`}>
-                        <span className={`lb-kind ${item.kind}`}>{item.kind === "carga" ? "Carga" : "Camión"}</span>
-                        <span className="lb-route">
-                          {item.origin} → {item.destination}
-                        </span>
-                        <span className="lb-meta">
-                          {eq.icon} {eq.label} · {item.amount} · {item.kind === "carga" ? "retiro" : "desde"}{" "}
-                          {formatDateCL(item.date)}
-                          {item.verified ? " · ✔ verificado" : ""}
-                        </span>
-                        <span className="lb-time">{timeAgo(item.createdAt)}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {visibleCounters.length > 0 ? (
-        <section className="counters-band">
-          <div className="wrap">
-            <div className="counters">
-              {visibleCounters.map((item) => (
-                <Counter key={item.label} value={item.value} label={item.label} />
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {/* A quién sirve — variantes seguras mandantes / transportistas */}
-      <section className="block" aria-labelledby="audiencias-titulo">
-        <div className="wrap">
-          <h2 id="audiencias-titulo">A quién sirve</h2>
-          <p className="lead">Flujos claros para generadores de carga y transportistas, con la misma trazabilidad.</p>
-          <div className="audience-grid">
-            <article>
-              <h3>Empresas y mandantes</h3>
-              <p>
-                Publica tu carga y encuentra el camión que calza, con el costo del flete a la vista. Recibes ofertas de
-                transportistas con cuenta revisada y eliges. El contacto se entrega solo cuando adjudicas.
-              </p>
-              <Link className="btn sm" href="/cargas/nueva">
-                Publicar carga
-              </Link>
-            </article>
-            <article>
-              <h3>Transportistas</h3>
-              <p>
-                Publica tu camión o tu retorno y te avisamos cuando aparezca una carga que calza. Cuando te adjudican, el
-                contacto se abre solo para ese flete. El calce es una recomendación: no se garantiza contratación.
-              </p>
-              <Link className="btn sm" href="/camiones/nuevo">
-                Publicar camión o retorno
-              </Link>
-            </article>
-          </div>
-          <WhatsAppChannel />
-        </div>
-      </section>
-
-      {/* Puntero a verticales / equipos / tecnología */}
-      <section className="block alt" aria-labelledby="mas-titulo">
-        <div className="wrap">
-          <h2 id="mas-titulo">Tecnología, verticales y equipos</h2>
-          <p className="lead">
-            Demostraciones de trazabilidad, minería, cama baja, retornos y fichas de equipo están en Tecnología — para
-            no alargar esta portada. Ver también{" "}
-            <Link href="/como-verificamos">cómo verificamos</Link>.
+          <h2 id="costo-titulo">Mira de qué se compone el flete antes de ofertar</h2>
+          <p>
+            El cotizador arma un costo de referencia desglosado: ruta, peajes según ejes, diésel publicado por la CNE y
+            costos de operación, cada uno con su fuente. Es una referencia para conversar con fundamento, no una
+            cotización cerrada. El valor final lo acuerdan las partes.
           </p>
           <p>
-            <Link className="btn sec sm" href="/tecnologia">
-              Abrir Tecnología Carga360go →
+            <Link className="btn sm" href="/herramientas/calculadora">
+              Abrir el cotizador
             </Link>
           </p>
         </div>
       </section>
 
-      {/* FAQ mínimo */}
-      <section className="block" id="faq" aria-labelledby="faq-titulo">
+      <section className="block alt" aria-labelledby="minero-titulo">
         <div className="wrap">
-          <h2 id="faq-titulo">Preguntas frecuentes</h2>
-          <div className="faq" style={{ marginTop: 12 }}>
-            {FAQ.slice(0, 4).map((item) => (
-              <details key={item.q} className="card">
-                <summary>{item.q}</summary>
-                <p>
-                  {item.q === "¿Qué significa verificado?" ? (
-                    <>
-                      Que revisamos contacto y, en transportistas, documentos vigentes, con aprobación de un administrador.
-                      No es una garantía de solvencia, seguridad ni cumplimiento. Ver{" "}
-                      <Link href="/como-verificamos">Cómo verificamos</Link>.
-                    </>
-                  ) : item.q === "¿Cómo se calcula el costo del flete?" ? (
-                    <>
-                      Automáticamente, con la ruta, los peajes según los ejes del camión, el diésel y los costos de
-                      operación: un costo de referencia desglosado, cada ítem con su fuente. No es una cotización cerrada;
-                      el valor final lo acuerdan las partes.
-                    </>
-                  ) : (
-                    item.a
-                  )}
-                </p>
-              </details>
-            ))}
+          <h2 id="minero-titulo">Foco en el corredor minero: Calama, Antofagasta y Copiapó</h2>
+          <p>
+            Carga360go está abierta a carga general y masiva en todo Chile, de Arica a Punta Arenas. Empezamos con
+            fuerza en el corredor minero del norte, donde el viaje pide un equipo concreto, una cama baja o un retorno
+            que no quieres hacer vacío.
+          </p>
+          <ul>
+            <li>
+              <strong>Retornos.</strong> Publica tu viaje de vuelta y recibe una alerta por correo cuando aparezca una
+              carga que calza por origen, destino, fechas, equipo y capacidad.
+            </li>
+            <li>
+              <strong>Cama baja y maquinaria.</strong> La ficha pide ejes, ancho, capacidad y medidas, para que el
+              mandante vea si el equipo calza antes de ofertar.
+            </li>
+            <li>
+              <strong>Hacia y desde faena.</strong> Cargas de minería y de proveedores del corredor, con contacto
+              protegido hasta adjudicar.
+            </li>
+          </ul>
+          <div className="rediseno-acciones">
+            <Link className="btn sm" href="/cargas-de-retorno-mineras">
+              Publicar un retorno
+            </Link>
+            <Link className="btn sec sm" href="/transporte-minero-chile">
+              Ver transporte minero
+            </Link>
           </div>
-          <p style={{ marginTop: 12 }}>
-            <Link href="/faq">Ver todas las preguntas →</Link>
+        </div>
+      </section>
+
+      <section className="block" aria-labelledby="torre-titulo">
+        <div className="wrap">
+          <div className="titulo-con-estado">
+            <h2 id="torre-titulo">Torre de control: tus viajes ordenados en un solo panel</h2>
+            <Proximamente />
+          </div>
+          <p>
+            Hoy ya ves en tu panel la publicación, el calce, las ofertas y la adjudicación, con fecha y hora. Estamos
+            preparando la torre de control para seguir cada viaje hasta la entrega.
+          </p>
+          <DestinoPendiente>Conocer la torre de control</DestinoPendiente>
+        </div>
+      </section>
+
+      <section className="block alt" aria-labelledby="confianza-titulo">
+        <div className="wrap">
+          <h2 id="confianza-titulo">Cuentas revisadas y contacto protegido</h2>
+          <ul>
+            <li>
+              <strong>Acreditación por una persona.</strong> Un administrador revisa el contacto y, en transportistas,
+              los documentos vigentes antes de habilitar la cuenta.
+            </li>
+            <li>
+              <strong>Aviso antes del vencimiento.</strong> Un semáforo de vencimientos avisa cuando un documento está
+              por vencer.
+            </li>
+            <li>
+              <strong>Contacto protegido.</strong> WhatsApp, teléfono y correo no aparecen en el aviso. Se abren solo
+              para el flete adjudicado.
+            </li>
+            <li>
+              <strong>Lo que significa «verificado».</strong> Que la cuenta pasó la revisión de Carga360go. No es un
+              sello de solvencia ni reemplaza la revisión que hace cada parte.
+            </li>
+          </ul>
+          <p>
+            <Link className="btn sm" href="/como-verificamos">
+              Cómo verificamos
+            </Link>
           </p>
         </div>
       </section>
 
-      {/* CTA final */}
-      <section className="block alt">
+      <section className="block" aria-labelledby="agente-titulo">
+        <div className="wrap">
+          <h2 id="agente-titulo">¿Dudas? Escríbele a AI.CARGA360</h2>
+          <p>
+            Te ayuda por chat a cotizar, publicar y encontrar el calce entre cargas y camiones. Si tu caso necesita a
+            una persona, te deriva al equipo de Carga360go.
+          </p>
+          <p>
+            <Link className="btn sm" href="/agente-360go">
+              Escribirle a AI.CARGA360
+            </Link>
+          </p>
+        </div>
+      </section>
+
+      <section className="block alt" id="faq" aria-labelledby="faq-titulo">
+        <div className="wrap">
+          <h2 id="faq-titulo">Preguntas frecuentes</h2>
+          <div className="faq">
+            {FAQ.map((item) => (
+              <details key={item.q} className="card">
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="block">
         <div className="wrap">
           <div className="cta-band">
-            <h2>Publica tu primera carga o tu camión</h2>
-            <p>
-              Registra tu empresa o tu cuenta de transportista, o escríbenos a {BRAND.email} o al WhatsApp publicado en
-              el sitio. Escribe a AI.CARGA360 desde el botón «AI.CARGA360».
-            </p>
+            <h2>¿Tienes carga o tienes camión? Empieza hoy.</h2>
             <div className="cta">
-              <Link className="btn" href="/registro">
-                Crear cuenta
+              <Link className="btn" href="/cargas/nueva">
+                Tengo carga
               </Link>
-              <WhatsAppContactGate number={whatsappNumber} text={whatsappText} className="btn wa">
-                WhatsApp {BRAND.whatsappDisplay}
-              </WhatsAppContactGate>
-              <Link className="btn ghost" href="/contacto">
-                Ir a contacto
+              <Link className="btn sec" href="/camiones/nuevo">
+                Tengo camión o retorno
               </Link>
             </div>
           </div>
+          <WhatsAppChannel />
         </div>
       </section>
     </>
