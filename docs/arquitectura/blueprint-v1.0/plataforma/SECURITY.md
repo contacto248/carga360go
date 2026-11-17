@@ -1,0 +1,11 @@
+# Seguridad
+- Sustituir API key demo por OIDC/OAuth2 + MFA.
+- RBAC y aislamiento por tenant en cada consulta.
+- Secret manager, rotación y nunca secretos en prompts.
+- TLS extremo a extremo y reverse proxy/WAF.
+- Herramientas MCP allow-list; no SQL genérico ni shell para agentes.
+- Egress allow-list y protección SSRF.
+- Sanitización de contenido no confiable y defensa contra prompt injection.
+- Acciones financieras, asignaciones críticas, eliminación y privilegios requieren aprobación humana.
+- Logs append-only, trazas, alertas, backups cifrados y pruebas de restauración.
+- Supply chain: lockfiles, SBOM, escaneo de imágenes y firma de artefactos.

@@ -1,0 +1,56 @@
+{
+  "server": "carga360-mcp",
+  "principle": "No direct database access",
+  "tools": [
+    {
+      "name": "freight.list",
+      "risk": "read",
+      "approval": false
+    },
+    {
+      "name": "freight.create",
+      "risk": "write",
+      "approval": false
+    },
+    {
+      "name": "quote.calculate",
+      "risk": "write",
+      "approval": false
+    },
+    {
+      "name": "operation.list",
+      "risk": "read",
+      "approval": false
+    },
+    {
+      "name": "operation.assign",
+      "risk": "high",
+      "approval": true
+    },
+    {
+      "name": "tracking.write",
+      "risk": "write",
+      "approval": false
+    },
+    {
+      "name": "incident.create",
+      "risk": "write",
+      "approval": false
+    },
+    {
+      "name": "document.validate",
+      "risk": "medium",
+      "approval": true
+    },
+    {
+      "name": "approval.request",
+      "risk": "high",
+      "approval": true
+    },
+    {
+      "name": "audit.read",
+      "risk": "restricted",
+      "approval": false
+    }
+  ]
+}
