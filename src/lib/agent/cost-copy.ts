@@ -1,7 +1,7 @@
 /** Textos del agente sobre costos (sin dependencias de servidor: también los usan componentes de cliente). */
 /** Lo que el agente explica cuando preguntan por costos. Sin comisiones, modelos de cobro ni estrategia de precios. */
 export const COST_EXPLANATION =
-  "El costo real del flete se calcula automáticamente con la ruta, los peajes según los ejes del camión, el diésel y los costos operacionales.";
+  "El costo de referencia desglosado del flete se calcula automáticamente con la ruta, los peajes según los ejes del camión, el diésel y los costos operacionales.";
 
 /** Cuando aún no hay una cotización completa: no se dan cifras. */
 export const COST_PENDING_NOTE =

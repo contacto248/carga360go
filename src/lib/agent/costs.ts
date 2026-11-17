@@ -5,7 +5,7 @@ import { saveQuote } from "../costos/quotes";
 /**
  * Integración del agente comercial con el motor de costos de flete (src/lib/costos/engine.ts).
  * Se usa la función única del motor (`quote` → `computeQuote`), la misma del cotizador, la publicación de cargas,
- * el panel y la API de costos. El agente recibe la vista pública: costo real (costo base + IVA), nunca el margen.
+ * el panel y la API de costos. El agente recibe la vista pública: costo de referencia desglosado (costo base + IVA), nunca el margen.
  */
 export type CostRequest = {
   origin: string;

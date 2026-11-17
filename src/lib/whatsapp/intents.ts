@@ -211,7 +211,7 @@ export function ruleReply(intent: Intent, live: LiveContext, channel: ReplyChann
     case "precio":
       return (
         `${COST_EXPLANATION} ` +
-        "El transportista ve un costo aproximado del viaje y el cliente ve el costo real del envío. " +
+        "El transportista ve un costo aproximado del viaje y el cliente ve el costo de referencia desglosado del envío. " +
         "Este chat no entrega cifras. Si quiere una cotización de un envío, indique origen, destino y tipo de camión, o use la calculadora.\n" +
         `${LINKS.home}/herramientas/calculadora`
       );

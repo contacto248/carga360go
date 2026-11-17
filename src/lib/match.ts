@@ -180,7 +180,7 @@ export function matchLoadToTruck(load: LoadCore, truck: TruckCore): MatchResult 
 }
 
 /**
- * Costo real aproximado del viaje (motor de costos, solo rutas en caché, sin red) para cada par del listado.
+ * Costo de referencia desglosado del viaje (motor de costos, solo rutas en caché, sin red) para cada par del listado.
  * Solo se calcula si la administración muestra costos (ajuste "Mostrar costo referencial"); si falla, queda null.
  */
 function tripCostsEnabled(): boolean {

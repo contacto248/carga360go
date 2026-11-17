@@ -158,7 +158,7 @@ export function computeQuote(input: QuoteInput, origin: Place, destination: Plac
       totals: { obligatorios: 0, operacionales: 0, costoBase: 0, margen: 0, precioNeto: 0, iva: 0, precioTotal: 0, complete: false, pending: ["ruta"] },
       warnings,
       notice: REFERENCE_NOTICE,
-      fallback: legacy ? { min: legacy.min, max: legacy.max, km: legacy.km, note: "Cálculo antiguo de respaldo: no es costo real del motor." } : null,
+      fallback: legacy ? { min: legacy.min, max: legacy.max, km: legacy.km, note: "Cálculo antiguo de respaldo: no es el costo de referencia desglosado del motor." } : null,
     };
   }
 
@@ -408,7 +408,7 @@ export function quoteFromCache(input: QuoteInput, now = new Date()): QuoteResult
 }
 
 /**
- * Vista pública (cotizador, publicación de cargas, transportista y cliente): el costo real desglosado, sin margen
+ * Vista pública (cotizador, publicación de cargas, transportista y cliente): el costo de referencia desglosado, sin margen
  * ni parámetros internos. El monto solo se incluye si la opción de administración lo permite.
  */
 export function publicView(result: QuoteResult, showAmount: boolean) {

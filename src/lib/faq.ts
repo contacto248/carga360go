@@ -2,7 +2,7 @@
 export const FAQ = [
   {
     q: "¿Cómo se calcula el costo del flete?",
-    a: "Automáticamente, con la ruta, los peajes según los ejes del camión, el precio del diésel y los costos operacionales. El cliente ve el costo real de su envío, desglosado; el transportista ve el costo aproximado de su viaje.",
+    a: "Automáticamente, con la ruta, los peajes según los ejes del camión, el precio del diésel y los costos operacionales. El cliente ve el costo de referencia desglosado de su envío; el transportista ve el costo aproximado de su viaje.",
   },
   {
     q: "¿Quién ve el contacto?",

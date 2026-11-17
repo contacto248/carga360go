@@ -107,7 +107,7 @@ export type TruckCore = {
   specs: Specs;
 };
 
-/** Costo real aproximado del viaje para el par carga–camión (motor de costos, sin red). Referencial, no un precio prometido. */
+/** Costo de referencia desglosado del viaje para el par carga–camión (motor de costos, sin red). Referencial, no un precio prometido. */
 export type MatchTripCost = { total: number | null; complete: boolean; km: number | null; method: "motor" | "respaldo_linea_recta" };
 
 export type MatchResult = {

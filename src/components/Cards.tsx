@@ -359,13 +359,13 @@ export function TruckCard({ truck, canManage = false }: { truck: TruckListItem; 
   );
 }
 
-/** Costo real aproximado del viaje para el transportista (motor de costos). Sin cifra si el cálculo quedó incompleto. */
+/** Costo de referencia desglosado del viaje para el transportista (motor de costos). Sin cifra si el cálculo quedó incompleto. */
 function TripCostLine({ cost }: { cost?: MatchResult["tripCost"] }) {
   if (!cost) return null;
   if (cost.complete && cost.total !== null) {
     return (
       <p className="meta" style={{ margin: "6px 0 0" }}>
-        Costo real aproximado del viaje: <strong>${formatClp(cost.total)}</strong> con IVA{cost.km ? ` · ruta de ${Math.round(cost.km).toLocaleString("es-CL")} km` : ""}. {REFERENCE_NOTICE}
+        Costo de referencia desglosado del viaje: <strong>${formatClp(cost.total)}</strong> con IVA{cost.km ? ` · ruta de ${Math.round(cost.km).toLocaleString("es-CL")} km` : ""}. {REFERENCE_NOTICE}
       </p>
     );
   }

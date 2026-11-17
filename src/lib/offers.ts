@@ -310,7 +310,7 @@ export async function submitOffer(user: PublicUser | null, loadId: string, input
         "",
         `Revisa y compara las ofertas, y elige la que prefieras: ${appUrl()}/cargas/${loadId}#ofertas`,
         "",
-        "Carga360go — el costo real del flete, calculado de forma automática, con trazabilidad de cada viaje.",
+        "Carga360go — el costo de referencia desglosado del flete, calculado de forma automática, con trazabilidad de cada viaje.",
       ]
         .filter((line) => line !== "")
         .join("\n"),

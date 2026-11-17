@@ -3,7 +3,7 @@ import type { PublicUser } from "@/lib/types";
 /**
  * Aviso principal del sitio: costo de referencia desglosado, trazabilidad y seguridad.
  * Reemplaza el antiguo aviso de campaña de inscripción (30 días gratis / membresía) por directriz de Gerencia
- * (14-11-2026): la interfaz pública no habla de modelos de cobro ni comisiones. Copy T-065: no «costo real».
+ * (14-11-2026): la interfaz pública no habla de modelos de cobro ni comisiones. Copy T-065: costo de referencia desglosado.
  * Sin cifras: los montos los entrega el cotizador con su fuente.
  */
 export function FreeBanner({ user, compact = false }: { user: PublicUser | null; compact?: boolean }) {

@@ -10,7 +10,7 @@ import { rateLimit } from "@/lib/rate-limit";
  * API del motor de costos para el agente de voz, CARGA360 Match y administración.
  * Auth: sesión de administrador, o X-Costos-Key (COSTOS_API_KEYS). Límite: 30 solicitudes cada 10 min por llamador.
  * Cada respuesta se guarda como cotización en estado "borrador" (requiere revisión de un administrador).
- * Servicios reciben el costo real desglosado (sin margen interno); administradores, el resultado completo.
+ * Servicios reciben el costo de referencia desglosado (sin margen interno); administradores, el resultado completo.
  */
 export const POST = guard(async (request) => {
   const caller = engineCaller(request.headers);

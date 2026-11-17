@@ -14,7 +14,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   {
     slug: "/transporte-minero-chile",
     titleTag: "Transporte minero en Chile | Carga360go",
-    meta: "Publica o encuentra transporte para faenas y proveedores mineros en Chile: cargas, retornos y equipos aptos. Conexión directa y costo real del flete.",
+    meta: "Publica o encuentra transporte para faenas y proveedores mineros en Chile: cargas, retornos y equipos aptos. Conexión directa y costo de referencia desglosado del flete.",
     h1: "Transporte minero en Chile: carga, retornos y equipos aptos",
     body: [
       "Carga360go conecta a empresas generadoras —contratistas, proveedores y faenas— con transportistas que publican camiones y retornos en Chile. El foco de esta página es el transporte ligado a la minería: carga general o masiva hacia y desde zonas de operación, equipos compatibles y viajes de vuelta.",

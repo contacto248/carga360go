@@ -117,7 +117,7 @@ test("Motor de reglas del chat: empresa, transportista, precios y persona", () =
   const precio = ruleReply("precio", live, "web");
   assert.match(precio, /peajes/i);
   assert.match(precio, /di[eé]sel/i);
-  assert.match(precio, /costo real del flete/i);
+  assert.match(precio, /costo de referencia desglosado del flete/i);
   assert.doesNotMatch(precio, /comisi[oó]n|membres[ií]a|30 d[ií]as gratis|Mercado Pago/i);
   const prompt = systemPrompt(live, "web");
   assert.match(prompt, /peajes/i);
