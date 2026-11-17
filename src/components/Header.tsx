@@ -31,8 +31,8 @@ export function Header({ user }: { user: PublicUser | null }) {
   return (
     <>
       <div className="demo-banner">
-        <strong>Costo real y automático del flete</strong>
-        <span className="hide-sm"> · ruta, peajes por ejes, diésel y costos operacionales · trazabilidad y seguridad en una sola web</span>
+        <strong>Costo de referencia desglosado del flete</strong>
+        <span className="hide-sm"> · ruta, peajes por ejes, diésel y costos de operación · trazabilidad en una sola web</span>
       </div>
       <header className="top">
         <div className="wrap">
@@ -46,6 +46,16 @@ export function Header({ user }: { user: PublicUser | null }) {
               height={36}
             />
           </Link>
+          {/* CTA compacto en móvil: logo + Ingresar/Salir (sin apilar el menú en el header). */}
+          {user ? (
+            <button className="btn sm mobile-cta" type="button" onClick={salir}>
+              Salir
+            </button>
+          ) : (
+            <Link href="/ingreso" className="btn sec sm mobile-cta">
+              Ingresar
+            </Link>
+          )}
           <nav className="links" aria-label="Principal">
             {LINKS.map((link) => (
               <Link key={link.href} href={link.href} className={pathname === link.href ? "on" : ""}>

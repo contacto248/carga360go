@@ -10,13 +10,15 @@ export type TowerStep = {
 
 type Props = {
   steps: readonly TowerStep[];
+  /** Compacta textos en el fold móvil (~390px). */
+  compact?: boolean;
 };
 
 /**
  * Torre de control de la portada: avanza sola por los pasos (demo visual).
  * Respeta prefers-reduced-motion: se queda en el primer paso.
  */
-export function HomeTowerBoard({ steps }: Props) {
+export function HomeTowerBoard({ steps, compact = false }: Props) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -30,7 +32,10 @@ export function HomeTowerBoard({ steps }: Props) {
   }, [paused, steps.length]);
 
   return (
-    <aside className="tower-board tower-board-live" aria-label="Torre de control Carga360go">
+    <aside
+      className={`tower-board tower-board-live${compact ? " tower-board-compact" : ""}`}
+      aria-label="Torre de control Carga360go"
+    >
       <div className="tower-head">
         <span className="dot-live" /> Torre de control
         <span className="tower-tag">Así funciona</span>
@@ -43,7 +48,7 @@ export function HomeTowerBoard({ steps }: Props) {
               <span className="tower-n">{step.n}</span>
               <div>
                 <strong>{step.title}</strong>
-                <p>{step.text}</p>
+                <p className="tower-step-text">{step.text}</p>
               </div>
             </li>
           );

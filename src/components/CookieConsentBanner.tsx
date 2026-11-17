@@ -18,6 +18,7 @@ function persist(decision: CookieConsentDecision) {
 
 /**
  * Banner mínimo de cookies no esenciales (Ley 21.719 desde 01-12-2026).
+ * Compacto abajo: no tapa encabezado, botones ni pie; en móvil queda sobre el tabbar.
  * Sin este aviso no se carga HubSpot ni otras cookies de marketing.
  */
 export function CookieConsentBanner() {
@@ -36,16 +37,17 @@ export function CookieConsentBanner() {
   }
 
   return (
-    <aside className="cookie-banner" role="dialog" aria-labelledby="cookie-banner-title" aria-describedby="cookie-banner-desc">
+    <aside
+      className="cookie-banner cookie-banner-compact"
+      role="dialog"
+      aria-labelledby="cookie-banner-title"
+      aria-describedby="cookie-banner-desc"
+    >
       <div className="cookie-banner-inner wrap">
         <div className="cookie-banner-copy">
           <strong id="cookie-banner-title">Cookies</strong>
           <p id="cookie-banner-desc">
-            Usamos cookies técnicas necesarias para la sesión. Con tu permiso también cookies de medición y marketing
-            (HubSpot) para mejorar el servicio. Puedes aceptar o rechazar las no esenciales.{" "}
-            <Link href="/privacidad">Política de privacidad</Link>
-            {" · "}
-            Ley 21.719 (desde 01-12-2026).
+            Sesión necesaria · HubSpot opcional · <Link href="/privacidad">Privacidad</Link>
           </p>
         </div>
         <div className="cookie-banner-actions">
