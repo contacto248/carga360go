@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { LANDING_SLUGS } from "@/lib/seo-landings";
+import { SEO_ROUTES } from "@/lib/seo-routes";
 
 const BASE = "https://www.carga360go.cl";
 
@@ -22,6 +23,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/terminos",
     "/privacidad",
     ...LANDING_SLUGS,
+    "/rutas",
+    ...SEO_ROUTES.map((route) => `/rutas/${route.slug}`),
   ].map((path) => ({
     url: `${BASE}${path}`,
     lastModified: now,

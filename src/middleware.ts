@@ -3,6 +3,7 @@ import { isEnabled } from "@/lib/ops/flags";
 import { opsPageHidden, opsPageRule } from "@/lib/ops/page-gate";
 import { userFromHeaders } from "@/lib/request-auth";
 import { sistemaPageHidden } from "@/lib/sistema/flag";
+import { SEO_ROUTES } from "@/lib/seo-routes";
 
 /**
  * CORS para la API (solo lo necesita Expo web; las apps nativas no envían Origin).
@@ -15,6 +16,13 @@ const CORS = {
   "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
   "access-control-max-age": "600",
 };
+
+const RUTA_SLUGS = new Set(SEO_ROUTES.map((route) => route.slug));
+
+function isUnknownSeoRoute(pathname: string): boolean {
+  const match = pathname.match(/^\/rutas\/([^/]+)\/?$/);
+  return Boolean(match && !RUTA_SLUGS.has(match[1]));
+}
 
 const OPS_NOT_FOUND = `<!DOCTYPE html><html lang="es-CL"><head><meta charset="utf-8"><title>Página no encontrada</title><meta name="robots" content="noindex"></head><body><h1>No encontramos esa página</h1></body></html>`;
 
@@ -38,6 +46,10 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith("/api") && request.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers: CORS });
   }
+
+  // El layout raíz es force-dynamic: notFound() en la página llega a renderizar en HTTP 200.
+  // Cortamos aquí, igual que las páginas ops, para devolver 404 real en slugs de /rutas inexistentes.
+  if (isUnknownSeoRoute(pathname)) return opsNotFound();
 
   // loading.tsx ya abrió el HTML en 200 si la página llega a renderizar. El corte es esta respuesta.
   const rule = opsPageRule(pathname);
