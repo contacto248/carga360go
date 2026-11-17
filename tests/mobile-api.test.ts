@@ -312,3 +312,94 @@ test("salud, catálogo e importación no soportada", async () => {
   assert.equal(catalog.requiredCarrierDocs.length, 6);
   assert.equal((await api.notSupported(req("POST", "/api/import", { body: {} }))).status, 501);
 });
+
+test("origen: escrituras móviles usan assertSameOrigin; Bearer sin cookie sigue", async () => {
+  resetRateLimits();
+  const sessionCookie = "c360_session=token-de-sesion-ciego-0001";
+  const blind = (method: string, url: string) =>
+    new Request(`${BASE}${url}`, {
+      method,
+      headers: { cookie: sessionCookie, host: "127.0.0.1:4317", "content-type": "application/json" },
+      body: method === "GET" || method === "DELETE" ? undefined : "{}",
+    });
+
+  const writes = [
+    api.register(blind("POST", "/api/auth/register")),
+    api.login(blind("POST", "/api/auth/login")),
+    api.logout(blind("POST", "/api/auth/logout")),
+    api.createLoadMobile(blind("POST", "/api/loads")),
+    api.deleteLoadMobile(blind("DELETE", "/api/loads/x"), "x"),
+    api.createTruckMobile(blind("POST", "/api/trucks")),
+    api.deleteTruckMobile(blind("DELETE", "/api/trucks/x"), "x"),
+    api.uploadDocument(blind("POST", "/api/documents")),
+    api.deleteDocument(blind("DELETE", "/api/documents/x"), "x"),
+    api.deleteMe(blind("DELETE", "/api/me")),
+    api.notSupported(blind("POST", "/api/import")),
+  ];
+  for (const pending of writes) {
+    const response = await pending;
+    assert.equal(response.status, 403, await response.clone().text());
+    assert.match(((await response.json()) as { error: string }).error, /Origen/);
+  }
+
+  // GET no es escritura: cookie sin señales de origen sigue permitido.
+  assert.equal((await api.loads(blind("GET", "/api/loads"))).status, 200);
+  assert.equal((await api.me(blind("GET", "/api/me"))).status, 401);
+
+  const cross = new Request(`${BASE}/api/loads`, {
+    method: "POST",
+    headers: { cookie: sessionCookie, "sec-fetch-site": "cross-site", host: "127.0.0.1:4317", "content-type": "application/json" },
+    body: "{}",
+  });
+  assert.equal((await api.createLoadMobile(cross)).status, 403);
+
+  // App nativa: login sin Bearer, sin cookie y sin Origin no es CSRF.
+  const nativeLogin = await api.login(
+    req("POST", "/api/auth/login", { body: { email: "nadie-origen@test.cl", password: "clave-segura-123" }, headers: { "x-real-ip": "10.8.8.8" } }),
+  );
+  assert.equal(nativeLogin.status, 401);
+
+  const owner = await signup("generador", "origen-app@test.cl");
+  // Bearer + cookie no se exime.
+  const both = new Request(`${BASE}/api/auth/logout`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${owner.token}`,
+      cookie: sessionCookie,
+      host: "127.0.0.1:4317",
+      "content-type": "application/json",
+    },
+    body: "{}",
+  });
+  const bothRes = await api.logout(both);
+  assert.equal(bothRes.status, 403, await bothRes.clone().text());
+  assert.match(((await bothRes.json()) as { error: string }).error, /Origen/);
+
+  // Bearer + cookie con mismo origen: pasa el control y opera la sesión Bearer.
+  const same = new Request(`${BASE}/api/auth/logout`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${owner.token}`,
+      cookie: sessionCookie,
+      "sec-fetch-site": "same-origin",
+      origin: "http://127.0.0.1:4317",
+      host: "127.0.0.1:4317",
+      "content-type": "application/json",
+    },
+    body: "{}",
+  });
+  assert.equal((await api.logout(same)).status, 200);
+
+  const again = await signup("generador", "origen-expo@test.cl");
+  // Expo web: Bearer, otro origen, sin cookie. No debe romperse.
+  const expo = new Request(`${BASE}/api/me`, {
+    method: "DELETE",
+    headers: {
+      authorization: `Bearer ${again.token}`,
+      origin: "https://expo.dev",
+      "sec-fetch-site": "cross-site",
+      host: "www.carga360go.cl",
+    },
+  });
+  assert.equal((await api.deleteMe(expo)).status, 204);
+});

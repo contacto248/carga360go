@@ -129,12 +129,29 @@ test("seguridad: contraseña, patente, montos, honeypot y CSRF", () => {
     headers: { cookie: "c360_session=token-de-sesion", "sec-fetch-site": "same-origin", host: "www.carga360go.cl" },
   });
   assert.doesNotThrow(() => assertSameOrigin(blindOk));
-  // Bearer (app móvil / server-to-server) sigue permitido aunque no traiga Origin ni Sec-Fetch-Site.
+  // Bearer sin cookie (app móvil / server-to-server) sigue permitido aunque no traiga Origin ni Sec-Fetch-Site.
   const bearer = new Request("https://www.carga360go.cl/api/cargas", {
     method: "POST",
     headers: { authorization: "Bearer abcdefghijklmnopqrstuvwxyz012345", host: "www.carga360go.cl" },
   });
   assert.doesNotThrow(() => assertSameOrigin(bearer));
+  // Bearer + cookie no se exime: sin señales de origen se rechaza. Con mismo origen, pasa.
+  const bearerConCookie = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { authorization: "Bearer abcdefghijklmnopqrstuvwxyz012345", cookie: "c360_session=token-de-sesion", host: "www.carga360go.cl" },
+  });
+  assert.throws(() => assertSameOrigin(bearerConCookie), /Origen/);
+  const bearerCookieOk = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: {
+      authorization: "Bearer abcdefghijklmnopqrstuvwxyz012345",
+      cookie: "c360_session=token-de-sesion",
+      "sec-fetch-site": "same-origin",
+      origin: "https://www.carga360go.cl",
+      host: "www.carga360go.cl",
+    },
+  });
+  assert.doesNotThrow(() => assertSameOrigin(bearerCookieOk));
   // Sin cookie de sesión ni señales (webhooks, cron): no aplica esta regla.
   const sinCookie = new Request("https://www.carga360go.cl/api/cargas", { method: "POST", headers: { host: "www.carga360go.cl" } });
   assert.doesNotThrow(() => assertSameOrigin(sinCookie));

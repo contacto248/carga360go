@@ -15,13 +15,14 @@ export function jsonError(error: unknown) {
 }
 
 export function assertSameOrigin(request: Request) {
-  // Con token Bearer no hay credencial ambiental (cookie), así que no aplica CSRF.
-  if (bearerToken(request.headers)) return;
+  const cookie = request.headers.get("cookie")?.trim() ?? "";
+  // Exime solo Bearer sin cookie (app móvil / server-to-server): no hay credencial ambiental.
+  // Si la petición también trae cookie, no se exime y sigue el control de origen.
+  if (bearerToken(request.headers) && !cookie) return;
   // Navegadores modernos envían Sec-Fetch-Site: se rechaza todo POST con cookie que venga de otro sitio.
   const fetchSite = request.headers.get("sec-fetch-site");
   if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") throw new AppError("Origen no permitido.", 403);
   const origin = request.headers.get("origin");
-  const cookie = request.headers.get("cookie") || "";
   // Mutaciones con cookie de sesión sin Origin ni Sec-Fetch-Site: clientes no-browser deben usar Bearer.
   // Cierra CSRF clásico cuando el navegador omite señales de origen.
   if (!origin && !fetchSite && /(?:^|;\s*)c360_session=/.test(cookie)) {
