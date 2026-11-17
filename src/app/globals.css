@@ -815,3 +815,5 @@ header.top .mobile-cta{display:none}
 @media(min-width:960px){
   .hero-fold{padding:48px 0 56px}
 }
+body.app-standalone{background:#0B1633}
+main.agente-360-main{min-height:100dvh;display:flex;flex-direction:column;margin:0;padding:0}

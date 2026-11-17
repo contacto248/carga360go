@@ -125,10 +125,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const privacy = privacyGateFor(user);
   const productionAnalytics = await isProductionAnalyticsEnabled();
   const pathname = (await headers()).get("x-pathname") || "";
-  const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname);
+  const agente360 = pathname === "/agente-360go" || pathname.startsWith("/agente-360go/");
+  const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360;
   return (
     <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
-      <body>
+      <body className={agente360 ? "app-standalone" : undefined}>
         {loadAnalyticsTags ? (
           <>
             <noscript>
@@ -156,10 +157,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             </Script>
           </>
         ) : null}
-        {productionAnalytics ? <AnalyticsRouteGuard /> : null}
-        <HubSpotTracking portalId={hubspotPortalId()} />
-        <Header user={user} />
-        <main>
+        {productionAnalytics && !agente360 ? <AnalyticsRouteGuard /> : null}
+        {agente360 ? null : <HubSpotTracking portalId={hubspotPortalId()} />}
+        {agente360 ? null : <Header user={user} />}
+        <main className={agente360 ? "agente-360-main" : undefined}>
           {privacy.required && user ? (
             <PrivacyGate
               name={user.contactName || user.razonSocial}
@@ -174,8 +175,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             children
           )}
         </main>
-        <Footer />
-        <CookieConsentBanner />
+        {agente360 ? null : <Footer />}
+        {agente360 ? null : <CookieConsentBanner />}
       </body>
     </html>
   );

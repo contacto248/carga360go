@@ -1,0 +1,150 @@
+.shell {
+  min-height: 100dvh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0 auto;
+  background: #0b1633;
+  color: #f5f7fa;
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 8px;
+}
+
+.brand {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #ffd7bd;
+}
+
+.title {
+  margin: 2px 0 0;
+  font-size: 1.35rem;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.borrar {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #ffffff55;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0 16px 8px;
+  color: #d3def0;
+  font-size: 0.82rem;
+}
+
+.instalar {
+  margin-left: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #f26b1d;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.log {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 16px 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bubble {
+  max-width: 92%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.assistant {
+  align-self: flex-start;
+  background: #152647;
+  color: #f5f7fa;
+}
+
+.user {
+  align-self: flex-end;
+  background: #f26b1d;
+  color: #fff;
+}
+
+.form {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding: 8px 16px 12px;
+  border-top: 1px solid #ffffff22;
+}
+
+.input {
+  flex: 1;
+  min-height: 44px;
+  max-height: 120px;
+  resize: none;
+  border-radius: 12px;
+  border: 1px solid #ffffff33;
+  background: #fff;
+  color: #0f1b2d;
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+}
+
+.enviar {
+  min-height: 44px;
+  min-width: 84px;
+  border: 0;
+  border-radius: 12px;
+  background: #f26b1d;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.enviar:disabled,
+.borrar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (min-width: 840px) {
+  .shell {
+    max-width: 760px;
+  }
+}
