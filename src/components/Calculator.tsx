@@ -48,7 +48,7 @@ function money(value: number | null) {
 }
 
 /**
- * Cotizador: el costo real del flete lo calcula el motor de costos en el servidor (ruta real, peajes oficiales,
+ * Cotizador: el costo de referencia desglosado del flete lo calcula el motor de costos en el servidor (ruta real, peajes oficiales,
  * diésel CNE, conductor según art. 25 bis, desgaste). Mismo cálculo que la publicación de cargas, el panel y la API.
  */
 export function Calculator() {

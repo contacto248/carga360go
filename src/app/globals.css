@@ -404,7 +404,7 @@ footer.foot{border-top:4px solid var(--brand-orange)}
 footer.foot a:hover{color:#ffd7bd}
 .notice{border-radius:var(--r-sm)}
 
-/* Mensaje de costo real del flete */
+/* Mensaje de costo de referencia desglosado del flete */
 .cost-banner{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-left:5px solid var(--brand-orange);border-radius:var(--r);padding:14px 16px;margin:0 0 14px;color:var(--ink);box-shadow:var(--shadow-sm)}
 .cost-banner p{margin:0}.cost-banner p+p{margin-top:4px}
 .cost-banner-icon{flex:0 0 auto;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#fff1e8;color:var(--accent);font-size:1.1rem;line-height:1}

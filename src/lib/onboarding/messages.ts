@@ -125,7 +125,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
     `Hola ${status.contactName}:`,
     "",
     `Gracias por inscribirte en Carga360go como ${status.roleLabel}.`,
-    "En Carga360go el costo real del flete se calcula de forma automática, con trazabilidad de cada viaje.",
+    "En Carga360go el costo de referencia desglosado del flete se calcula de forma automática, con trazabilidad de cada viaje.",
     "",
     "Estado de tu registro:",
     ...lines.text,
@@ -148,7 +148,7 @@ export function buildWelcomeEmail(status: OnboardingStatus, opts: { withPdf: boo
   const htmlBody = `
     <p>Hola ${esc(status.contactName)}:</p>
     <p>Gracias por inscribirte en Carga360go como ${esc(status.roleLabel)}.
-    En Carga360go el costo real del flete se calcula de forma automática, con trazabilidad de cada viaje.</p>
+    En Carga360go el costo de referencia desglosado del flete se calcula de forma automática, con trazabilidad de cada viaje.</p>
     <p><strong>Estado de tu registro:</strong></p>
     <ul style="padding-left:20px;margin:0 0 16px;">${lines.html.join("")}</ul>
     ${
@@ -195,7 +195,7 @@ export function whatsappWelcomeChecklist(status: OnboardingStatus): string {
   const lines = statusLines(status).text.map((line) => line.replace(/^• /, ""));
   return [
     `Hola ${status.contactName}, gracias por inscribirte en Carga360go como ${status.roleLabel}.`,
-    "En Carga360go el costo real del flete se calcula de forma automática, con trazabilidad de cada viaje.",
+    "En Carga360go el costo de referencia desglosado del flete se calcula de forma automática, con trazabilidad de cada viaje.",
     "",
     "Estado de tu registro:",
     ...lines.map((line) => `• ${line}`),

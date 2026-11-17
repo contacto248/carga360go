@@ -42,7 +42,7 @@ const PRODUCTION_ANALYTICS_HOSTS = new Set(["www.carga360go.cl", "carga360go.cl"
 
 const title = "Carga360go — Trazabilidad y automatización de cargas y camiones en Chile";
 const description =
-  `Carga360go conecta cargas y camiones en Chile con trazabilidad y automatización. Publica tu carga, encuentra camión, sigue la operación en vivo y conserva el comprobante digital. Costo real del flete: ruta, peajes según ejes, diésel y costos operacionales. ${BRAND.company} · RUT ${BRAND.rut}.`;
+  `Carga360go conecta cargas y camiones en Chile con trazabilidad y automatización. Publica tu carga, encuentra camión, sigue la operación en vivo y conserva el comprobante digital. Costo de referencia desglosado del flete: ruta, peajes según ejes, diésel y costos operacionales. ${BRAND.company} · RUT ${BRAND.rut}.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.carga360go.cl"),

@@ -11,7 +11,7 @@ import { getSettings } from "@/lib/settings";
 import { todayChile } from "@/lib/format";
 
 /**
- * Vista previa del cotizador y del asistente de publicación: costo real del flete calculado por el motor de costos
+ * Vista previa del cotizador y del asistente de publicación: costo de referencia desglosado del flete calculado por el motor de costos
  * (ruta real, peajes, diésel, conductor y desgaste), referencial y sujeto a revisión. El monto solo se incluye si el
  * administrador activó "Mostrar precio referencial" (ajuste show_suggested_price, apagado por defecto); si no, se
  * devuelven la distancia, los tiempos y el desglose sin montos. No guarda cotizaciones (eso es POST /api/cotizaciones).

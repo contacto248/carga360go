@@ -96,7 +96,7 @@ test("las tres respuestas no pisan publicar, precio ni humano", () => {
   assert.equal(ruleReply("humano", live, "web"), HUMANO);
   assert.equal(ruleReply("precio", live, "whatsapp"), ruleReply("precio", live, "whatsapp"));
   assert.match(PUBLICAR, /cargas\/nueva/);
-  assert.match(PRECIO, /peajes|di[eé]sel|costo real del flete/i);
+  assert.match(PRECIO, /peajes|di[eé]sel|costo de referencia desglosado del flete/i);
   assert.doesNotMatch(PRECIO, /comisi[oó]n|membres[ií]a|30 d[ií]as gratis/i);
   assert.match(HUMANO, /contacto@carga360go\.cl/);
 
