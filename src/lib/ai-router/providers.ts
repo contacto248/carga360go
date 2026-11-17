@@ -4,11 +4,59 @@ export type ProviderErrorCode = "ProviderDisabled" | "Timeout" | "UpstreamError"
 
 export class ProviderCallError extends Error {
   readonly code: ProviderErrorCode;
+  /** Código saneado del cuerpo de OpenAI. Nunca el mensaje ni la clave. */
+  readonly upstreamCode: string | null;
 
-  constructor(code: ProviderErrorCode) {
+  constructor(code: ProviderErrorCode, upstreamCode: string | null = null) {
     super(code);
     this.name = code;
     this.code = code;
+    this.upstreamCode = upstreamCode;
+  }
+}
+
+const UPSTREAM_CODE = /^[A-Za-z0-9._:-]{1,64}$/;
+
+/** Token corto de diagnóstico. Rechaza mensajes, claves y cualquier otro texto. */
+export function sanitizeUpstreamCode(value: unknown, secrets: string[] = []): string | null {
+  if (typeof value !== "string") return null;
+  const scrubbed = scrubSecrets(value, secrets).trim();
+  if (!UPSTREAM_CODE.test(scrubbed)) return null;
+  if (/^sk[-_]/i.test(scrubbed)) return null;
+  return scrubbed;
+}
+
+function codeFromPayload(data: unknown, secrets: string[]): string | null {
+  if (!data || typeof data !== "object") return null;
+  const record = data as { error?: unknown; code?: unknown; type?: unknown };
+  const nested = record.error;
+  const candidates: unknown[] = [];
+  if (nested && typeof nested === "object") {
+    const bag = nested as { code?: unknown; type?: unknown };
+    candidates.push(bag.code, bag.type);
+  } else if (typeof nested === "string") {
+    candidates.push(nested);
+  }
+  candidates.push(record.code, record.type);
+  for (const candidate of candidates) {
+    const safe = sanitizeUpstreamCode(candidate, secrets);
+    if (safe) return safe;
+  }
+  return null;
+}
+
+async function openAiUpstreamCode(response: Response, secrets: string[]): Promise<string | null> {
+  let raw = "";
+  try {
+    raw = await response.text();
+  } catch {
+    return null;
+  }
+  if (raw.length > 4096) raw = raw.slice(0, 4096);
+  try {
+    return codeFromPayload(JSON.parse(raw), secrets);
+  } catch {
+    return null;
   }
 }
 
@@ -91,7 +139,17 @@ export async function callProvider(
       }
       throw new ProviderCallError("NetworkError");
     }
-    if (!response.ok) throw new ProviderCallError("UpstreamError");
+    if (!response.ok) {
+      const secrets = [settings.openaiKey, settings.xaiKey];
+      let upstream: string | null = null;
+      if (provider === "openai") {
+        const parsed = await openAiUpstreamCode(response, secrets);
+        upstream = parsed ?? (response.status === 403 ? "http_403" : null);
+        const status = Number.isInteger(response.status) ? response.status : 0;
+        console.error(`[carga360go] ai-router openai status=${status} error_code=${upstream ?? "UpstreamError"}`);
+      }
+      throw new ProviderCallError("UpstreamError", upstream);
+    }
     let data: unknown;
     try {
       data = await response.json();
