@@ -1,215 +1,203 @@
-# Inventario exacto — CARGA360GO-PRODUCTION-FINAL.zip
+# Inventario exacto — CARGA360GO-UNIFICADO-FINAL.zip
 
 | Campo | Valor |
 | --- | --- |
-| Zip vigente | `internal/CARGA360GO-PRODUCTION-FINAL.zip` del store del proyecto |
-| Fecha dentro del zip | 2026-11-17 10:48 |
-| Entradas | 10 (3 son directorios vacíos de listado) |
-| Bytes sumados | 11249 |
-| Este documento | Solo inventario. No porta el orquestador, no arranca Docker ni FastAPI, no trae claves. |
-| Zip que reemplaza donde se solapan | `internal/Carga360GO_Dual_AI_Orchestrator.zip` (2026-11-17 10:42, 8 entradas, 8204 bytes) |
+| Zip vigente | `CARGA360GO-UNIFICADO-FINAL.zip` |
+| SHA-256 verificado | `25e71f3837054c84839d9c01030e3ab27f0447b9a780d4570b1a2756ab837410` |
+| Fecha dentro del zip | 2026-11-17 10:57 |
+| Entradas | 16 (4 son directorios) |
+| Bytes sumados | 18162 |
+| Copia en el repo | `docs/arquitectura/ai-router/referencia/`, igual al zip, sin `__pycache__` (el zip no trae bytecode) |
+| Este PR | Solo documentación. No porta el orquestador, no arranca FastAPI, Docker, PostgreSQL ni Nginx. |
+| Release contrastada | `origin/release/2026-11-15` en `0ad534f28cbfb40fc0a26602c794fe0e3dda6755` |
 
-El zip vigente es un servicio FastAPI aparte, en su propia carpeta `CARGA360GO-PRODUCTION/`. No contiene el Core de Carga360GO, ni bots, ni automatizaciones, ni una base de datos. La decisión de Gerencia es no mantener ese servicio como segunda aplicación: cuando se porte, vive dentro del Next.js. Este archivo no hace ese porte.
+Este zip reemplaza a `CARGA360GO-PRODUCTION-FINAL.zip` y a `Carga360GO_Dual_AI_Orchestrator.zip` donde se solapan. El inventario anterior de este archivo describía PRODUCTION-FINAL y decía que el modo `both` no se arrastraba. Eso queda corregido: **este zip sí trae modo `both` y coste configurable por entorno.**
 
-No hay claves reales. `OPENAI_API_KEY` y `XAI_API_KEY` van vacíos en el ejemplo. `IAM_SHARED_TOKEN` del ejemplo es un texto de reemplazo, no un secreto de producción. El fuente, si esa variable no está, usa el literal `change-me`. Eso es un default inseguro del zip. No es una credencial de Carga360GO y no se copia a un `.env` real.
+No hay claves reales. `OPENAI_API_KEY` y `XAI_API_KEY` van vacíos. `POSTGRES_PASSWORD`, `DATABASE_URL` y `JWT_SECRET` del ejemplo son textos de reemplazo (`CAMBIA_UNA_CLAVE_LARGA`, `CAMBIA_POR_64_CARACTERES_ALEATORIOS`). El fuente, si faltan variables, usa otros placeholders (`cambia_esto`, `CAMBIAR_EN_PRODUCCION`). No son credenciales de Carga360GO y este PR no los carga en runtime.
 
-## 1. Rutas dentro del zip
+## 1. Archivos
 
-| Ruta en el zip | Bytes | Qué es |
-| --- | ---: | --- |
-| `CARGA360GO-PRODUCTION/` | 0 | Directorio raíz |
-| `CARGA360GO-PRODUCTION/.env.example` | 134 | Variables de ejemplo. Claves de API vacías |
-| `CARGA360GO-PRODUCTION/Dockerfile` | 191 | Imagen Python 3.12, comando uvicorn |
-| `CARGA360GO-PRODUCTION/README.md` | 833 | Arranque, uso de `POST /v1/chat` y aviso de no publicar el puerto |
-| `CARGA360GO-PRODUCTION/app/` | 0 | Directorio del módulo |
-| `CARGA360GO-PRODUCTION/app/__pycache__/` | 0 | Directorio de bytecode |
-| `CARGA360GO-PRODUCTION/app/__pycache__/main.cpython-312.pyc` | 6650 | Bytecode CPython 3.12 del mismo `app/main.py`. No es otro programa |
-| `CARGA360GO-PRODUCTION/app/main.py` | 3061 | Único fuente. 61 líneas |
-| `CARGA360GO-PRODUCTION/docker-compose.yml` | 306 | Un servicio, puerto 8080, healthcheck |
-| `CARGA360GO-PRODUCTION/requirements.txt` | 74 | Cuatro paquetes con versión fijada |
+| Ruta en el zip | Bytes | Clase | Qué es |
+| --- | ---: | --- | --- |
+| `CARGA360GO-UNIFICADO-FINAL/` | 0 | — | Directorio raíz |
+| `.env.example` | 401 | Implementado como plantilla | Variables. Claves de API vacías. Precios, modelos y timeout con valor |
+| `Dockerfile` | 209 | Implementado, no se despliega | Python 3.12, uvicorn en el puerto 8000 |
+| `GUIA-DESPLIEGUE.md` | 1419 | Solo descrito | Pasos de Compose, alta SQL del primer admin y prueba de `/v1/ai/orchestrate` |
+| `INVENTARIO-REAL.md` | 1136 | Solo descrito | Nota de Gerencia sobre qué unificó. No es código |
+| `README.md` | 699 | Solo descrito | Arranque y aviso de no guardar claves en Git |
+| `app/` | 0 | — | Directorio |
+| `app/main.py` | 10113 | Implementado, con huecos abajo | Único fuente. IAM, orquestador, `both`, coste |
+| `db/` | 0 | — | Directorio |
+| `db/schema.sql` | 2634 | Implementado en SQL Postgres, no aplicado a SQLite | Tablas, semilla de roles y permisos |
+| `docker-compose.yml` | 806 | Implementado como archivo, no se ejecuta | Postgres 16, API y Nginx |
+| `nginx/` | 0 | — | Directorio |
+| `nginx/default.conf` | 303 | Implementado como archivo, no se ejecuta | Proxy al API y límite de 10 req/s |
+| `requirements.txt` | 218 | Implementado como lista | Dependencias fijadas |
+| `tests/` | 0 | — | Directorio |
+| `tests/test_static.py` | 224 | Stub | Solo comprueba que cinco archivos existan |
 
-No hay tests, `README` de API, esquema SQL, ni carpeta `src/`. El bytecode declara `co_filename` = `CARGA360GO-PRODUCTION/app/main.py` y los mismos nombres que el fuente: `ChatRequest`, `call_openai`, `call_xai`, `authorize`, `health`, `chat`, rutas `/health` y `/v1/chat`. No agrega endpoints.
+No hay `__pycache__`, ni tests de login, ni de fallback, ni de `both`.
 
-## 2. Endpoints y funciones reales
+## 2. Endpoints y funciones de `app/main.py`
 
-Aplicación: `FastAPI(title='Carga360GO Dual AI Orchestrator', version='1.0.0')` en `app/main.py`.
+App: `FastAPI(title='Carga360GO Unificado', version='1.0.0')`.
 
-| Símbolo | Tipo | Qué hace el fuente |
+| Ruta | Función | Estado |
 | --- | --- | --- |
-| `ChatRequest` | Modelo pydantic | `prompt` str, largo 1 a 50000. `provider`: `auto`, `openai` o `xai`, default `auto`. `system`: str opcional, sin tope de largo en el modelo |
-| `call_openai` | async | Si no hay clave, `RuntimeError`. POST `https://api.openai.com/v1/responses` con `model`, `input` y, si viene `system`, `instructions` |
-| `call_xai` | async | Igual contra `https://api.x.ai/v1/responses` |
-| `authorize` | sync | Compara el header entero con `Bearer ` más el token compartido. Si no coincide, HTTP 401 y el texto `Unauthorized` |
-| `health` | `GET /health` | No pide autorización |
-| `chat` | `POST /v1/chat` | Pide `authorize` y luego recorre proveedores |
+| `GET /health` | `health` | Implementado. `select 1` a Postgres. Responde `status` (`ok` o `degraded`), `database`, `openai_configured`, `xai_configured`. Sin auth |
+| `POST /v1/auth/login` | `login` | Implementado. Formulario OAuth2 `username`/`password`. Argon2. Si `mfa_enabled`, devuelve un JWT de desafío (5 min, `purpose=mfa`), no la sesión |
+| `POST /v1/auth/mfa/verify` | `verify_mfa` | Implementado. TOTP con `pyotp`, ventana 1. Emite el JWT de sesión con `mfa=true` |
+| `POST /v1/auth/logout` | `logout` | Implementado. Inserta `jti` en `revoked_tokens` y audita `LOGOUT` |
+| `GET /v1/me` | `me` | Implementado. Devuelve `sub`, `tenant_id`, `roles`, `permissions`, `mfa` del JWT |
+| `POST /v1/ai/orchestrate` | `orchestrate` | Implementado. Exige permiso `ai.execute`. Modos `auto`, `openai`, `xai` y `both` |
+| `GET /v1/admin/usage` | `usage` | Implementado. Exige `audit.read`. Suma tokens y `cost_usd` de `ai_usage` del tenant del JWT |
 
-`GET /health` responde:
+Funciones que no son rutas:
 
-```json
-{"status":"ok","openai_configured":true,"xai_configured":false}
-```
-
-Los booleanos son la presencia de la clave leída al importar el módulo. No llaman al proveedor. No devuelven la clave ni el modelo.
-
-`POST /v1/chat` lee el JSON como `ChatRequest` y tres headers opcionales: `Authorization`, `X-Tenant-Id`, `X-User-Id`. El cuerpo no tiene campos `tenant_id` ni `user_id`.
-
-Respuesta 200, armada en el `return` de `chat` más lo que devuelve `call_openai` o `call_xai`:
-
-| Campo | Origen |
+| Función | Estado |
 | --- | --- |
-| `trace_id` | `uuid.uuid4()` al entrar, antes de llamar proveedores |
-| `tenant_id` | Header `X-Tenant-Id`, o null |
-| `user_id` | Header `X-User-Id`, o null |
-| `fallback_used` | True si el proveedor que respondió no es el primero del orden |
-| `latency_ms` | Milisegundos enteros desde el inicio del request hasta esa respuesta. Incluye el intento fallido |
-| `provider` | `openai` o `xai` |
-| `model` | El valor de `OPENAI_MODEL` o `XAI_MODEL` |
-| `text` | Ver extracción abajo |
-| `usage` | El objeto `usage` del JSON del proveedor, o `{}` |
+| `audit` | Implementado. `INSERT` en `audit_logs` con `event`, `user_id`, `tenant_id` y `detail` jsonb |
+| `token_for` | Implementado. JWT HS256 con `sub`, `tenant_id`, `roles`, `permissions`, `mfa`, `iat`, `exp`, `jti` |
+| `current` | Implementado. Decodifica el bearer, rechaza `jti` revocado o usuario inactivo |
+| `require` | Implementado. Deja pasar a `SUPER_ADMIN` o a quien tenga el permiso |
+| `call_provider` | Implementado. POST a `{base}/responses` con `model`, `input`, `max_output_tokens` y `store: false` |
+| `provider_order` | Implementado a medias. Ordena por suma de precios. Recibe `prompt` y no lo lee |
 
-Texto OpenAI: `output_text` si viene con contenido. Si falta o es vacío, une con un espacio el campo `text` de cada dict dentro de `output[].content`. No filtra `type == output_text`.
+Modelo `Ask`: `prompt` (1 a 100000), `provider` (`auto` \| `openai` \| `xai` \| `both`, default `auto`), `max_output_tokens` (default 1200, entre 1 y 8000). No trae `tenant_id` ni `user_id`.
 
-Texto xAI: solo `output_text`, o cadena vacía. No recorre `output`.
+Modelo `UserCreate` (`email`, `password` mínimo 12, `tenant_id`, `role` default `USER`): **solo declarado**. No hay ruta que lo use. No existe alta de usuario por HTTP.
 
-Si los dos proveedores fallan, HTTP 502. El detalle es `trace_id` y `providers_failed`: lista de `{provider, error}`. `error` es `type(e).__name__`, no el mensaje. Una clave ausente queda como `RuntimeError`. Un fallo HTTP, de red o de timeout queda con el nombre de la excepción de httpx. El mensaje `OPENAI_API_KEY missing` no sale en esa respuesta.
+## 3. Orquestador: both, coste, fallback, timeout, traza
 
-FastAPI valida el cuerpo antes de `chat`. Un `provider` fuera de `auto|openai|xai`, o un `prompt` vacío o de más de 50000 caracteres, no entra a `authorize`. El zip no define un manejador propio para ese error.
+`call_provider` llama a `https://api.openai.com/v1/responses` o `https://api.x.ai/v1/responses`. El texto une las partes `type == output_text` con salto de línea. Calcula:
 
-No hay otros decoradores. No hay `POST /v1/orchestrate`, ni modo `both`, ni tools, ni function calling.
+`estimated_cost_usd = input_tokens * precio_entrada / 1_000_000 + output_tokens * precio_salida / 1_000_000`
 
-## 3. Implementado y lo que no está
+redondeado a 8 decimales. Los precios salen del entorno, no del código fijo de negocio:
 
-En `app/main.py` no hay `TODO`, `FIXME`, `NotImplemented`, `pass` ni `...`. Lo que el archivo escribe, lo ejecuta. El hueco no es un comentario pendiente: son piezas que el archivo no tiene.
+| Variable | Default del fuente |
+| --- | --- |
+| `OPENAI_MODEL` | `gpt-5-mini` |
+| `XAI_MODEL` | `grok-4.7` |
+| `OPENAI_INPUT_USD_PER_M` | `0.25` |
+| `OPENAI_OUTPUT_USD_PER_M` | `2.0` |
+| `XAI_INPUT_USD_PER_M` | `2.0` |
+| `XAI_OUTPUT_USD_PER_M` | `6.0` |
+| `PROVIDER_TIMEOUT_SECONDS` | `120` (segundos, cliente httpx) |
+| `ACCESS_TOKEN_MINUTES` | `30` |
 
-Implementado en el fuente:
+Esos defaults están también en `.env.example`, salvo que las claves de API van vacías.
 
-- App FastAPI con `/health` y `/v1/chat`.
-- Llamada real a la Responses API de OpenAI y de xAI, con timeout de httpx.
-- Orden de fallback descrito abajo.
-- Comparación del header `Authorization` contra un token compartido.
-- `trace_id`, `latency_ms`, `provider`, `model`, `usage` y `fallback_used` en el JSON de respuesta.
-- Validación de `prompt` y de `provider` con pydantic.
+| `provider` | Qué hace el fuente |
+| --- | --- |
+| `both` | `asyncio.gather` de OpenAI y de xAI, siempre los dos. Devuelve `trace_id` y `results` con cada lado o `{"error": ...}`. **Sí está implementado** |
+| `auto` | `provider_order`: solo proveedores con clave, del más barato al más caro (suma entrada+salida). Si empatan, queda OpenAI antes que xAI porque se inserta primero y el orden de Python es estable |
+| `openai` o `xai` | Ese primero y el otro como fallback |
 
-No está en el zip, y no hay stub que lo simule:
+Si el intento falla, el siguiente sigue. `fallback_used` es true cuando responde un proveedor que no era el primero. El 502 final lleva `trace_id`, el texto `Todos los proveedores fallaron` y `errors` con el `str` de la excepción recortado a 500 caracteres. Una clave ausente lanza `RuntimeError` con el nombre del proveedor y la frase de clave no configurada. No incluye el valor de la clave.
 
-- IAM de verdad: no hay JWT, OIDC, roles, sesión ni consulta a un directorio. El README lo dice: el token compartido hay que sustituirlo por JWT/OIDC contra el IAM de Carga360GO antes de exponer el puerto.
-- `tenant_id` y `user_id` no se leen de una sesión ni de una tabla. Se copian de headers y se devuelven tal cual. No se comprueban.
-- No hay tabla ni archivo de auditoría. El único registro de proveedor y modelo es el JSON de la respuesta HTTP. No hay `logging` ni `print`.
-- No hay Core, bots, automatizaciones, colas ni base de datos.
-- No hay reintento del mismo proveedor. Un fallo pasa al otro.
-- No hay política por palabras del prompt. `auto` no inspecciona el texto.
-- No hay modo `both`.
-- No hay function calling ni tools MCP.
-- Las claves, los modelos, el token y el timeout se leen una vez al importar (`os.getenv` en el cuerpo del módulo), no en cada request.
-- `/health` no comprueba que el proveedor responda. El healthcheck de Compose solo mira que esa ruta abra.
-- No hay tests.
+`trace_id` es un UUID 4 por request de orquestación.
 
-`change-me` como default de `IAM_SHARED_TOKEN` está escrito en el fuente. Quien levante el proceso sin la variable acepta `Authorization: Bearer change-me`. El README pide cambiarlo. El `.env.example` no trae ese literal: trae un texto de reemplazo.
+Registro, en el camino de un solo proveedor (no en `both`):
 
-## 4. Dependencias
+- Fila en `ai_usage`: `trace_id`, `user_id`, `tenant_id`, `provider`, `model`, `input_tokens`, `output_tokens`, `cost_usd`, `latency_ms` (solo esa llamada), `fallback_used`.
+- `audit_logs` con evento `AI_SUCCESS` y detalle `trace_id`, `provider`, `fallback`.
+- Un fallo audita `AI_PROVIDER_FAILURE` con `trace_id` y `provider`, sin el texto del error.
 
-`requirements.txt`, versiones fijadas con `==`:
+`latency_ms` es el tiempo de esa llamada al proveedor, no el del request entero.
 
-| Paquete | Versión en el zip |
+Hueco de `both`: la respuesta HTTP sí trae usage, coste y latencia de cada lado que respondió, pero **no inserta `ai_usage`**. El audit de ese modo es `AI_BOTH` y el detalle solo guarda `trace_id`. No guarda proveedor, modelo, tokens, coste ni latencia.
+
+`provider_order` ignora el texto del prompt. No hay política por palabras.
+
+## 4. IAM del zip frente a `docs/arquitectura/IAM_V1.md`
+
+La instrucción vive en `docs/arquitectura/IAM_V1.md`. Este inventario no la edita. El zip no es esa instrucción ni el login de Next.
+
+| Tema | IAM v1 (documento) | Este zip | En Next hoy (`release/2026-11-15`) |
+| --- | --- | --- | --- |
+| Interruptor | `IAM_V2_ENABLED` apagado. Con el flag apagado el login actual no cambia. El documento no crea el flag | No conoce ese flag. Trae su propio login | El login sigue siendo correo, scrypt y cookie `c360_session`. 2FA por correo solo si `users.role = admin` |
+| Tenant | Sale de la sesión. Un body o un header del navegador no lo elige. Hoy no hay `tenant_id` de sesión | En el orquestador sale del JWT, copiado de `users.tenant_id` al hacer login. `Ask` no tiene tenant. El modelo `UserCreate` sí trae `tenant_id`, pero no hay ruta | No hay `tenant_id`. Lo más cercano es `ops_organizations` (migración 22), y el documento dice que eso no es el tenant |
+| Roles | 19: SUPER_ADMIN, TENANT_ADMIN, SECURITY_ADMIN, OPERATIONS_MANAGER, DISPATCHER, SALES_MANAGER, SALES_AGENT, DOCUMENT_CONTROLLER, FINANCE_MANAGER, TRACKING_OPERATOR, SUPPORT_AGENT, CUSTOMER_ADMIN, CUSTOMER_USER, CARRIER_ADMIN, CARRIER_OPERATOR, DRIVER, AUDITOR, AI_SERVICE, INTEGRATION_SERVICE | 4 sembrados: SUPER_ADMIN, TENANT_ADMIN, AI_USER, AUDITOR | `transportista`, `mandante`, `admin` en `users.role`. OPS añade `ops_role` |
+| Permisos | Catálogo de envíos, cotización, tracking, documentos, facturas, `user.create`, `user.disable`, `role.assign`, `audit.read`, `ai.execute`, `approval.approve` | Cuatro nombres: `ai.execute`, `audit.read`, `user.manage`, `role.assign` | No hay esas tablas. OPS tiene permisos en memoria |
+| Semilla | El documento no inserta roles | SUPER_ADMIN recibe los cuatro permisos. AI_USER solo `ai.execute`. TENANT_ADMIN los cuatro. **AUDITOR se inserta y no recibe ningún permiso** | — |
+| MFA | Obligatorio para admin, reutilizando el 2FA por correo. TOTP del otro zip de IAM no reemplaza ese flujo mientras el flag esté apagado | TOTP opcional si `mfa_enabled` ya es true. El secreto queda en `users.mfa_secret` en claro. No hay ruta para activar MFA | 2FA admin por correo. No hay TOTP |
+| Cadena | Usuario → Rol → Permisos → Scope → Policy Engine → API. ABAC de transportista, cliente y conductor | `require` mira rol SUPER_ADMIN o el nombre del permiso. No hay scope ni Policy Engine ni ABAC | `users.role`, `can()` de OPS y dueño del recurso |
+| Agentes | Diez principales `AI_SERVICE`, flujo Bot → AI Gateway → Policy Engine → Tool/MCP → API → Data | No hay agentes, tools ni MCP | Agente comercial y de calidad, aparte |
+| Approval Engine | Solicitud, MFA, alguien con `approval.approve` que no sea quien pidió | No hay tabla ni ruta | No hay motor IAM. La confirmación de asignación OPS es otra cosa |
+| Auditoría | Append-only con identidad, organización, acción, recurso, resultado, IP, user-agent y traza. Eventos `AUTH_SUCCESS`, `AUTH_FAILURE`, `MFA_ENABLED`, `MFA_DISABLED`, `PASSWORD_CHANGED`, `SESSION_REVOKED`, `ROLE_ASSIGNED`, `ROLE_REMOVED`, `PERMISSION_DENIED`, `AI_ACTION_REQUESTED`, `AI_ACTION_APPROVED`, `AI_ACTION_REJECTED`, `AI_TOOL_EXECUTED` | Hay `INSERT` en `audit_logs`. No hay trigger que impida UPDATE/DELETE. No guarda IP ni user-agent. Eventos que el fuente sí escribe: `AUTH_FAILURE` (solo hash SHA-256 del correo), `AUTH_SUCCESS`, `MFA_FAILURE`, `MFA_SUCCESS`, `LOGOUT`, `AI_BOTH`, `AI_SUCCESS`, `AI_PROVIDER_FAILURE`. Un 403 de `require` no audita `PERMISSION_DENIED` | `audit_log` (migración 6), insert desde `src/lib/audit.ts`, otros nombres de acción |
+
+El zip tampoco trae OIDC, recuperación de contraseña, verificación de correo, cierre de todas las sesiones ni refresh token.
+
+## 5. Esquema Postgres y migraciones 031+
+
+`db/schema.sql` crea, en PostgreSQL: `tenants`, `users` (email `citext`, hash, `mfa_secret`), `roles`, `permissions`, `user_roles`, `role_permissions`, `revoked_tokens`, `audit_logs`, `ai_usage`. Activa `pgcrypto`. Inserta los permisos y roles de la tabla de arriba.
+
+Huecos del propio SQL:
+
+- Usa `citext` y no ejecuta `CREATE EXTENSION citext`. Solo crea `pgcrypto`.
+- `ai_usage` no tiene llave foránea a `users` ni a `tenants`.
+- No es append-only: no hay trigger contra UPDATE/DELETE.
+- El rol `AUDITOR` queda sin filas en `role_permissions`.
+
+En `origin/release/2026-11-15` (`0ad534f`) las migraciones de `docs/migrations/` llegan a **030** (`030-ops-operacion.sql` y su rollback). **No hay migración 031 ni ninguna posterior.** `IAM_V1.md` no agrega SQL y dice que el 030 es de la operación, no de IAM. `src/lib/db.ts` aplica hasta la 30 con `hasMigration`. Este PR no añade número ni toca `db.ts`.
+
+La app Next sigue en SQLite. Este zip no se aplica a esa base.
+
+## 6. Dependencias y proceso
+
+`requirements.txt`:
+
+| Paquete | Versión |
 | --- | --- |
 | fastapi | 0.115.6 |
 | uvicorn[standard] | 0.34.0 |
 | httpx | 0.28.1 |
-| pydantic | 2.10.5 |
+| SQLAlchemy | 2.0.36 |
+| psycopg[binary] | 3.2.3 |
+| PyJWT | 2.10.1 |
+| passlib[argon2] | 1.7.4 |
+| argon2-cffi | 23.1.0 |
+| pyotp | 2.9.0 |
+| python-multipart | 0.0.20 |
+| pydantic[email] | 2.10.4 |
 
-El `Dockerfile` parte de `python:3.12-slim`, copia `requirements.txt`, instala con pip sin caché, copia `app/` y arranca `uvicorn app.main:app --host 0.0.0.0 --port 8080`. No declara `EXPOSE`. No copia un `.env`.
+`Dockerfile`: `python:3.12-slim`, pip sin caché, copia `app/`, `uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers`. No declara `EXPOSE`.
 
-`docker-compose.yml` define un solo servicio, `orchestrator`: `build: .`, `restart: unless-stopped`, `env_file: .env`, puerto `8080:8080`. El healthcheck corre Python contra `http://localhost:8080/health` cada 30 segundos, timeout 5 segundos, 3 reintentos. No tiene `start_period`.
+`docker-compose.yml`: servicio `db` (`postgres:16-alpine`) con el SQL en `docker-entrypoint-initdb.d`, servicio `api` que espera a que Postgres esté sano y no publica el 8000, servicio `nginx` (`nginx:1.27-alpine`) publicando `80:80`. Volumen `pgdata`.
 
-Esas piezas quedan como referencia. No se despliegan con este documento.
+`nginx/default.conf`: escucha 80, cuerpo máximo 2m, `limit_req` 10 req/s con ráfaga 20, proxy a `api:8000`. No hay TLS.
 
-## 5. IAM, tenant_id y user_id
+`tests/test_static.py` afirma que existan `app/main.py`, `db/schema.sql`, `docker-compose.yml`, `.env.example` y `GUIA-DESPLIEGUE.md`. No llama a la red ni al orquestador.
 
-IAM, en este zip, es `authorize`:
+`INVENTARIO-REAL.md` dice que unificó PRODUCTION-FINAL, el orquestador dual y el IAM, y lista both, coste, fallback y `trace_id`. Esa nota es correcta en el camino de un proveedor. No dice que `both` no persiste `ai_usage`.
 
-1. Lee `IAM_SHARED_TOKEN` al importar. Si no existe, el valor es `change-me`.
-2. En `POST /v1/chat` exige que `Authorization` sea exactamente `Bearer ` más ese valor.
-3. Si no, responde 401. No mira firma, caducidad, rol ni emisor.
+## 7. Qué se porta a Next.js / SQLite
 
-`GET /health` no llama a `authorize`.
+**No en este PR.** El porte va en un PR aparte, después de este inventario. No se abre aquí.
 
-`tenant_id` y `user_id` salen de `X-Tenant-Id` y `X-User-Id`. Son opcionales. El código no los valida, no los busca en el cuerpo y no los persiste. Los vuelve a poner en el JSON de éxito. En el 502 no van: el detalle solo lleva `trace_id` y `providers_failed`.
+Cuando se porte, entra en este Next.js. No queda un segundo proceso FastAPI ni Compose de producción.
 
-El README documenta esas dos cabeceras y el bearer del token compartido. También dice que, antes de Internet, hay que poner TLS, WAF y proxy, no publicar el 8080, rotar secretos y cambiar el token compartido por JWT/OIDC del IAM real.
+Se porta el comportamiento del orquestador de este zip:
 
-Eso no es el IAM de `docs/arquitectura/IAM_V1.md`. Este inventario no modifica ese documento.
+- `POST` equivalente a `/v1/ai/orchestrate` con `auto`, `openai`, `xai` y **`both`**.
+- `auto` elige por la suma de precios de entorno y, si falla, cae al otro proveedor configurado.
+- Forzar un proveedor también cae al otro.
+- `both` consulta los dos y devuelve los dos resultados o el error de cada lado.
+- Timeout `PROVIDER_TIMEOUT_SECONDS` (default 120).
+- Modelos `OPENAI_MODEL` (default `gpt-5-mini`) y `XAI_MODEL` (default `grok-4.7`).
+- Coste con `OPENAI_INPUT_USD_PER_M`, `OPENAI_OUTPUT_USD_PER_M`, `XAI_INPUT_USD_PER_M`, `XAI_OUTPUT_USD_PER_M`.
+- `trace_id`, proveedor, modelo, tokens de entrada y salida, coste estimado, latencia y `fallback_used`.
+- Flag `AI_ROUTER_ENABLED` apagado salvo el texto exacto `true`. Apagado, la ruta responde 404 JSON.
+- `OPENAI_API_KEY` y `XAI_API_KEY` solo del entorno de runtime, leídas en el request. Vacías en `.env.example` de Next. Nunca en código, tests ni logs.
+- `tenant_id` y `user_id` de la sesión de Carga360GO. No del cuerpo ni de un header que mande el navegador. Hoy la sesión no tiene tenant: `user_id` será el id de sesión y `tenant_id` quedará vacío hasta que la sesión lo traiga.
+- La bitácora de uso, en SQLite, aditiva, con rollback, en el siguiente número libre. La 030 ya es la operación. No hay 031 en esta release. Ese SQL no se escribe en este PR.
 
-## 6. Fallback, timeouts, trace_id y registro
+No se porta desde este zip, ni ahora ni como sustituto del login:
 
-Orden, copiado del `if` de `chat`:
+- Argon2, JWT, TOTP, `revoked_tokens` y el catálogo corto de roles. El login sigue el de `IAM_V1.md` mientras `IAM_V2_ENABLED` no exista.
+- Postgres, Nginx, Docker y el puerto 80.
+- `UserCreate` y cualquier tenant elegido en el body.
+- Bots, tools MCP, function calling y Approval Engine: este zip no los trae.
 
-| `provider` del cuerpo | Orden real |
-| --- | --- |
-| `auto` | `openai`, luego `xai` |
-| `openai` | `openai`, luego `xai` |
-| `xai` | `xai`, luego `openai` |
-
-Cualquier excepción del intento entra en `providers_failed` y sigue. Si el segundo responde, `fallback_used` es true. El README dice lo mismo: `auto` prueba OpenAI y, si falla, xAI; si se fuerza un proveedor, el otro es el fallback.
-
-No hay un segundo intento contra el mismo proveedor.
-
-Timeout: `PROVIDER_TIMEOUT`, default `45`, convertido con `float` al importar. Se pasa a `httpx.AsyncClient(timeout=TIMEOUT)`. Es un número en segundos. Un valor no numérico rompe el import del módulo. El zip no lo atrapa.
-
-`trace_id` es un UUID 4 en texto, uno por request de chat, también en el 502.
-
-Registro de proveedor y modelo: los campos `provider` y `model` de la respuesta 200, junto con `usage`. No hay otra bitácora en el zip.
-
-## 7. Diferencias con el zip anterior
-
-El anterior es `Carga360GO_Dual_AI_Orchestrator.zip`. Archivos: `.env.example` (102), `Dockerfile` (199), `README.md` (698), `__pycache__/` (0), `__pycache__/main.cpython-312.pyc` (4670), `docker-compose.yml` (117), `main.py` (2353), `requirements.txt` (65). El fuente está en la raíz, no en `app/`.
-
-| Tema | Zip anterior (`main.py` en la raíz) | Zip vigente (`app/main.py`) |
-| --- | --- | --- |
-| Ruta de chat | `POST /v1/orchestrate` | `POST /v1/chat` |
-| Salud | `{"ok": true, "providers": ["openai", "xai"]}` siempre esos dos nombres | `status`, `openai_configured`, `xai_configured` según haya clave |
-| Proveedores aceptados | `auto`, `openai`, `xai`, `both` | `auto`, `openai`, `xai` |
-| `auto` | Si el prompt contiene `x `, `twitter`, `tendencia` o `redes sociales`, elige xAI; si no, OpenAI. No hay fallback | Siempre OpenAI y, si falla, xAI |
-| Forzar un proveedor | Solo ese. Si falta la clave, HTTP 503 | Ese primero y el otro como fallback |
-| `both` | Llama a los dos con `asyncio.gather` y devuelve los dos resultados o el `str` de la excepción | No existe |
-| Modelo xAI por defecto | `grok-4.7` | `grok-4` |
-| Modelo OpenAI por defecto | `gpt-5` | `gpt-5` |
-| Timeout | 120 segundos, fijo en el código | `PROVIDER_TIMEOUT`, default 45 segundos |
-| Instrucciones de sistema | No | Campo `system`, enviado como `instructions` |
-| Identidad | No hay auth, ni tenant, ni user | Bearer de token compartido. Headers `X-Tenant-Id` y `X-User-Id` se ecoan |
-| `trace_id`, latencia, fallback | No | Sí, en la respuesta |
-| Texto de la respuesta | Filtra `type == output_text` y une con salto de línea. Devuelve `raw_id` y `provider` igual a la URL base | OpenAI une con espacio sin filtrar tipo. xAI solo `output_text`. `provider` es `openai` o `xai`. Incluye `usage`. No devuelve `raw_id` |
-| Clave ausente | HTTP 503 con un texto que nombra la URL base, no la clave | `RuntimeError`, y el cliente del 502 solo ve el nombre de la clase |
-| Error HTTP del proveedor | Reenvía el status y el cuerpo (`r.text`) | `raise_for_status()` y el 502 final solo guarda el nombre de la clase |
-| Ejemplo de claves | Textos `pon_tu_clave_openai` y `pon_tu_clave_xai` | Claves vacías. Token IAM como texto de reemplazo |
-| Requirements | Mínimos sin fijar (`fastapi>=0.115`, `uvicorn[standard]>=0.30`, `httpx>=0.27`, `pydantic>=2.8`) | Versiones fijadas (tabla de arriba) |
-| Imagen | Copia `main.py`, `EXPOSE 8080`, `uvicorn main:app` | Copia `app/`, sin `EXPOSE`, `uvicorn app.main:app` |
-| Compose | Sin healthcheck | Healthcheck a `/health` |
-| README | Lo describe como capa desacoplada, sin base de Carga360, para enchufar después al Core | Servicio mínimo desplegable. Pide no publicar el 8080 y cambiar el token por JWT/OIDC |
-
-Los dos zips se titulan igual y los dos hablan con `/v1/responses`. Donde se pisan, manda el vigente. El modo `both`, la política por palabras y el timeout fijo de 120 segundos no se arrastran.
-
-## 8. Qué se porta a TypeScript / Next.js
-
-Todavía no está portado. El porte, cuando siga, entra en este mismo repositorio Next.js. No queda un segundo proyecto FastAPI ni un Compose de producción.
-
-Se porta el comportamiento del fuente vigente:
-
-- Conversación contra OpenAI o xAI por la Responses API (`/v1/responses`), con `input` y `instructions`.
-- Orden de fallback de la tabla de arriba. Sin modo `both` y sin la política de palabras del zip anterior.
-- Timeout por `PROVIDER_TIMEOUT` (segundos, default 45).
-- `trace_id` por request, `latency_ms`, `fallback_used`, `provider`, `model` y `usage` numérico.
-- Salud con `status` y los dos booleanos de clave configurada, sin devolver la clave.
-- Extracción de texto distinta para OpenAI y para xAI, como está escrita.
-
-Condiciones de este repositorio, que el zip no trae y el porte sí respeta:
-
-- Flag `AI_ROUTER_ENABLED` apagado por defecto. Solo el texto exacto `true` lo enciende. Apagado, la ruta nueva responde 404 JSON.
-- `OPENAI_API_KEY` y `XAI_API_KEY` solo desde el entorno de runtime. No van en código, tests, fixtures ni logs. En `.env.example` de Next quedan vacías. Los modelos y el timeout también salen del entorno (`OPENAI_MODEL`, `XAI_MODEL`, `PROVIDER_TIMEOUT`), leídos en el request, no en el import.
-- `tenant_id` y `user_id` salen de la sesión de Carga360GO. No se aceptan del cuerpo ni de `X-Tenant-Id` / `X-User-Id`. Hoy la sesión tiene usuario y no tiene tenant: `user_id` es el id de esa sesión y `tenant_id` queda vacío hasta que la sesión traiga tenant. No se inventa un tenant leyendo headers.
-- El token compartido y el default `change-me` no se portan. La autorización del chat es la sesión que ya tiene la app. El README del zip ya pide sustituir ese token por el IAM real; el IAM de producción no está en este zip.
-- Docker, uvicorn y FastAPI no se despliegan. Si más adelante se copia el zip al repo, es referencia, sin `__pycache__` y sin claves.
-- El registro de proveedor y modelo que el zip solo devuelve en JSON, el porte lo deja además en auditoría (trace, proveedor, modelo, latencia, resultado), sin prompt, sin claves y sin datos personales en claro. Esa tabla no existe en el zip. La 030 ya es la operación. La 031 no se usa aquí.
-
-Fuera del zip, y por eso fuera de este porte hasta que Gerencia lo ponga en un fuente: bots, automatizaciones, Core, function calling, tools MCP, Approval Engine y el modo `both` del zip anterior.
-
-El maestro `OPS_FEATURE_ENABLED` no envuelve este orquestador. En este repo ese maestro solo condiciona los flags hijos declarados en `src/lib/ops/flags.ts`. El router no es una ruta `/api/ops`. Su interruptor es `AI_ROUTER_ENABLED`.
+El maestro `OPS_FEATURE_ENABLED` no envuelve al orquestador. En este repo solo condiciona los flags hijos de `src/lib/ops/flags.ts`. El interruptor del porte es `AI_ROUTER_ENABLED`.
