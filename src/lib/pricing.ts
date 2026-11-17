@@ -1,5 +1,7 @@
 import { roadKm } from "./geo";
-import type { EquipmentId } from "./types";
+import { DEFAULT_RATES, MIN_TRIP_CLP } from "./freight-defaults";
+
+export { DEFAULT_RATES, MIN_TRIP_CLP };
 
 /**
  * Precio sugerido REFERENCIAL. Fórmula: distancia vial estimada (km) × tarifa por km del tipo de equipo,
@@ -10,31 +12,36 @@ import type { EquipmentId } from "./types";
  *    carga especial (cama baja, con equipos) entre ~$2.000 y ~$3.500 CLP/km.
  *  - El mínimo por viaje toma como referencia tarifas publicadas de fletes urbanos con camión (~$120.000).
  * Equipos con requisitos extra (frío, estanque, peligrosa) aplican un recargo sobre carga general.
- * Se puede ajustar sin tocar el código con la variable PRICE_RATES_JSON, ej: {"rampla_plana":[900,1500]}.
+ * /api/estimacion lee tarifa, factor de ruta y mínimo desde la base (migración 16).
+ * Estas constantes son la semilla y el respaldo si la base no tiene el valor.
+ * PRICE_RATES_JSON sigue pudiendo ajustar esta función pura, no la lectura de la API.
  */
-export const DEFAULT_RATES: Record<EquipmentId, [number, number]> = {
-  rampla_plana: [900, 1500],
-  sider: [900, 1500],
-  furgon_seco: [900, 1500],
-  portacontenedor: [900, 1500],
-  tolva: [950, 1600],
-  otro: [900, 1500],
-  camion_34: [800, 1200],
-  refrigerado: [1100, 1800],
-  estanque: [1100, 1800],
-  portaautos: [1000, 1600],
-  peligrosa: [1300, 2200],
-  cama_baja: [2000, 3500],
+export type RateOverride = {
+  rates?: Record<string, [number, number]>;
+  minLiviano?: number;
+  minPesado?: number;
+  /** La API lo activa para usar solo las tarifas de la base, sin PRICE_RATES_JSON. */
+  soloEstasTarifas?: boolean;
 };
 
-export const MIN_TRIP_CLP: Record<"liviano" | "pesado", number> = { liviano: 60000, pesado: 120000 };
+function validRates(input?: Record<string, [number, number]>): Record<string, [number, number]> {
+  const out: Record<string, [number, number]> = {};
+  if (!input) return out;
+  for (const [key, value] of Object.entries(input)) {
+    if (Array.isArray(value) && value.length === 2 && value.every((n) => typeof n === "number" && n > 0) && value[0] <= value[1]) {
+      out[key] = [value[0], value[1]];
+    }
+  }
+  return out;
+}
 
-function rates(): Record<string, [number, number]> {
+function rates(extra?: Record<string, [number, number]>, soloEstas?: boolean): Record<string, [number, number]> {
+  const merged: Record<string, [number, number]> = { ...DEFAULT_RATES, ...validRates(extra) };
+  if (soloEstas) return merged;
   const raw = process.env.PRICE_RATES_JSON;
-  if (!raw) return DEFAULT_RATES;
+  if (!raw) return merged;
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    const merged: Record<string, [number, number]> = { ...DEFAULT_RATES };
     for (const [key, value] of Object.entries(parsed)) {
       if (Array.isArray(value) && value.length === 2 && value.every((n) => typeof n === "number" && n > 0) && value[0] <= value[1]) {
         merged[key] = [value[0], value[1]];
@@ -42,7 +49,7 @@ function rates(): Record<string, [number, number]> {
     }
     return merged;
   } catch {
-    return DEFAULT_RATES;
+    return merged;
   }
 }
 
@@ -52,11 +59,13 @@ function round(value: number): number {
   return Math.round(value / 10000) * 10000;
 }
 
-export function estimateByKm(km: number, equipment: string): PriceEstimate | null {
+export function estimateByKm(km: number, equipment: string, override?: RateOverride): PriceEstimate | null {
   if (!Number.isFinite(km) || km <= 0) return null;
-  const table = rates();
+  const table = rates(override?.rates, override?.soloEstasTarifas);
   const [rateMin, rateMax] = table[equipment] ?? table.otro;
-  const floor = equipment === "camion_34" ? MIN_TRIP_CLP.liviano : MIN_TRIP_CLP.pesado;
+  const floorLiviano = override?.minLiviano ?? MIN_TRIP_CLP.liviano;
+  const floorPesado = override?.minPesado ?? MIN_TRIP_CLP.pesado;
+  const floor = equipment === "camion_34" ? floorLiviano : floorPesado;
   return {
     km,
     rateMin,

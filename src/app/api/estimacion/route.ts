@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { guard } from "@/lib/api";
 import { isEquipmentId, isKnownCity } from "@/lib/catalog";
+import { freightQuoteSource, readFreightConfig } from "@/lib/freight-cost";
 import { roadKm } from "@/lib/geo";
 import { allListings } from "@/lib/listings";
 import { matchLoadToTruck } from "@/lib/match";
-import { estimatePrice } from "@/lib/pricing";
+import { estimateByKm } from "@/lib/pricing";
 import { todayChile } from "@/lib/format";
 
 /** Vista previa para el asistente de publicación: km, precio referencial y cuántos camiones calzan hoy. */
@@ -23,5 +24,15 @@ export const GET = guard(async (request) => {
     const load = { origin, destination, equipment, weightT: weight, pickupDate: date, specs: {} };
     compatibles = allListings().trucks.filter((truck) => !truck.isDemo && matchLoadToTruck(load, truck)).length;
   }
-  return NextResponse.json({ km: roadKm(origin, destination), estimate: estimatePrice(origin, destination, equipment), compatibles });
+  const config = readFreightConfig();
+  const km = roadKm(origin, destination, config.factorRuta);
+  const estimate = km
+    ? estimateByKm(km, equipment, {
+        rates: config.tarifas,
+        minLiviano: config.minimoLiviano,
+        minPesado: config.minimoPesado,
+        soloEstasTarifas: true,
+      })
+    : null;
+  return NextResponse.json({ km, estimate, compatibles, fuente: freightQuoteSource(config, equipment) });
 });

@@ -2,6 +2,10 @@
  * Coordenadas aproximadas (centro urbano) de las ciudades del catálogo y distancia vial estimada.
  * La distancia es referencial: línea recta (haversine) × factor vial. No reemplaza un ruteo real.
  */
+import { ROAD_FACTOR } from "./freight-defaults";
+
+export { ROAD_FACTOR };
+
 const COORDS: Record<string, [number, number]> = {
   Arica: [-18.48, -70.31], Putre: [-18.2, -69.56], Iquique: [-20.21, -70.15], "Alto Hospicio": [-20.27, -70.1],
   "Pozo Almonte": [-20.26, -69.79], Pica: [-20.49, -69.33], Antofagasta: [-23.65, -70.4], Calama: [-22.46, -68.93],
@@ -29,9 +33,6 @@ const COORDS: Record<string, [number, number]> = {
   "Puerto Williams": [-54.93, -67.61],
 };
 
-/** Factor entre línea recta y camino real en Chile (Ruta 5 y conexiones). */
-export const ROAD_FACTOR = 1.25;
-
 export function cityCoords(name: string): [number, number] | undefined {
   return COORDS[name];
 }
@@ -47,10 +48,11 @@ export function straightKm(a: string, b: string): number | null {
   return 2 * 6371 * Math.asin(Math.sqrt(h));
 }
 
-/** Distancia vial estimada en km, redondeada a 10 km (mínimo 10). */
-export function roadKm(a: string, b: string): number | null {
+/** Distancia vial estimada en km, redondeada a 10 km (mínimo 10). `factor` sale de la base en /api/estimacion. */
+export function roadKm(a: string, b: string, factor = ROAD_FACTOR): number | null {
   if (a === b) return 0;
   const km = straightKm(a, b);
   if (km === null) return null;
-  return Math.max(10, Math.round((km * ROAD_FACTOR) / 10) * 10);
+  const used = Number.isFinite(factor) && factor > 0 ? factor : ROAD_FACTOR;
+  return Math.max(10, Math.round((km * used) / 10) * 10);
 }
