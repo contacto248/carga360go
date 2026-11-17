@@ -9,7 +9,17 @@ import { getDb } from "../src/lib/db";
 import { AppError } from "../src/lib/errors";
 import { rutDv } from "../src/lib/format";
 import { middleware } from "../src/middleware";
-import { codigoOperacion, createOperacion, periodoOperacion, type Operacion } from "../src/lib/ops/operacion";
+import {
+  actualizarEstadoOperacion,
+  codigoOperacion,
+  createOperacion,
+  decidirCancelacion,
+  MAX_CORRELATIVO,
+  periodoOperacion,
+  SHIPMENT_CANCEL_PARA_AGENTES,
+  transicionOperacionPermitida,
+  type Operacion,
+} from "../src/lib/ops/operacion";
 import type { PublicUser } from "../src/lib/types";
 
 let seq = 0;
@@ -102,7 +112,7 @@ test("el identificador es 360-YYMM-NNNN en America/Santiago y no lo elige el cli
     assert.equal(first.operacion.id, "360-9901-0001");
     assert.equal(second.operacion.id, "360-9901-0002");
     assert.equal(febrero.operacion.id, "360-9902-0001");
-    assert.equal(first.operacion.estado, "planificada");
+    assert.equal(first.operacion.estado, "abierta");
     assert.equal(first.operacion.version, 1);
     assert.equal(first.operacion.createdBy, owner.id);
     assert.throws(
@@ -185,6 +195,13 @@ test("con el correlativo agotado no deja una fila a medias", () => {
   });
   const counter = getDb().prepare(`SELECT ultimo FROM ops_operation_counters WHERE periodo = '9912'`).get() as { ultimo: number };
   assert.equal(counter.ultimo, 9999);
+  assert.equal(MAX_CORRELATIVO, 9999);
+  const agotado = getDb()
+    .prepare(`SELECT action, detail FROM audit_log WHERE action = 'ops.operacion_correlativo_agotado' AND target_id = '9912'`)
+    .get() as { action: string; detail: string } | undefined;
+  assert.ok(agotado);
+  assert.match(agotado.detail, /9999/);
+  assert.match(agotado.detail, /360-YYMM-NNNN/);
   assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM ops_operations WHERE id LIKE '360-9912-%'`).get() as { n: number }).n, 0);
   assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM ops_operations WHERE length(id) > 13`).get() as { n: number }).n, 0);
 });
@@ -313,4 +330,112 @@ test("el flag apagado responde 404 HTTP en la página y en la API", async () => 
     if (previousChild === undefined) delete process.env.OPS_OPERACION_ENABLED;
     else process.env.OPS_OPERACION_ENABLED = previousChild;
   }
+});
+
+function archivosSrc(dir: string): string[] {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return archivosSrc(full);
+    return full.endsWith(".ts") || full.endsWith(".tsx") ? [full] : [];
+  });
+}
+
+test("v1.1: el alta nace en abierta y el resto sigue las transiciones", () => {
+  assert.equal(SHIPMENT_CANCEL_PARA_AGENTES, false);
+  for (const file of archivosSrc(path.join(process.cwd(), "src"))) {
+    assert.equal(fs.readFileSync(file, "utf8").includes("shipment.cancel"), false, file);
+  }
+  assert.equal(transicionOperacionPermitida("abierta", "asignada"), false);
+  assert.equal(transicionOperacionPermitida("en_asignacion", "asignada"), true);
+  assert.equal(transicionOperacionPermitida("en_asignacion", "en_curso"), false);
+  assert.equal(transicionOperacionPermitida("entregada", "cerrada"), true);
+  assert.equal(transicionOperacionPermitida("planificada", "abierta"), false);
+  const nivel2 = decidirCancelacion("abierta", false);
+  const docs = decidirCancelacion("documentacion_pendiente", false);
+  const nivel2b = decidirCancelacion("asignada", false);
+  const nivel3 = decidirCancelacion("en_curso", true);
+  const terminal = decidirCancelacion("entregada", false);
+  assert.equal(nivel2.ok && nivel2.nivel === "2", true);
+  assert.equal(docs.ok && docs.nivel === "2", true);
+  assert.equal(nivel2b.ok && nivel2b.nivel === "2b", true);
+  assert.equal(nivel3.ok && nivel3.nivel === "3", true);
+  assert.equal(terminal.ok, false);
+
+  const owner = admin("estados");
+  const stranger = person("mandante");
+  const when = new Date("2002-06-15T15:00:00.000Z");
+  withFlags({ OPS_FEATURE_ENABLED: "true", OPS_OPERACION_ENABLED: "true" }, () => {
+    const created = createOperacion(owner, body({ estado: "abierta" }), null, when);
+    assert.equal(created.operacion.estado, "abierta");
+    assert.throws(
+      () => createOperacion(owner, body({ estado: "en_asignacion" }), null, when),
+      (error: unknown) => error instanceof AppError && error.status === 403 && error.code === "POLICY_RECHAZA" && error.reglaPolicy === "transicion_no_permitida",
+    );
+    assert.throws(
+      () => createOperacion(owner, body({ estado: "bloqueada" }), null, when),
+      (error: unknown) => error instanceof AppError && error.status === 400,
+    );
+    const id = created.operacion.id;
+    assert.throws(
+      () => actualizarEstadoOperacion(stranger, id, "en_asignacion", null),
+      (error: unknown) => error instanceof AppError && error.status === 403,
+    );
+    assert.throws(
+      () => actualizarEstadoOperacion(owner, id, "asignada", null),
+      (error: unknown) => error instanceof AppError && error.status === 403 && error.reglaPolicy === "transicion_no_permitida",
+    );
+    assert.throws(
+      () => actualizarEstadoOperacion(owner, id, "bloqueada", null),
+      (error: unknown) => error instanceof AppError && error.status === 403 && error.reglaPolicy === "transicion_no_permitida",
+    );
+    const enAsignacion = actualizarEstadoOperacion(owner, id, "en_asignacion", "203.0.113.20", {}, when);
+    assert.equal(enAsignacion.estado, "en_asignacion");
+    assert.equal(enAsignacion.version, 2);
+    const asignada = actualizarEstadoOperacion(owner, id, "asignada", null, {}, when);
+    assert.equal(asignada.estado, "asignada");
+    assert.throws(
+      () => actualizarEstadoOperacion(owner, id, "cancelada", null),
+      (error: unknown) => error instanceof AppError && error.status === 403 && error.reglaPolicy === "confirmacion_previa",
+    );
+    assert.equal(
+      (getDb().prepare(`SELECT estado FROM ops_operations WHERE id = ?`).get(id) as { estado: string }).estado,
+      "asignada",
+    );
+    const cancelada = actualizarEstadoOperacion(owner, id, "cancelada", null, { confirmacionPrevia: true }, when);
+    assert.equal(cancelada.estado, "cancelada");
+    assert.throws(
+      () => actualizarEstadoOperacion(owner, id, "abierta", null),
+      (error: unknown) => error instanceof AppError && error.reglaPolicy === "transicion_no_permitida",
+    );
+
+    const conCobros = createOperacion(owner, body(), null, when);
+    const avanzada = actualizarEstadoOperacion(owner, conCobros.operacion.id, "en_asignacion", null);
+    actualizarEstadoOperacion(owner, avanzada.id, "asignada", null);
+    assert.throws(
+      () => actualizarEstadoOperacion(owner, avanzada.id, "cancelada", null, { confirmacionPrevia: true, hayCobros: true }),
+      (error: unknown) => error instanceof AppError && error.status === 403 && error.code === "REQUIERE_APROBACION",
+    );
+    assert.equal(
+      (getDb().prepare(`SELECT estado FROM ops_operations WHERE id = ?`).get(avanzada.id) as { estado: string }).estado,
+      "asignada",
+    );
+
+    const docs = createOperacion(owner, body(), null, when);
+    const pendiente = actualizarEstadoOperacion(owner, docs.operacion.id, "documentacion_pendiente", null);
+    const cancelDocs = actualizarEstadoOperacion(owner, pendiente.id, "cancelada", null);
+    assert.equal(cancelDocs.estado, "cancelada");
+
+    const entrega = createOperacion(owner, body(), null, when);
+    let actual = entrega.operacion;
+    for (const paso of ["en_asignacion", "asignada", "en_curso", "entregada"] as const) {
+      actual = actualizarEstadoOperacion(owner, actual.id, paso, null);
+    }
+    assert.equal(actual.estado, "entregada");
+    assert.throws(
+      () => actualizarEstadoOperacion(owner, actual.id, "cancelada", null, { confirmacionPrevia: true }),
+      (error: unknown) => error instanceof AppError && error.reglaPolicy === "transicion_no_permitida",
+    );
+    const cerrada = actualizarEstadoOperacion(owner, actual.id, "cerrada", null);
+    assert.equal(cerrada.estado, "cerrada");
+  });
 });

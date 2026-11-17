@@ -84,6 +84,9 @@ export const AUDIT_LABELS: Record<string, string> = {
   "ops.alerta_umbral": "Umbral de alerta actualizado",
   "ops.seguimiento_emitido": "Enlace de seguimiento emitido",
   "ops.operacion_creada": "Operación creada",
+  "ops.operacion_estado": "Estado de la operación actualizado",
+  "ops.operacion_estado_rechazado": "Cambio de estado de la operación rechazado",
+  "ops.operacion_correlativo_agotado": "Tope mensual de operaciones agotado",
 };
 
 function writeAudit(

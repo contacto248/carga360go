@@ -8,7 +8,10 @@ type RouteCtx = { params: Promise<Record<string, string>> };
 
 export function jsonError(error: unknown) {
   if (error instanceof AppError) {
-    return NextResponse.json(error.code ? { error: error.message, code: error.code } : { error: error.message }, { status: error.status });
+    const body: { error: string; code?: string; regla_policy?: string } = { error: error.message };
+    if (error.code) body.code = error.code;
+    if (error.reglaPolicy) body.regla_policy = error.reglaPolicy;
+    return NextResponse.json(body, { status: error.status });
   }
   console.error(error);
   return NextResponse.json({ error: "Error interno." }, { status: 500 });
