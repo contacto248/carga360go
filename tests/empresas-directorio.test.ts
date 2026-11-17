@@ -29,8 +29,10 @@ test("el directorio público muestra las 25 empresas en acreditación, sin conta
   const page = fs.readFileSync(new URL("../src/app/empresas/page.tsx", import.meta.url), "utf8");
   assert.match(page, /Postular a sus cargas/);
   assert.match(page, /href="\/registro-transportista"/);
-  assert.match(page, /EN PROCESO DE ACREDITACIÓN BASSAM 360/);
+  assert.match(page, /EN PROCESO DE ACREDITACIÓN Carga360go/);
+  assert.doesNotMatch(page, /CARGA360GO|BASSAM 360/);
   assert.doesNotMatch(page, /certificada|whatsapp|mailto|empresas-gerencia/i);
+  assert.doesNotMatch(page, /precio|tarifa|CLP|\$/i);
 });
 
 test("el Agente BASSAM 360 solo se muestra en /admin/* y /mi-cuenta", () => {

@@ -5,14 +5,15 @@ import styles from "./empresas.module.css";
 
 export const metadata: Metadata = {
   title: "Empresas",
-  description: "Empresas en proceso de contacto y acreditación. La certificación se muestra solo cuando se completa.",
+  description:
+    "Empresas en proceso de contacto y acreditación en Carga360go. La certificación se muestra solo cuando se completa.",
   alternates: { canonical: "/empresas" },
 };
 
 export const dynamic = "force-dynamic";
 
 const NOTA = "Empresas en proceso de contacto y acreditación. La certificación se muestra solo cuando se completa.";
-const BADGE = "EN PROCESO DE ACREDITACIÓN BASSAM 360";
+const BADGE = "EN PROCESO DE ACREDITACIÓN Carga360go";
 
 export default function EmpresasPage() {
   const empresas = listarEmpresasPublicas();
