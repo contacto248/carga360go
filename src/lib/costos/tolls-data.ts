@@ -19,8 +19,10 @@
  * Troncal Zapata, Troncal Lo Prado y Troncal Sur. Las laterales comparten tarifa con el Troncal Sur,
  * pero el PDF no lista cada plaza lateral: no se cargan. Ubicación: nodos OSM con nombre, consultados
  * el 17-11-2026 (un punto por plaza, al medio de los dos sentidos).
- * Ruta 5 Sur: solo Peaje Angostura, columna «TRONCAL RUTA 5» del PDF Santiago–Talca (abril 2026) y nodo OSM.
- * El resto de la Ruta 5 Sur no se carga: el PDF da una tarifa de tramo, no la ubicación de cada plaza.
+ * Ruta 5 Sur Santiago–Concepción (OSRM público, 17-11-2026, 500,7 km: 383,6 km por Ruta 5 Sur y 74,8 km
+ * por la Autopista del Itata). Plazas con tarifa y coordenada verificadas que esa ruta cruza: Angostura
+ * (columna «TRONCAL RUTA 5» del PDF Santiago–Talca) y Agua Amarilla (columna del PDF Ruta del Itata).
+ * No se cargan plazas sin nombre público ni coordenada: ver RUTA5_SUR_STGO_CONCEPCION_GAPS.
  * Ruta 1: los PDF de Acceso Iquique y Autopista de Antofagasta traen tarifas de «TRONCAL RUTA 1», pero
  * no se pudo verificar la coordenada de cada plaza. Esas plazas no se incluyen.
  */
@@ -54,6 +56,8 @@ export const TOLL_SOURCES: SeedSource[] = [
   { id: "mop_costanera_norte", name: "MOP DGC – Tarifas 2026 Costanera Norte", url: "https://concesiones.mop.gob.cl/uploads/sites/4/2026/07/COSTANERA-NORTE.pdf", sha256: "7e5b2269ad355c3ebca607338a5e9f0ffdd81600396339cf4565a75bdc92cf15", validFrom: "2026-01-01", validTo: "2026-12-31" },
   { id: "mop_ruta_68", name: "MOP DGC – Tarifas 2026 Ruta 68 Santiago–Valparaíso–Viña", url: "https://concesiones.mop.gob.cl/uploads/sites/4/2026/01/RUTA-68.pdf", sha256: "78632ff3ceeeeb25407823060ffe3b05cbfa71ddc46f5602f2dbe2059ac2ee46", validFrom: "2026-01-01", validTo: "2026-12-31", checkedAt: "2026-11-17T15:00:00.000Z" },
   { id: "mop_santiago_talca", name: "MOP DGC – Tarifas 2026 Ruta 5 Santiago–Talca", url: "https://concesiones.mop.gob.cl/uploads/sites/4/2026/04/SANTIAGO-TALCA.pdf", sha256: "3f2a4822f1b84b63830c3dd06b899c85b71c4b088b8c1d7214b545df3b4c6ce7", validFrom: "2026-01-01", validTo: "2026-12-31", checkedAt: "2026-11-17T15:00:00.000Z" },
+  { id: "mop_itata", name: "MOP DGC – Tarifas 2026 Ruta del Itata (acceso norte a Concepción)", url: "https://concesiones.mop.gob.cl/uploads/sites/4/2026/01/ITATA.pdf", sha256: "547698eb9656194771965e3dbeeddf37b3283bff5f3f43ccf0481d6e175b5438", validFrom: "2026-01-01", validTo: "2026-12-31", checkedAt: "2026-11-17T18:00:00.000Z" },
+  { id: "mop_talca_chillan", name: "MOP DGC – Tarifas 2026 Ruta 5 Talca–Chillán", url: "https://concesiones.mop.gob.cl/uploads/sites/4/2026/01/TALCA-CHILLAN.pdf", sha256: "9748efbead4b0293f52ae3fcbb08b436402746e673e583e95e2e06bebc6f45c5", validFrom: "2026-01-01", validTo: "2026-12-31", checkedAt: "2026-11-17T18:00:00.000Z" },
 ];
 
 const E = (two: number, more: number): SeedRate[] => [
@@ -161,7 +165,73 @@ export const TOLL_PLAZAS: SeedPlaza[] = [
     locationNote: "OSM nodo 5008518144 «Peaje Angostura» (Nominatim, 17-11-2026)",
     sourceId: "mop_santiago_talca",
     rates: E(6900, 12200),
-    note: "Columna «TRONCAL RUTA 5» del PDF MOP Santiago–Talca 2026. Otras plazas de ese tramo no se cargan: el PDF no trae su ubicación.",
+    note: "Columna «TRONCAL RUTA 5» del PDF MOP Santiago–Talca 2026. Otras columnas de ese PDF (Lateral, Río Maipo, Gabriela, Tocornal) no se cargan: no hay coordenada pública de cada plaza.",
+  },
+  {
+    id: "itata_agua_amarilla",
+    name: "Agua Amarilla (troncal)",
+    concession: "Ruta del Itata",
+    route: "Autopista del Itata",
+    km: null,
+    lat: -36.7300348,
+    lon: -72.8602129,
+    direction: "ambos",
+    scheme: "ejes",
+    kind: "troncal",
+    locationSource: "osm_nombre",
+    locationNote: "Punto medio de los nodos OSM 323201402 y 267235510 «Peaje Troncal Agua Amarilla» (17-11-2026). La ruta OSRM Santiago–Concepción pasa a 0 m.",
+    sourceId: "mop_itata",
+    rates: E(9700, 19800),
+    note: "Columna «AGUA AMARILLA» del PDF MOP Ruta del Itata 2026: camión de dos ejes $9.700 y camión de más de dos ejes $19.800. Rafael y Nueva Aldea no se suman en esta ruta.",
+  },
+];
+
+/**
+ * Santiago–Concepción por Ruta 5 Sur (OSRM público, 17-11-2026). Plazas verificadas que la ruta cruza:
+ * Angostura y Agua Amarilla. El resto no se agrega: falta el nombre público de la plaza o la ruta no la atraviesa.
+ */
+export const RUTA5_SUR_STGO_CONCEPCION_GAPS: { ref: string; lat: number | null; lon: number | null; why: string }[] = [
+  {
+    ref: "r5s_sin_nombre_-34.796",
+    lat: -34.79606,
+    lon: -71.04849,
+    why: "Casetas OSM sin nombre (nodo 5463432177 y vecinos) a 0 m de Ruta 5 Sur, entre San Fernando y Curicó. El PDF Santiago–Talca no indica a qué columna corresponden.",
+  },
+  {
+    ref: "r5s_sin_nombre_-35.210",
+    lat: -35.20966,
+    lon: -71.41133,
+    why: "Pórtico OSM sin nombre (nodo 268896769) a 0 m de Ruta 5 Sur, al norte de Talca. El PDF Talca–Chillán solo publica columnas TRONCAL y LATERAL, sin nombre ni coordenada de cada plaza.",
+  },
+  {
+    ref: "r5s_sin_nombre_-36.009",
+    lat: -36.00915,
+    lon: -71.7325,
+    why: "Pórtico OSM sin nombre (nodo 10282922113) a 0 m de Ruta 5 Sur, entre Linares y Parral. Misma ficha Talca–Chillán: no se puede saber si es troncal o lateral.",
+  },
+  {
+    ref: "r5s_sin_nombre_-36.414",
+    lat: -36.41412,
+    lon: -71.94597,
+    why: "Caseta OSM sin nombre (nodo 310364143) a unos 10 m de Ruta 5 Sur, cerca de San Carlos. No está nominada en el PDF.",
+  },
+  {
+    ref: "itata_rafael",
+    lat: -36.7284135,
+    lon: -72.8653823,
+    why: "El PDF Itata publica la columna RAFAEL. El nodo OSM 1166159006 se llama «Peaje Lateral Rafael» y queda a unos 159 m de la calzada: la ruta no entra a esa caseta.",
+  },
+  {
+    ref: "itata_nueva_aldea",
+    lat: null,
+    lon: null,
+    why: "El PDF Itata nombra la columna NUEVA ALDEA. No hay nodo OSM con ese nombre en el corredor de la ruta. No se inventa coordenada.",
+  },
+  {
+    ref: "santiago_talca_gabriela",
+    lat: -33.5817,
+    lon: -70.6103,
+    why: "Peaje Gabriela está en el Acceso Sur (OSM) a unos 9,5 km de este trazado. La ruta OSRM no lo cruza. Río Maipo y Tocornal figuran en el PDF Santiago–Talca sin coordenada verificada.",
   },
 ];
 

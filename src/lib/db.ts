@@ -741,6 +741,15 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
+  if (!hasMigration(db, 21)) {
+    const apply = db.transaction(() => {
+      // Vuelve a sembrar peajes (INSERT OR IGNORE): agrega Agua Amarilla (Itata) y las fuentes MOP 2026 revisadas.
+      // No borra plazas ni tarifas anteriores. Copia en docs/migrations/021-peaje-itata.sql.
+      seedTolls(db);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (21, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
 }
 
 export function closeDb() {

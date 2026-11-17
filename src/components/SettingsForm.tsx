@@ -46,7 +46,7 @@ export function SettingsForm({ initial, choices }: { initial: { offerHours: numb
         </label>
         <label className="f chk full">
           <input type="checkbox" checked={showSuggestedPrice} onChange={(event) => setShowSuggestedPrice(event.target.checked)} />
-          Mostrar precio sugerido por la plataforma en las cargas (rango referencial por km)
+          Mostrar precio referencial (desglose de costos en el cotizador y en las cargas)
         </label>
       </div>
       <div className="row" style={{ marginTop: 10 }}>

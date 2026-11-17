@@ -65,7 +65,7 @@ function money(value: number | null) {
 /**
  * Calculadora de ruta: kilómetros, peajes que cruza, diésel y viático. El desglose es un costo de referencia.
  */
-export function Calculator() {
+export function Calculator({ referencePriceVisible = false }: { referencePriceVisible?: boolean }) {
   const [origin, setOrigin] = useState("Santiago");
   const [destination, setDestination] = useState("Concepción");
   const [equipment, setEquipment] = useState("rampla_plana");
@@ -73,6 +73,8 @@ export function Calculator() {
   const [weight, setWeight] = useState("");
   const [contact, setContact] = useState("");
   const [ruta, setRuta] = useState<RutaCosto | null>(null);
+  const [showBreakdown, setShowBreakdown] = useState(referencePriceVisible);
+  const [kmOnly, setKmOnly] = useState<number | null>(null);
   const [kmField, setKmField] = useState("");
   const [tollField, setTollField] = useState("");
   const [dieselField, setDieselField] = useState("");
@@ -96,7 +98,10 @@ export function Calculator() {
       fetch(`/api/estimacion?${params}`, { signal: controller.signal })
         .then((response) => (response.ok ? response.json() : null))
         .then((data) => {
-          const next = (data?.rutaCosto ?? null) as RutaCosto | null;
+          const show = Boolean(data?.showBreakdown);
+          setShowBreakdown(show);
+          setKmOnly(typeof data?.km === "number" ? data.km : null);
+          const next = (show ? data?.rutaCosto ?? null : null) as RutaCosto | null;
           setRuta(next);
           if (next) {
             setKmField(plain(next.km));
@@ -166,31 +171,33 @@ export function Calculator() {
           <div className="meta" style={{ fontWeight: 700, marginBottom: 6 }}>Tipo de equipo</div>
           <EquipmentSelector mode="single" layout="carousel" name="equipment" value={equipment} onChange={setEquipment} />
         </div>
-        <h3 style={{ marginTop: 16 }}>2. Ajustar a mano</h3>
-        <p className="meta">Los valores salen de la ruta. Puedes cambiar kilómetros, peajes, precio del diésel, rendimiento y viático.</p>
-        <div className="form-grid">
-          <label className="f">
-            Kilómetros
-            <input inputMode="decimal" value={kmField} onChange={(event) => setKmField(event.target.value)} />
-          </label>
-          <label className="f">
-            Peajes (CLP)
-            <input inputMode="numeric" value={tollField} onChange={(event) => setTollField(event.target.value)} />
-          </label>
-          <label className="f">
-            Precio del diésel (CLP/L)
-            <input inputMode="decimal" value={dieselField} onChange={(event) => setDieselField(event.target.value)} />
-          </label>
-          <label className="f">
-            Rendimiento (km/L)
-            <input inputMode="decimal" value={yieldField} onChange={(event) => setYieldField(event.target.value)} />
-          </label>
-          <label className="f">
-            Viático diario (CLP)
-            <input inputMode="numeric" value={viaticoField} onChange={(event) => setViaticoField(event.target.value)} />
-          </label>
-        </div>
-        <h3 style={{ marginTop: 16 }}>3. Solicitar revisión (opcional)</h3>
+        {showBreakdown ? <h3 style={{ marginTop: 16 }}>2. Ajustar a mano</h3> : null}
+        {showBreakdown ? <p className="meta">Los valores salen de la ruta. Puedes cambiar kilómetros, peajes, precio del diésel, rendimiento y viático.</p> : null}
+        {showBreakdown ? (
+          <div className="form-grid">
+            <label className="f">
+              Kilómetros
+              <input inputMode="decimal" value={kmField} onChange={(event) => setKmField(event.target.value)} />
+            </label>
+            <label className="f">
+              Peajes (CLP)
+              <input inputMode="numeric" value={tollField} onChange={(event) => setTollField(event.target.value)} />
+            </label>
+            <label className="f">
+              Precio del diésel (CLP/L)
+              <input inputMode="decimal" value={dieselField} onChange={(event) => setDieselField(event.target.value)} />
+            </label>
+            <label className="f">
+              Rendimiento (km/L)
+              <input inputMode="decimal" value={yieldField} onChange={(event) => setYieldField(event.target.value)} />
+            </label>
+            <label className="f">
+              Viático diario (CLP)
+              <input inputMode="numeric" value={viaticoField} onChange={(event) => setViaticoField(event.target.value)} />
+            </label>
+          </div>
+        ) : null}
+        <h3 style={{ marginTop: 16 }}>{showBreakdown ? "3. Solicitar revisión (opcional)" : "2. Solicitar revisión (opcional)"}</h3>
         <div className="form-grid">
           <label className="f full">
             Correo o teléfono de contacto
@@ -204,10 +211,18 @@ export function Calculator() {
         {error ? <p className="error" role="alert">{error}</p> : null}
       </form>
 
-      <aside className="card calc-result" aria-live="polite">
-        <h3>Costo de referencia desglosado</h3>
+      <aside className="card calc-result" aria-live="polite" data-breakdown={showBreakdown ? "on" : "off"}>
+        <h3>{showBreakdown ? "Costo de referencia desglosado" : "Ruta"}</h3>
         {origin === destination ? <p className="meta">Elige un origen y un destino distintos.</p> : null}
-        {loading && !ruta ? <p className="meta">Calculando kilómetros, ruta, peajes y diésel…</p> : null}
+        {loading && !ruta && showBreakdown ? <p className="meta">Calculando kilómetros, ruta, peajes y diésel…</p> : null}
+        {!showBreakdown ? (
+          <p className="meta">
+            {kmOnly ? `${formatClp(Math.round(kmOnly))} km. ` : ""}
+            El desglose de costos no se muestra.
+          </p>
+        ) : null}
+        {showBreakdown ? (
+        <>
         <div className="meta">
           {routeCost.km > 0 ? `${formatClp(Math.round(routeCost.km))} km` : "Sin kilómetros todavía"}
           {ruta?.provider ? ` · ${ruta.provider === "google_maps" ? "Google Maps" : "OSRM"}` : ""}
@@ -257,6 +272,8 @@ export function Calculator() {
         </div>
         {ruta?.attribution ? <p className="meta">{ruta.attribution}</p> : null}
         <p className="meta">{ROUTE_COST_NOTICE}</p>
+        </>
+        ) : null}
       </aside>
     </div>
   );

@@ -408,8 +408,8 @@ export function quoteFromCache(input: QuoteInput, now = new Date()): QuoteResult
 }
 
 /**
- * Vista pública (cotizador, publicación de cargas, transportista y cliente): el costo de referencia desglosado, sin margen
- * ni parámetros internos. El monto solo se incluye si la opción de administración lo permite.
+ * Vista pública (cotizador, publicación de cargas, transportista y cliente): sin margen ni parámetros internos.
+ * Si «Mostrar precio referencial» está apagado, no se entrega el desglose (ni montos ni partidas).
  */
 export function publicView(result: QuoteResult, showAmount: boolean) {
   const visible = result.components.filter((c) => c.group === "obligatorio" || c.group === "operacional");
@@ -427,11 +427,17 @@ export function publicView(result: QuoteResult, showAmount: boolean) {
     serviceDays: result.driving?.serviceDays ?? null,
     vehicle: result.vehicle.label,
     complete: result.totals.complete,
-    pending: result.totals.pending,
+    pending: showAmount ? result.totals.pending : [],
     showAmount,
-    components: visible.map((c) => ({ key: c.key, label: c.label, group: c.group, status: c.status, source: c.source, date: c.date, detail: c.detail, amount: showAmount ? c.amount : null })),
-    tolls: result.tolls.map((t) => ({ name: t.name, concession: t.concession, category: t.categoryLabel, amount: showAmount ? t.amountGross : null, status: t.status, sourceUrl: t.sourceUrl })),
-    diesel: result.diesel ? { zone: result.diesel.zone, price: showAmount ? result.diesel.priceGross : null, fetchedAt: result.diesel.fetchedAt, source: result.diesel.source, liters: result.diesel.liters, status: result.diesel.status } : null,
+    components: showAmount
+      ? visible.map((c) => ({ key: c.key, label: c.label, group: c.group, status: c.status, source: c.source, date: c.date, detail: c.detail, amount: c.amount }))
+      : [],
+    tolls: showAmount
+      ? result.tolls.map((t) => ({ name: t.name, concession: t.concession, category: t.categoryLabel, amount: t.amountGross, status: t.status, sourceUrl: t.sourceUrl }))
+      : [],
+    diesel: showAmount && result.diesel
+      ? { zone: result.diesel.zone, price: result.diesel.priceGross, fetchedAt: result.diesel.fetchedAt, source: result.diesel.source, liters: result.diesel.liters, status: result.diesel.status }
+      : null,
     costoBase: showTotal ? costoBase : null,
     iva: showTotal ? iva : null,
     costoTotal: showTotal ? costoBase + iva : null,
@@ -439,8 +445,8 @@ export function publicView(result: QuoteResult, showAmount: boolean) {
     rango: showTotal && p.rangoPublicoPct > 0
       ? { pct: p.rangoPublicoPct, min: Math.round((costoBase + iva) * (1 - p.rangoPublicoPct / 100)), max: Math.round((costoBase + iva) * (1 + p.rangoPublicoPct / 100)) }
       : null,
-    fallback: showAmount && result.fallback ? result.fallback : result.fallback ? { ...result.fallback, min: null, max: null } : null,
-    warnings: result.warnings,
+    fallback: showAmount && result.fallback ? result.fallback : null,
+    warnings: showAmount ? result.warnings : [],
     attribution: result.route?.attribution ?? null,
   };
 }

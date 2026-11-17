@@ -12,6 +12,7 @@ import {
 } from "../src/lib/cookie-consent";
 import { DEFAULT_HUBSPOT_PORTAL_ID, hubspotPortalId, hubspotScriptSrc } from "../src/lib/hubspot";
 import { LEY_21719_SECTION_ID, policySections } from "../src/lib/privacy-policy";
+import { termsSections } from "../src/lib/terms";
 
 const ROOT = path.join(import.meta.dirname, "..");
 
@@ -101,4 +102,30 @@ test("Ley 21.719: falla si falta la sección en la política o el enlace de la b
   assert.match(banner, /cookie-banner-compact/);
   assert.match(banner, /Solo necesarias/);
   assert.match(banner, /Aceptar/);
+});
+
+test("privacidad: HubSpot opcional y sin periodo gratis ni membresía vigente", () => {
+  const cookies = policySections().find((section) => section.id === "cookies");
+  const datos = policySections().find((section) => section.id === "datos");
+  const cookieText = JSON.stringify(cookies);
+  const datosText = JSON.stringify(datos);
+  assert.match(cookieText, /HubSpot es una herramienta opcional/);
+  assert.match(cookieText, /Solo necesarias/);
+  assert.doesNotMatch(cookieText, /No usamos cookies de publicidad ni herramientas/);
+  assert.doesNotMatch(datosText, /periodo gratis de 30 días/);
+  assert.doesNotMatch(datosText, /futura membresía/);
+  assert.doesNotMatch(datosText, /\$\s?\d/);
+  const uso = termsSections().find((section) => section.id === "membresia");
+  const usoText = JSON.stringify(uso);
+  assert.doesNotMatch(usoText, /30 días corridos gratis/);
+  assert.doesNotMatch(usoText, /se cobrará una membresía/);
+  assert.doesNotMatch(usoText, /\$\s?\d/);
+  const css = read("src/app/globals.css");
+  assert.match(css, /@media\(max-width:480px\)/);
+  assert.match(css, /\.cookie-banner\{[\s\S]*position:sticky/);
+  assert.match(css, /height:36px/);
+  const layout = read("src/app/layout.tsx");
+  const bannerAt = layout.indexOf("<CookieConsentBanner");
+  const headerAt = layout.indexOf("<Header");
+  assert.ok(bannerAt > 0 && bannerAt < headerAt, "la barra debe ir antes del encabezado para no tapar el contenido");
 });

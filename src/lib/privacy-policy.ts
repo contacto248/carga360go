@@ -97,7 +97,7 @@ export const POLICY_SECTIONS: PolicySection[] = [
           "Comunicaciones: los mensajes que nos envías por correo o WhatsApp.",
         ],
       },
-      "No recopilamos datos de tarjetas ni de medios de pago: hoy la plataforma no tiene un sistema de pago. Guardamos la fecha de término del periodo gratis de 30 días de cada cuenta. Antes de cobrar la futura membresía actualizaremos esta política para informar qué datos de facturación se pedirán, y solo los trataremos si aceptas la membresía.",
+      "No recopilamos datos de tarjetas ni de medios de pago: hoy la plataforma no tiene un sistema de pago. Crear una cuenta y usar el sitio no exige una membresía ni un periodo de prueba de pago, y no pedimos datos de facturación.",
     ],
   },
   {
@@ -169,8 +169,8 @@ export const POLICY_SECTIONS: PolicySection[] = [
     id: "cookies",
     title: "8. Cookies y tecnologías similares",
     blocks: [
-      "Usamos solo una cookie técnica necesaria («c360_session») para mantener tu sesión iniciada de forma segura. Dura hasta 14 días o hasta que cierres sesión. No usamos cookies de publicidad ni herramientas de analítica de terceros.",
-      "Si en el futuro incorporamos cookies que no sean necesarias, te pediremos tu consentimiento antes de usarlas.",
+      "Usamos una cookie técnica necesaria («c360_session») para mantener tu sesión iniciada de forma segura. Dura hasta 14 días o hasta que cierres sesión.",
+      "HubSpot es una herramienta opcional de medición o marketing. No es necesaria para usar el sitio: solo cargamos sus cookies si en la barra eliges «Aceptar». Si eliges «Solo necesarias», no se carga HubSpot.",
     ],
   },
   {
@@ -253,7 +253,7 @@ export const POLICY_SECTIONS: PolicySection[] = [
     title: "15. Cambios a esta política",
     blocks: [
       `Podemos actualizar esta política por cambios legales o del servicio. Publicaremos la nueva versión en ${SITE}/privacidad con su fecha y número de versión. Si los cambios son importantes, te avisaremos por correo y, cuando la ley lo exija, te pediremos aceptarla nuevamente. Guardamos qué versión aceptó cada usuario y cuándo.`,
-      "Historial: versión 1.0 (10 de noviembre de 2026), publicación inicial. Versión 1.1 (10 de noviembre de 2026): los datos de contacto se revelan solo al adjudicar una oferta y solo entre las dos partes, y solo las cuentas 100% acreditadas pueden publicar, ofertar y recibir contactos. Versión 1.2 (10 de noviembre de 2026): campaña de inscripción con 30 días gratis por cuenta desde su inscripción y futura membresía (valores por definir); se guarda la fecha de término del periodo gratis; la aceptación se pide junto con los Términos de uso.",
+      "Historial: versión 1.0 (10 de noviembre de 2026), publicación inicial. Versión 1.1 (10 de noviembre de 2026): los datos de contacto se revelan solo al adjudicar una oferta y solo entre las dos partes, y solo las cuentas 100% acreditadas pueden publicar, ofertar y recibir contactos. Versión 1.2 (10 de noviembre de 2026): la aceptación se pide junto con los Términos de uso. Versión 1.5 (17 de noviembre de 2026): la sección de cookies informa que HubSpot es opcional y solo se carga al elegir «Aceptar»; el sitio público no aplica un periodo gratis de 30 días ni cobra una membresía.",
     ],
   },
   {
