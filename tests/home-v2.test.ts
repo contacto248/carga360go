@@ -9,7 +9,7 @@ function read(rel: string): string {
   return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
-test("T-049 home v2: marca, torre de control y flujos sin precios/comisiones", () => {
+test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones", () => {
   const home = read("src/app/page.tsx");
   assert.match(home, /brand-hero/);
   assert.match(home, /Carga360go/);
@@ -18,31 +18,83 @@ test("T-049 home v2: marca, torre de control y flujos sin precios/comisiones", (
   assert.match(home, /Encontrar camión/);
   assert.match(home, /Seguimiento en vivo/);
   assert.match(home, /Eventos registrados con fecha y hora: publicación, ofertas y adjudicación/);
-  assert.match(home, /Así funciona/);
+  assert.match(home, /HomeTowerBoard/);
+  const tower = read("src/components/HomeTowerBoard.tsx");
+  assert.match(tower, /Así funciona/);
   assert.doesNotMatch(home, /tower-tag">en vivo/);
+  assert.doesNotMatch(tower, /tower-tag">en vivo/);
   assert.match(home, /Comprobante digital/);
   assert.match(home, /Empresas y mandantes/);
   assert.match(home, /Transportistas/);
   assert.match(home, /Agente Carga360go/);
+  assert.match(home, /Decide mejor y más rápido/);
+  assert.match(home, /Eficiencia operativa/);
+  assert.match(home, /Crece con respaldo/);
+  assert.match(home, /Libera recursos y reduce riesgo/);
+  assert.match(home, /Funciones de la plataforma/);
+  assert.match(home, /Quiénes somos/);
+  assert.match(home, /Ecosistema y canales/);
   assert.doesNotMatch(home, /comisi[oó]n/i);
+  assert.doesNotMatch(home, /membres[ií]a/i);
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
+  assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
+  assert.match(home, /id="faq"/);
+  assert.match(home, /operación continua/);
 });
 
-test("T-049 solo Agente Carga360go en el pie (sin ChatWidget ni FAB WhatsApp)", () => {
+test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", () => {
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /VoiceAgentLauncher/);
-  assert.match(footer, /Agente Carga360go|VoiceAgent/);
+  assert.match(footer, /VoiceAgent/);
   assert.doesNotMatch(footer, /ChatWidget|HelpLauncher|webChatEnabled/);
   const agent = read("src/components/VoiceAgent.tsx");
-  assert.match(agent, /Agente Carga360go/);
+  assert.match(agent, />Carga360</);
+  assert.match(agent, /id=\{titleId\}>Carga360</);
+  assert.match(agent, /Carga360go/);
+  assert.match(agent, /Continuar por WhatsApp/);
   assert.match(agent, /speechSynthesis/);
   assert.match(agent, /es-CL/);
   assert.match(agent, /es-ES/);
   assert.match(agent, /AgentAvatar/);
-  assert.match(agent, /chat-wa-mini/);
-  assert.doesNotMatch(agent, /help-wa|btn wa fab/);
+  assert.match(agent, /AgentAvatarStage/);
+  assert.match(agent, /agent-wa-cta/);
+  assert.match(agent, /Continuar por WhatsApp/);
+  assert.match(agent, /chat-head-copy/);
+  assert.match(agent, /chat-head-actions/);
+  assert.match(agent, /Escriba o hable/);
+  assert.doesNotMatch(agent, /id=\{titleId\}>Carga360go</);
+  assert.doesNotMatch(agent, /chat-wa-mini/);
+  assert.doesNotMatch(agent, /aiLabel|agent-badge|Respuestas por reglas/);
+  assert.doesNotMatch(agent, /status\?\.modeLabel|status\?\.ai ===/);
+  assert.doesNotMatch(agent, /help-wa|help-stack|btn wa fab/);
+  assert.doesNotMatch(agent, /Agente BASSAM|BASSAM 360/);
+  const chat = read("src/components/ChatWidget.tsx");
+  assert.match(chat, /return null/);
+  assert.doesNotMatch(chat, /help-fab|btn wa fab|help-wa/);
+  const css = read("src/app/globals.css");
+  assert.match(css, /cookie-banner/);
+  assert.match(css, /body:has\(\.cookie-banner\) \.help-dock/);
+  assert.match(css, /chat-head-copy/);
+  assert.match(css, /chat-head-actions/);
+  const engine = read("src/lib/agent/engine.ts");
+  assert.match(engine, /bienvenido a Carga360go/);
+  assert.doesNotMatch(engine, /bienvenido a CARGA360GO/);
+  assert.match(engine, /Cotizar flete/);
+  assert.match(engine, /Publicar carga/);
+  assert.match(engine, /Registro transportista/);
+  assert.match(engine, /Seguimiento de carga/);
+  assert.match(engine, /Hablar con soporte/);
   assert.ok(fs.existsSync(path.join(ROOT, "src/components/AgentAvatar.tsx")));
+  assert.ok(fs.existsSync(path.join(ROOT, "src/components/AgentAvatarStage.tsx")));
+  assert.ok(fs.existsSync(path.join(ROOT, "src/lib/agent/avatar.ts")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/brand/agent-mark.svg")));
+  const waDoc = read("docs/diseno-whatsapp-cloud-api-agente.md");
+  assert.match(waDoc, /Estado Meta \(16-11-2026, lectura\)/);
+  assert.match(waDoc, /Test Messaging Account/);
+  assert.match(waDoc, /WA_WABA_ID/);
+  assert.match(waDoc, /WA_PHONE_NUMBER_ID/);
+  assert.match(waDoc, /WA_ACCESS_TOKEN/);
+  assert.doesNotMatch(waDoc, /EAA[A-Za-z0-9]{20,}/);
 });
 
 test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => {
@@ -51,6 +103,26 @@ test("T-047 rutas /cotizador y /cargas-de-retorno redirigen (nunca 404)", () => 
   assert.match(conf, /destination:\s*"\/herramientas\/calculadora"/);
   assert.match(conf, /source:\s*"\/cargas-de-retorno"/);
   assert.match(conf, /destination:\s*"\/cargas-de-retorno-mineras"/);
+});
+
+test("T-066 alias E2E /seguimiento /login /ayuda /registro-transportista; /faq tiene página", () => {
+  const conf = read("next.config.ts");
+  assert.doesNotMatch(conf, /source:\s*"\/empresas"/);
+  assert.match(conf, /source:\s*"\/seguimiento"/);
+  assert.match(conf, /destination:\s*"\/tecnologia"/);
+  assert.match(conf, /source:\s*"\/login"/);
+  assert.match(conf, /destination:\s*"\/ingreso"/);
+  assert.match(conf, /source:\s*"\/ayuda"/);
+  assert.match(conf, /destination:\s*"\/guias"/);
+  assert.match(conf, /source:\s*"\/registro-transportista"/);
+  assert.match(conf, /destination:\s*"\/registro"/);
+  assert.ok(fs.existsSync(path.join(ROOT, "src/app/faq/page.tsx")));
+  const faqPage = read("src/app/faq/page.tsx");
+  assert.match(faqPage, /canonical:\s*"\/faq"/);
+  assert.match(faqPage, /Preguntas frecuentes/);
+  assert.match(faqPage, /from "\@\/lib\/faq"/);
+  const faqLib = read("src/lib/faq.ts");
+  assert.doesNotMatch(faqLib, /membres[ií]a|comisi[oó]n|TrackChain/i);
 });
 
 test("T-062 página /guias existe (hub marketing; nunca 404)", () => {
@@ -104,12 +176,35 @@ test("T-061 home referencia video corporativo Carga360go", () => {
   assert.match(home, /playsInline/);
   assert.match(home, /aria-label="Video corporativo de Carga360go"/);
   assert.match(home, /poster="\/video\/carga360go-corporativo-poster\.jpg"/);
-  assert.doesNotMatch(home, /OpenAgentCta/);
+  assert.match(home, /OpenAgentCta/);
   assert.doesNotMatch(home, /home-video-brand/);
   assert.doesNotMatch(home, /Sin reproducción automática/);
   assert.doesNotMatch(home, /autoPlay|autoplay/i);
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo.mp4")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo-poster.jpg")));
+});
+
+test("T-065 torre animada y CTA del agente sin segundo FAB", () => {
+  const tower = read("src/components/HomeTowerBoard.tsx");
+  assert.match(tower, /prefers-reduced-motion/);
+  assert.match(tower, /Pausar torre|Reanudar torre/);
+  assert.match(tower, /Así funciona/);
+  const cta = read("src/components/OpenAgentCta.tsx");
+  assert.match(cta, /button\.agent-fab/);
+  assert.doesNotMatch(cta, /help-wa|btn wa fab|FAB WhatsApp/i);
+});
+
+test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA", () => {
+  const css = read("src/app/globals.css");
+  assert.match(css, /hero-v3 \.cta/);
+  assert.match(css, /padding-right:calc\(60px/);
+  assert.match(css, /home-live-band \.tower-live \.lb-list a/);
+  assert.match(css, /#3d4c63/);
+  assert.match(css, /home-live-band \.tower-live \.lb-route\{color:#0f1b2d\}/);
+  const home = read("src/app/page.tsx");
+  assert.match(home, /Soy transportista: encuentra cargas/);
+  assert.match(home, /home-live-band/);
+  assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
 });
 
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {

@@ -21,6 +21,12 @@ export function assertSameOrigin(request: Request) {
   const fetchSite = request.headers.get("sec-fetch-site");
   if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") throw new AppError("Origen no permitido.", 403);
   const origin = request.headers.get("origin");
+  const cookie = request.headers.get("cookie") || "";
+  // Mutaciones con cookie de sesión sin Origin ni Sec-Fetch-Site: clientes no-browser deben usar Bearer.
+  // Cierra CSRF clásico cuando el navegador omite señales de origen.
+  if (!origin && !fetchSite && /(?:^|;\s*)c360_session=/.test(cookie)) {
+    throw new AppError("Origen no permitido.", 403);
+  }
   if (!origin) return;
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
   if (!host) return;

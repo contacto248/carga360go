@@ -140,6 +140,10 @@ test("Motor de reglas: intenciones en español y respuestas sin precios ni marca
   }
   assert.equal(isSafeReply("Somos de BASSAM"), false);
   assert.equal(isSafeReply("Trabajamos con minería"), false);
+  assert.equal(isSafeReply("El centro es Bassam 360"), true);
+  assert.equal(isSafeReply("BASSAM-360"), true);
+  assert.equal(isSafeReply("Bassam 360 trabaja en minería"), false);
+  assert.equal(isSafeReply(""), false);
 });
 
 test("Bot: responde, es idempotente por wamid y respeta el interruptor global", async () => {

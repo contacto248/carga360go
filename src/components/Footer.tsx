@@ -1,12 +1,15 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
 import { VoiceAgentLauncher } from "@/components/VoiceAgent";
+import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 import { BRAND } from "@/lib/catalog";
-import { waLink } from "@/lib/format";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
 
 export function Footer() {
   const payments = paymentsLegalPublished();
-  const href = waLink(BRAND.whatsapp, BRAND.infoMessage);
+  const waNumber = BRAND.whatsapp;
+  const waText = BRAND.infoMessage;
   return (
     <>
       <footer className="foot">
@@ -44,13 +47,14 @@ export function Footer() {
             <span>
               Una plataforma de {BRAND.company} · RUT {BRAND.rut}
             </span>
-            <a href={href} target="_blank" rel="noopener noreferrer">
+            <WhatsAppContactGate number={waNumber} text={waText} className="foot-wa">
               WhatsApp {BRAND.whatsappDisplay}
-            </a>
+            </WhatsAppContactGate>
             <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
             <span>{BRAND.address}</span>
             <Link href="/contacto">Contacto</Link>
             <Link href="/guias">Guías</Link>
+            <Link href="/faq">Preguntas frecuentes</Link>
             <Link href="/como-verificamos">Cómo verificamos</Link>
             <Link href="/transporte-minero-chile">Transporte minero</Link>
             <Link href="/cama-baja-y-maquinaria">Cama baja</Link>
@@ -65,7 +69,10 @@ export function Footer() {
           con datos de ruta, peajes, diésel y operación; el valor final lo acuerdan las partes.
         </div>
       </footer>
-      <VoiceAgentLauncher waHref={href} />
+      <Suspense fallback={null}>
+        <AgenteAcreditacion />
+      </Suspense>
+      <VoiceAgentLauncher waNumber={waNumber} waText={waText} />
     </>
   );
 }

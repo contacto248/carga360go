@@ -446,6 +446,13 @@ test("peajes: ruta con vías de peaje fuera de la base oficial queda PENDIENTE (
   assert.equal(peajes.amount, null);
   assert.equal(r.totals.complete, false);
   assert.ok(r.totals.pending.includes("peajes"));
+  // Vista pública: con componentes pendientes no se muestra un total (subestimaría el costo), aunque el ajuste lo permita.
+  const pub = publicView(r, true);
+  assert.equal(pub.complete, false);
+  assert.equal(pub.costoTotal, null);
+  assert.equal(pub.costoBase, null);
+  assert.equal(pub.iva, null);
+  assert.equal(pub.rango, null);
   const { estimateFromQuote, costSentence } = await import("../src/lib/agent/costs");
   assert.equal(/\$\s?\d/.test(costSentence(estimateFromQuote(r))), false);
   // Ruta sin vías de peaje: $0 legítimo (estimado), la cotización puede quedar completa.

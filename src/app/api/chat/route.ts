@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { guard, readJson } from "@/lib/api";
-import { CHAT_CONTACTS, handleWebChat, newSessionId, sessionOverLimit, toPublicMessage } from "@/lib/chat/engine";
+import { CHAT_CONTACTS, handleWebChat, hashIp, newSessionId, sessionOverLimit, toPublicMessage } from "@/lib/chat/engine";
 import { CHAT_COOKIE, CHAT_MAX_MESSAGE, CHAT_RATE, chatCookieOptions, webChatEnabled } from "@/lib/chat/config";
-import { conversationForSession, listWebMessages } from "@/lib/chat/store";
+import { conversationForSession, listWebMessages, saveWebVisitor, upsertWebConversation } from "@/lib/chat/store";
 import { AppError } from "@/lib/errors";
+import { parseVisitorContact } from "@/lib/format";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request-auth";
 
@@ -30,6 +31,18 @@ function withSession(response: NextResponse, sessionId: string, setCookie: boole
   return response;
 }
 
+function visitorOf(name: string | null | undefined, phone: string | null | undefined) {
+  if (!name || !phone) return null;
+  return { name, phone };
+}
+
+function contactFromBody(body: Record<string, unknown>) {
+  const raw = body.contact;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const record = raw as Record<string, unknown>;
+  return parseVisitorContact(record.name, record.phone);
+}
+
 export const GET = guard(async (request) => {
   if (!webChatEnabled()) {
     return NextResponse.json({ enabled: false, contacts: CHAT_CONTACTS });
@@ -42,6 +55,7 @@ export const GET = guard(async (request) => {
     conversationId: conv?.id ?? null,
     messages: conv ? listWebMessages(conv.id, 40).map(toPublicMessage) : [],
     contacts: CHAT_CONTACTS,
+    visitor: visitorOf(conv?.visitorName, conv?.visitorPhone),
   });
   return withSession(response, sessionId, !existing);
 });
@@ -50,8 +64,9 @@ export const POST = guard(async (request) => {
   if (!webChatEnabled()) throw new AppError("El chat no está disponible en este momento.", 503);
   const body = await readJson(request);
   const message = typeof body.message === "string" ? body.message.trim() : "";
-  if (!message) throw new AppError("Escriba su consulta.");
   if (message.length > CHAT_MAX_MESSAGE) throw new AppError(`El mensaje no puede superar los ${CHAT_MAX_MESSAGE} caracteres.`);
+  const parsedContact = contactFromBody(body);
+  if (parsedContact && !parsedContact.ok) throw new AppError(parsedContact.error, 400);
 
   const ip = clientIp(request.headers);
   rateLimit(`webchat:ip:${ip}`, CHAT_RATE.perIp, CHAT_RATE.windowMs);
@@ -60,15 +75,41 @@ export const POST = guard(async (request) => {
   const sessionId = existing || newSessionId();
   rateLimit(`webchat:sid:${sessionId}`, CHAT_RATE.perSession, CHAT_RATE.windowMs);
 
-  const conv = conversationForSession(sessionId);
-  if (conv?.botDisabled) throw new AppError("Este chat está pausado. Escríbanos por WhatsApp o al correo de contacto.", 403);
-  if (conv && sessionOverLimit(conv)) throw new AppError("Demasiados mensajes en este chat. Inténtelo más tarde o escríbanos por WhatsApp.", 429);
+  let conv = conversationForSession(sessionId);
+  const stored = visitorOf(conv?.visitorName, conv?.visitorPhone);
+  const incoming = parsedContact && parsedContact.ok ? parsedContact : null;
+  if (!stored && !incoming) {
+    throw new AppError(message ? "Indique su nombre y un celular chileno (+56 9 XXXX XXXX) antes de escribir." : "Escriba su consulta.", 400);
+  }
+  if (!conv) {
+    conv = upsertWebConversation(
+      { sessionId, ipHash: hashIp(ip), userAgent: request.headers.get("user-agent") },
+      new Date().toISOString(),
+    );
+  }
+  if (!stored && incoming) saveWebVisitor(conv.id, incoming.name, incoming.phone);
+  const visitor = stored ?? (incoming ? { name: incoming.name, phone: incoming.phone } : null);
+
+  if (!message) {
+    const response = NextResponse.json({
+      enabled: true,
+      conversationId: conv.id,
+      messages: listWebMessages(conv.id, 40).map(toPublicMessage),
+      contacts: CHAT_CONTACTS,
+      visitor,
+    });
+    return withSession(response, sessionId, !existing);
+  }
+
+  if (conv.botDisabled) throw new AppError("Este chat está pausado. Escríbanos por WhatsApp o al correo de contacto.", 403);
+  if (sessionOverLimit(conv)) throw new AppError("Demasiados mensajes en este chat. Inténtelo más tarde o escríbanos por WhatsApp.", 429);
 
   const result = await handleWebChat({
     sessionId,
     message,
     ip,
     userAgent: request.headers.get("user-agent"),
+    executive: body.executive === true,
   });
   const response = NextResponse.json({
     enabled: true,
@@ -76,6 +117,7 @@ export const POST = guard(async (request) => {
     reply: result.reply,
     handoff: result.handoff,
     messages: result.messages,
+    visitor,
     ...(result.contacts ? { contacts: result.contacts } : { contacts: CHAT_CONTACTS }),
   });
   return withSession(response, sessionId, !existing);

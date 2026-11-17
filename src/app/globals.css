@@ -102,7 +102,7 @@ section.block.alt{background:#fff}
 .foot-note{margin-top:18px;padding-top:14px;border-top:1px solid #ffffff1f;font-size:.8rem;opacity:.8}
 .tabbar{display:none}
 @media(max-width:819px){
-  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px #0b163314;padding-bottom:env(safe-area-inset-bottom)}
+  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);box-shadow:0 -4px 16px #0b163314;padding-bottom:env(safe-area-inset-bottom)}
   .tabbar a{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px 8px;font-size:.7rem;font-weight:700;color:#55627a;text-decoration:none}
   .tabbar a span{font-size:1.15rem}.tabbar a.on{color:var(--accent)}
   body{padding-bottom:64px}
@@ -217,6 +217,7 @@ label.f,.form-grid>*,.calc>*{min-width:0}select{max-width:100%;text-overflow:ell
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .muted{color:var(--muted)}
 .help-dock{position:fixed;right:14px;bottom:max(14px,env(safe-area-inset-bottom));z-index:30;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.agente-acred{position:fixed;right:14px;bottom:calc(max(14px,env(safe-area-inset-bottom)) + 76px);z-index:31;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .help-stack{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
 .help-dock .fab,.help-wa{position:static;box-shadow:0 6px 18px #0004}
 .help-fab{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:12px 18px;border:0;border-radius:99px;background:var(--navy);color:#fff;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 6px 18px #0004}
@@ -225,10 +226,13 @@ label.f,.form-grid>*,.calc>*{min-width:0}select{max-width:100%;text-overflow:ell
 .help-fab.is-close:hover{background:var(--accent2)}
 body:has(.help-dock) footer.foot{padding-bottom:100px}
 .chat-panel{width:min(380px,calc(100vw - 24px));height:min(72vh,560px);max-height:min(72vh,560px);display:flex;flex-direction:column;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 40px #0005;overflow:hidden}
-.chat-head{display:flex;align-items:flex-start;gap:8px;background:var(--navy);color:#fff;padding:12px 12px 12px 14px}
-.chat-head h2{margin:0;font-size:1rem;color:#fff}
-.chat-head p{margin:2px 0 0;font-size:.75rem;color:#d3def0}
-.chat-head > div{flex:1;min-width:0}
+.chat-head{display:flex;align-items:center;gap:10px;background:var(--navy);color:#fff;padding:12px 12px 12px 14px}
+.chat-head h2{margin:0;font-size:1rem;color:#fff;line-height:1.2}
+.chat-head p{margin:2px 0 0;font-size:.75rem;color:#d3def0;line-height:1.35}
+.chat-head-copy{flex:1;min-width:0}
+.chat-head-copy h2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chat-head-copy p{white-space:normal}
+.chat-head-actions{display:flex;align-items:center;gap:2px;flex:0 0 auto}
 .chat-wa-mini{color:#fff;background:#25d366;border-radius:99px;padding:6px 10px;font-size:.75rem;font-weight:800;text-decoration:none;white-space:nowrap}
 .chat-x{background:transparent;border:0;color:#fff;font-size:1.1rem;cursor:pointer;padding:4px 6px}
 .chat-log{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;background:#f5f7fa}
@@ -250,6 +254,7 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
   .chat-panel{width:calc(100vw - 16px);height:min(78vh,620px);max-height:calc(100dvh - 90px - env(safe-area-inset-bottom))}
   .help-fab span:last-child{display:none}
   .help-fab{width:52px;padding:0;border-radius:50%}
+  .help-fab.help-exec{width:auto;max-width:240px;padding:12px 14px;border-radius:16px;white-space:normal}
 }
 
 /* Canal oficial de WhatsApp (bloque compacto en portada) */
@@ -261,9 +266,8 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
 /* ===== Agente comercial (voz y texto) ===== */
 .agent-fab{background:var(--accent)}
 .agent-fab:hover{background:var(--accent2)}
-.agent-panel .chat-head p{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.agent-badge{display:inline-block;background:#ffffff1f;color:#ffd9bf;border-radius:99px;padding:1px 8px;font-size:.68rem;font-weight:700}
-.agent-badge.ok{color:#bbf7d0}
+.agent-panel .chat-head{align-items:center}
+.agent-panel .chat-form textarea{min-width:0}
 .agent-listening{align-self:flex-end;display:flex;align-items:center;gap:8px;max-width:85%;background:#fff4e8;border:1px solid #ffd2ad;color:#7a3e00;border-radius:14px;padding:8px 12px;font-size:.88rem}
 .agent-wave{display:inline-flex;align-items:flex-end;gap:2px;height:18px}
 .agent-wave i{display:block;width:3px;height:6px;background:var(--accent);border-radius:2px;animation:agent-wave 1s ease-in-out infinite}
@@ -272,9 +276,14 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
 @media (prefers-reduced-motion:reduce){.agent-wave i{animation:none;height:12px}}
 .agent-consent{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:.84rem}
 .agent-consent p{margin:0 0 8px}
-.agent-mic{flex:0 0 auto;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1.1rem;cursor:pointer;display:grid;place-items:center}
-.agent-mic.is-on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 4px #f26b1d33}
+.agent-mic{flex:0 0 auto;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1.1rem;cursor:pointer;display:grid;place-items:center;transition:box-shadow .2s var(--ease,ease),background .2s ease}
+.agent-mic.is-on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 0 0 4px #f26b1d33;animation:agent-mic-pulse 1.4s ease-out infinite}
+.agent-mic.is-denied{border-color:#b42318;color:#b42318;box-shadow:0 0 0 3px #b4231833}
 .agent-mic:focus-visible,.chat-chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.agent-listening.is-active{background:#fff0e4;border-color:#ffb27a;box-shadow:0 0 0 3px #ff500122}
+.agent-mic-denied{align-self:stretch;background:#fff5f5;border:1px solid #f3b4b0;color:#8a1f1a;border-radius:12px;padding:8px 12px;font-size:.84rem}
+@keyframes agent-mic-pulse{0%{box-shadow:0 0 0 4px #f26b1d33}70%{box-shadow:0 0 0 10px #f26b1d00}100%{box-shadow:0 0 0 4px #f26b1d00}}
+@media (prefers-reduced-motion:reduce){.agent-mic.is-on{animation:none}}
 .agent-panel .chat-note a{color:var(--accent2);font-weight:700}
 @media (max-width:480px){.agent-panel{width:calc(100vw - 16px);height:min(82vh,640px);max-height:min(82vh,640px)}.help-dock.is-open{right:8px}}
 .agent-table td,.agent-table th{vertical-align:top}
@@ -282,10 +291,22 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
 .agent-status .card{padding:12px}
 .agent-status b{display:block;font-size:1.4rem}
 
-/* En móvil la barra inferior de accesos (z-index 40) tapaba los botones flotantes de ayuda/asistente: se suben sobre ella. */
+/* FAB único Carga360: no solapar tabbar móvil ni banner de cookies (PR #13). */
+.agent-wa-row{display:flex;justify-content:stretch;padding:0 12px 8px}
+.agent-wa-cta{width:100%;justify-content:center;text-align:center}
 @media(max-width:819px){
   .help-dock{bottom:calc(72px + env(safe-area-inset-bottom))}
+  .agente-acred{bottom:calc(148px + env(safe-area-inset-bottom))}
   .chat-panel{max-height:calc(100dvh - 160px - env(safe-area-inset-bottom))}
+}
+/* Banner cookies (z-index 45): subir el dock para no taparlo ni quedar tapado. */
+body:has(.cookie-banner) .help-dock{bottom:calc(118px + env(safe-area-inset-bottom))}
+@media(max-width:819px){
+  body:has(.cookie-banner) .help-dock{bottom:calc(72px + 118px + env(safe-area-inset-bottom))}
+  body:has(.cookie-banner) .chat-panel{max-height:calc(100dvh - 280px - env(safe-area-inset-bottom))}
+}
+@media(max-width:560px){
+  body:has(.cookie-banner) .help-dock{bottom:calc(72px + 148px + env(safe-area-inset-bottom))}
 }
 
 /* ===== Diseño visual nov-2026 · capa 2 (paleta del logo, contraste AA, foco, tarjetas, mapa) =====
@@ -498,6 +519,39 @@ footer.foot a:hover{color:#ffd7bd}
 .agent-head-avatar{margin-right:2px}
 .help-fab.agent-fab{border-radius:999px}
 
+/* Zona avatar humano/video dentro del panel FAB (no otro flotante) */
+.agent-avatar-stage{flex:0 0 auto;display:grid;justify-items:center;gap:6px;padding:12px 12px 8px;background:linear-gradient(180deg,#0B1633 0%,#002451 72%,#0f1f3d 100%);border-bottom:1px solid #ffffff1a;color:#e8eef8}
+.agent-avatar-stage-frame{position:relative;width:132px;height:132px;border-radius:50%;overflow:hidden;box-shadow:0 8px 24px #0006,0 0 0 2px #FF500166;background:#0B1633}
+.agent-avatar-stage-media,.agent-avatar-stage-frame > svg{display:block;width:100%;height:100%;object-fit:cover}
+.agent-avatar-stage-glow{position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:inset 0 0 24px #ff500133}
+.agent-avatar-stage.is-listening .agent-avatar-stage-frame{box-shadow:0 8px 24px #0006,0 0 0 3px #FF5001,0 0 0 10px #ff500133}
+.agent-avatar-stage.is-speaking .agent-avatar-stage-frame{box-shadow:0 8px 24px #0006,0 0 0 3px #FF5001aa}
+.agent-avatar-stage.is-mic-denied .agent-avatar-stage-frame{box-shadow:0 8px 24px #0006,0 0 0 3px #f3b4b0}
+.agent-avatar-stage-listen-ring{position:absolute;inset:-4px;border-radius:50%;border:2px solid #FF5001;opacity:.7;animation:agent-listen-ring 1.4s ease-out infinite;pointer-events:none}
+.agent-avatar-stage-lipsync{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);display:inline-flex;align-items:flex-end;gap:3px;height:16px;padding:3px 6px;background:#0B1633cc;border-radius:8px}
+.agent-avatar-stage-lipsync i{display:block;width:3px;height:5px;background:#FF5001;border-radius:1px;animation:agent-wave .55s ease-in-out infinite}
+.agent-avatar-stage-lipsync i:nth-child(2){animation-delay:.08s}.agent-avatar-stage-lipsync i:nth-child(3){animation-delay:.16s}.agent-avatar-stage-lipsync i:nth-child(4){animation-delay:.24s}.agent-avatar-stage-lipsync i:nth-child(5){animation-delay:.32s}
+.agent-avatar-stage-caption{margin:0;display:inline-flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;letter-spacing:.01em;color:#dce6f5}
+.agent-avatar-stage-dot{width:8px;height:8px;border-radius:50%;background:#7a8aa3;flex:0 0 auto}
+.agent-avatar-stage-dot.is-listening{background:#FF5001;box-shadow:0 0 0 4px #ff500133;animation:agent-pulse 1.2s ease-out infinite}
+.agent-avatar-stage-dot.is-speaking{background:#4ade80;box-shadow:0 0 0 4px #4ade8033}
+.agent-avatar-stage-dot.is-denied{background:#f87171}
+.agent-avatar-stage-denied{margin:0;max-width:34ch;text-align:center;font-size:.75rem;line-height:1.35;color:#fecaca}
+.agent-human-mouth-open{opacity:0}
+.agent-human-face.is-speaking .agent-human-mouth-closed{opacity:0}
+.agent-human-face.is-speaking .agent-human-mouth-open{opacity:1;animation:agent-mouth .45s ease-in-out infinite}
+.agent-human-face.is-listening .agent-human-head{animation:agent-speak 1.6s ease-in-out infinite}
+@keyframes agent-listen-ring{0%{transform:scale(.92);opacity:.75}100%{transform:scale(1.12);opacity:0}}
+@keyframes agent-mouth{0%,100%{transform:scaleY(.55)}50%{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){
+  .agent-avatar-stage-listen-ring,.agent-avatar-stage-lipsync i,.agent-avatar-stage-dot.is-listening,.agent-human-face.is-speaking .agent-human-mouth-open,.agent-human-face.is-listening .agent-human-head{animation:none!important}
+  .agent-human-face.is-speaking .agent-human-mouth-open{opacity:1;transform:scaleY(.85)}
+}
+@media(max-width:480px){
+  .agent-avatar-stage-frame{width:112px;height:112px}
+  .agent-avatar-stage{padding:10px 10px 6px}
+}
+
 
 /* ===== Tecnología / demos T-060 ===== */
 .tech-hero{position:relative}
@@ -562,11 +616,142 @@ footer.foot a:hover{color:#ffd7bd}
   .cookie-banner-actions .btn{flex:1 1 auto}
 }
 
-/* Directorio /empresas */
-.empresa-card{display:flex;flex-direction:column;gap:10px;min-width:0}
-.empresa-card h2{margin:0;font-size:1.2rem;letter-spacing:-.02em}
-.empresa-badges{display:flex;flex-wrap:wrap;gap:6px}
-.empresa-badges .pill{max-width:100%;white-space:normal;line-height:1.35}
-.empresa-card .campo{margin:0}
-.empresa-card .campo span{display:block;font-size:.72rem;font-weight:800;letter-spacing:.03em;color:var(--muted)}
-.empresa-card .btn{margin-top:auto}
+/* ===== Home portada v3 (T-065) — identidad Carga360go; estructura inspirada en plataformas logísticas ===== */
+.hero-v3 .hero-copy h1{max-width:16ch}
+.tower-board-live{position:relative;overflow:hidden}
+.tower-board-live .tower-steps li{transition:background .35s var(--ease),border-color .35s var(--ease),transform .35s var(--ease)}
+.tower-board-live .tower-steps li.is-active{background:#ff500122;border-color:#ff500166;transform:translateX(2px)}
+.tower-board-live .tower-steps li.is-done{opacity:.72}
+.tower-board-live .tower-steps li.is-active .tower-n{box-shadow:0 0 0 3px #ff500140}
+.tower-trace{position:relative;height:6px;margin:12px 2px 8px;border-radius:99px;background:#ffffff14;overflow:hidden}
+.tower-trace-rail{position:absolute;inset:0;background:linear-gradient(90deg,#ffffff18,#ff500144,#ffffff18)}
+.tower-trace-pulse{position:absolute;top:0;bottom:0;width:28%;border-radius:99px;background:linear-gradient(90deg,transparent,#FF5001,#FF8A4C,transparent);left:calc(var(--tower-i,0) * 24%);transition:left .55s var(--ease)}
+.tower-pause{margin-top:4px}
+@media(prefers-reduced-motion:reduce){
+  .tower-board-live .tower-steps li,.tower-trace-pulse{transition:none}
+}
+
+.benefits-band{padding:clamp(40px,6vw,72px) 0;background:linear-gradient(180deg,#fff 0%,#f3f6fb 100%)}
+.benefits-band h2{color:var(--navy)}
+.benefits-band h2::after{content:"";display:block;width:44px;height:4px;border-radius:4px;background:var(--brand-orange);margin-top:10px}
+.benefits-grid{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:18px 22px;grid-template-columns:1fr}
+@media(min-width:720px){.benefits-grid{grid-template-columns:1fr 1fr}}
+.benefits-grid li{padding:4px 0 8px;border-top:3px solid var(--brand-orange)}
+.benefits-grid h3{margin:10px 0 6px;color:var(--navy);font-size:1.08rem}
+.benefits-grid p{margin:0;color:var(--muted);line-height:1.5;font-size:.95rem}
+
+.modules-grid{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:0;grid-template-columns:1fr}
+@media(min-width:720px){.modules-grid{grid-template-columns:1fr 1fr}}
+.modules-grid li{border-top:1px solid var(--line)}
+.modules-grid a{display:block;padding:16px 4px 16px 0;text-decoration:none;color:inherit;transition:color .2s var(--ease)}
+.modules-grid a:hover h3{color:var(--brand-orange)}
+.modules-grid h3{margin:0 0 4px;font-size:1.05rem;color:var(--navy)}
+.modules-grid p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.45}
+
+.auto-tools{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:820px){.auto-tools{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}}
+.auto-tools li{padding:14px 0;border-top:3px solid var(--brand-orange)}
+.auto-tools strong{display:block;color:var(--navy);font-size:1rem;margin-bottom:4px}
+.auto-tools p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.45}
+
+.agent-spotlight{display:grid;gap:20px;align-items:center;margin:28px 0 8px;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+@media(min-width:820px){.agent-spotlight{grid-template-columns:1.4fr .8fr;gap:28px}}
+.agent-spotlight-copy h3{margin:4px 0 10px;color:var(--navy);font-size:clamp(1.25rem,1.05rem + .6vw,1.6rem)}
+.agent-spotlight-copy p{margin:0 0 14px;color:var(--muted);max-width:36rem;line-height:1.55}
+.agent-spotlight-visual{position:relative;display:grid;place-items:center;min-height:120px}
+.agent-spotlight-pulse{position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid #ff500155;animation:agent-spotlight-ring 2.4s ease-out infinite}
+@keyframes agent-spotlight-ring{0%{transform:scale(.7);opacity:.7}100%{transform:scale(1.35);opacity:0}}
+@media(prefers-reduced-motion:reduce){.agent-spotlight-pulse{animation:none;opacity:.35}}
+
+.audience-grid{display:grid;gap:22px;margin-top:16px}
+@media(min-width:820px){.audience-grid{grid-template-columns:1fr 1fr;gap:28px}}
+.audience-grid article{padding-top:8px;border-top:3px solid var(--brand-orange)}
+.audience-grid h3{color:var(--navy);margin:8px 0 8px}
+.audience-grid p{color:var(--muted);line-height:1.55;margin:0 0 14px}
+
+.steps-rail{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:820px){.steps-rail{grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}}
+.steps-rail li{padding-top:8px;border-top:3px solid var(--brand-orange)}
+.steps-n{display:inline-block;font-weight:800;color:var(--brand-orange);font-size:.85rem;letter-spacing:.04em;margin-bottom:6px}
+.steps-rail h3{margin:0 0 6px;font-size:1.02rem;color:var(--navy)}
+.steps-rail p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.45}
+
+.saas-kicker{margin:0 0 6px;font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2)}
+.industry-list{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:12px 20px;grid-template-columns:1fr}
+@media(min-width:640px){.industry-list{grid-template-columns:1fr 1fr}}
+@media(min-width:980px){.industry-list{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.industry-list li{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-top:1px solid var(--line)}
+.industry-list strong{color:var(--navy);font-size:.95rem}
+.industry-list span{color:var(--muted);font-size:.88rem;line-height:1.4}
+
+.focus-links{display:grid;gap:14px;margin-top:16px}
+@media(min-width:820px){.focus-links{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.focus-links a{display:block;padding:12px 0;border-top:3px solid var(--brand-orange);text-decoration:none;color:inherit;transition:transform .25s var(--ease)}
+.focus-links a:hover{transform:translateY(-2px)}
+.focus-links h3{margin:0 0 6px;color:var(--navy);font-size:1.02rem}
+.focus-links p{margin:0;color:var(--muted);font-size:.9rem}
+
+.eco-grid{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:720px){.eco-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:980px){.eco-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.eco-grid li{padding:12px 0;border-top:3px solid var(--brand-navy)}
+.eco-grid strong{display:block;color:var(--navy);margin-bottom:4px}
+.eco-grid p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.4}
+
+.trust-list{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:16px}
+@media(min-width:820px){.trust-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.trust-list li{padding-top:8px;border-top:1px solid var(--line)}
+.trust-list p{margin:10px 0 0;color:var(--muted);font-size:.92rem;line-height:1.5}
+
+.about-band p{max-width:48rem;color:var(--muted);line-height:1.55}
+.about-band .lead{color:var(--ink)}
+.about-band a{color:var(--brand-navy);text-decoration:underline;text-underline-offset:2px}
+.platform-model{margin-top:28px;padding-top:18px;border-top:1px solid var(--line)}
+.platform-model h3{margin:0 0 8px;color:var(--navy);font-size:1.15rem}
+.platform-model .lead{margin:0;max-width:48rem}
+
+.home-live-band .tower-live{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 10px 28px #0b163312}
+.home-live-band .lb-empty{padding:8px 4px}
+/* Bolsa reciente (banda clara): filas con contraste AA ≥4.5:1 — no heredar fondo navy de .tower-live */
+.home-live-band .tower-live .lb-head{color:var(--navy)}
+.home-live-band .tower-live .lb-list a{
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--ink);
+}
+.home-live-band .tower-live .lb-route{color:#0f1b2d}
+.home-live-band .tower-live .lb-meta,
+.home-live-band .tower-live .lb-time,
+.home-live-band .tower-live .lb-empty p{color:#3d4c63}
+.home-live-band .tower-live .lb-empty strong{color:#0f1b2d}
+.home-live-band .tower-live .lb-all{color:var(--brand-navy);font-weight:700}
+.cta-band .btn.ghost{color:#fff;border-color:#ffffff55}
+.cta-band .btn.ghost:hover{background:#ffffff18}
+
+/* T-066: en móvil el FAB no tapa «Soy transportista» (CTA full-width a la derecha / abajo) */
+@media(max-width:819px){
+  .hero-v3 .cta{
+    padding-right:calc(60px + 12px);
+    padding-bottom:calc(20px + env(safe-area-inset-bottom));
+    row-gap:12px;
+  }
+  .hero-v3 .hero-legal{padding-right:calc(60px + 12px)}
+}
+
+/* Formulario previo a WhatsApp. No guarda los datos: solo prepara el mensaje. */
+.wa-gate{position:fixed;inset:0;z-index:80;background:#0b163380;display:grid;place-items:center;padding:16px}
+.wa-gate-card{width:min(420px,100%);background:#fff;color:var(--ink);border-radius:16px;padding:16px;box-shadow:0 16px 40px #0005;display:flex;flex-direction:column;gap:10px}
+.wa-gate-card h2{margin:0;font-size:1.1rem}
+.wa-gate-card p{margin:0;font-size:.9rem}
+.wa-gate-card label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700}
+.wa-gate-error{background:#fee2e2;color:#991b1b;border-radius:10px;padding:8px 10px;font-size:.82rem}
+.chat-wa-mini{border:0;cursor:pointer;font:inherit}
+.wa-text{background:none;border:0;padding:0;color:var(--accent);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline}
+.foot-wa{background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.foot-wa:hover{color:#ffd7bd}
+.wa-gate-inline{flex-wrap:wrap}
+.wa-gate-inline label{flex:1 1 140px;display:flex;flex-direction:column;gap:4px;font-size:.75rem;font-weight:700}
+.wa-gate-inline input{min-height:42px}
+
+nav.links{display:flex;flex-wrap:wrap}
+header.top .wrap{height:auto;min-height:56px}

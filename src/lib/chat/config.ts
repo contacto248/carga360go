@@ -1,3 +1,4 @@
+import { cookieSecure } from "../auth";
 import { getSetting, setSetting } from "../whatsapp/store";
 
 export const CHAT_COOKIE = "c360_chat";
@@ -23,11 +24,10 @@ export function setWebChatEnabled(enabled: boolean) {
 }
 
 export function chatCookieOptions() {
-  const secure = process.env.COOKIE_SECURE === "true" || (process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false");
   return {
     httpOnly: true as const,
     sameSite: "lax" as const,
-    secure,
+    secure: cookieSecure(),
     path: "/",
     maxAge: CHAT_COOKIE_DAYS * 24 * 60 * 60,
   };

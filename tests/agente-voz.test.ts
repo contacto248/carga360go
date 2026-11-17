@@ -54,7 +54,7 @@ function cookieFrom(response: Response): string | undefined {
 }
 
 async function post(body: unknown, cookie?: string, extra: Record<string, string> = {}) {
-  const headers: Record<string, string> = { "content-type": "application/json", ...extra };
+  const headers: Record<string, string> = { "content-type": "application/json", "sec-fetch-site": "same-origin", host: "127.0.0.1:4317", ...extra };
   if (cookie) headers.cookie = cookie;
   const response = await POST(new Request(`${BASE}/api/agente`, { method: "POST", headers, body: JSON.stringify(body) }), ctx);
   const data = (await response.json()) as Record<string, unknown>;
@@ -91,12 +91,16 @@ test("migración 15: solo crea tablas nuevas y no toca datos existentes", () => 
 test("intenciones: cotizar, registro, estado, persona, costos y otras", () => {
   assert.equal(detectAgentIntent("Quiero cotizar un flete"), "cotizar");
   assert.equal(detectAgentIntent("Solicitar transporte"), "cotizar");
+  assert.equal(detectAgentIntent("Cotizar flete"), "cotizar");
+  assert.equal(detectAgentIntent("Publicar carga"), "cotizar");
   assert.equal(detectAgentIntent("Necesito un camión para mover una carga"), "cotizar");
   assert.equal(detectAgentIntent("Quiero registrarme"), "registro");
   assert.equal(detectAgentIntent("Registrar mi camión"), "registro");
+  assert.equal(detectAgentIntent("Registro transportista"), "registro");
   assert.equal(detectAgentIntent("quiero crear mi cuenta"), "registro");
   assert.equal(detectAgentIntent("¿Cuál es el estado de mi carga?"), "estado");
   assert.equal(detectAgentIntent("Consultar un servicio"), "estado");
+  assert.equal(detectAgentIntent("Seguimiento de carga"), "estado");
   assert.equal(detectAgentIntent("Quiero hablar con una persona"), "humano");
   assert.equal(detectAgentIntent("Hablar con soporte"), "humano");
   assert.equal(detectAgentIntent("me cobraron dos veces"), "humano");
@@ -138,12 +142,15 @@ test("API apagada por defecto: GET enabled false y POST 503", async () => {
 test("cotización completa: lead en la base, resumen confirmado, sin precios ni comisiones", async () => {
   enable();
   const init = await GET(new Request(`${BASE}/api/agente`), ctx);
-  const initData = (await init.json()) as { greeting: string; status: { ai: string; voice: { id: string; connected: boolean; state: string }[] } };
-  assert.match(initData.greeting, /CARGA360GO/);
+  const initData = (await init.json()) as { greeting: string; status?: unknown };
+  assert.match(initData.greeting, /Carga360go/);
+  assert.doesNotMatch(initData.greeting, /CARGA360GO/);
   assert.match(initData.greeting, /automático, no una persona/);
-  assert.equal(initData.status.ai, "no_configurada");
-  assert.equal(initData.status.voice.find((v) => v.id === "twilio")?.connected, false);
-  assert.match(initData.status.voice.find((v) => v.id === "twilio")!.state, /NO CONECTADA/);
+  // El GET público no expone status técnico (IA/voz/avatar/env); eso vive en /admin/agente.
+  assert.equal(initData.status, undefined);
+  assert.equal(JSON.stringify(initData).includes("NO CONECTADA"), false);
+  assert.equal(JSON.stringify(initData).includes("modeLabel"), false);
+  assert.equal(JSON.stringify(initData).includes("AVATAR_"), false);
 
   const { cookie, last } = await talk([
     "Quiero cotizar un flete",

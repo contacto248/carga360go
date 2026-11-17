@@ -6,6 +6,7 @@ import { agentEnabled, agentWhatsappEnabled } from "@/lib/agent/config";
 import { freightCostProvider } from "@/lib/agent/costs";
 import { agentIndicators, getAgentConversation, listAgentConversations, listAgentLeads, listAgentMessages } from "@/lib/agent/store";
 import { AGENT_TOOLS } from "@/lib/agent/tools";
+import { avatarPublicStatus } from "@/lib/agent/avatar";
 import { voiceProvidersStatus } from "@/lib/agent/voice";
 import { aiConfig, aiReady } from "@/lib/assistant/config";
 import { getCurrentUser } from "@/lib/current-user";
@@ -48,6 +49,7 @@ export default async function AdminAgentePage({ searchParams }: { searchParams: 
   const ind = agentIndicators();
   const ai = aiReady() ? aiConfig() : null;
   const costs = freightCostProvider().status();
+  const avatar = avatarPublicStatus();
   return (
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <div className="page-title">
@@ -77,6 +79,12 @@ export default async function AdminAgentePage({ searchParams }: { searchParams: 
               {p.label}: <span className={`pill ${p.connected ? "ok" : "bad"}`}>{p.state}</span> <span className="meta">· {p.cost}</span>
             </li>
           ))}
+          <li>
+            Avatar panel FAB: <span className={`pill ${avatar.connected ? "ok" : "warn"}`}>{avatar.state}</span>{" "}
+            <span className="meta">
+              · modo {avatar.mode} · proveedor {avatar.provider}
+            </span>
+          </li>
         </ul>
         <AgentToggles enabled={agentEnabled()} whatsappEnabled={agentWhatsappEnabled()} />
       </div>

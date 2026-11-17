@@ -28,7 +28,7 @@ const FACTS = [
   "- Nunca hables de comisiones, membresía, periodos de prueba, modelos de cobro ni estrategia de precios. No prometas ni inventes ninguna cifra en pesos.",
   "- Si preguntan por el costo de un envío, explica lo anterior e invítalos a registrar una cotización o a usar la calculadora, sin dar montos.",
   `- Calculadora: ${LINKS.home}/herramientas/calculadora.`,
-  `- Correo: ${BRAND.email}. WhatsApp: ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}). Sitio: ${LINKS.home}.`,
+  `- Correo: ${BRAND.email}. WhatsApp: ${BRAND.whatsappDisplay}. No entregues un enlace wa.me: el sitio abre WhatsApp solo después de pedir nombre y celular. Sitio: ${LINKS.home}.`,
 ].join("\n");
 
 function styleFor(channel: ChatChannel): string {
@@ -45,7 +45,7 @@ function styleFor(channel: ChatChannel): string {
   ].join("\n");
 }
 
-export function systemPrompt(live: LiveContext, channel: ChatChannel = "whatsapp"): string {
+export function systemPrompt(live: LiveContext, channel: ChatChannel = "whatsapp", executive = false): string {
   return [
     FACTS,
     "",
@@ -53,6 +53,9 @@ export function systemPrompt(live: LiveContext, channel: ChatChannel = "whatsapp
     live.recentLoads.length ? `Últimas cargas: ${live.recentLoads.join(" | ")}` : "Aún no hay cargas publicadas.",
     live.recentTrucks.length ? `Últimos camiones: ${live.recentTrucks.join(" | ")}` : "Aún no hay camiones publicados.",
     "",
+    ...(executive
+      ? ["Modo ejecutivo. Usa solo las cifras del bloque Datos en vivo. Si una lista está vacía o no hay un dato, di «sin datos». No inventes conteos, posiciones ni peajes.", ""]
+      : []),
     styleFor(channel),
     "Reglas:",
     "- Nunca inventes datos. No prometas precios, tarifas, plazos de flete, contratos, pagos, seguros ni disponibilidad de un camión concreto. No cotices ni inventes montos en pesos.",

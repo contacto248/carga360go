@@ -30,11 +30,18 @@ import { COST_EXPLANATION, COST_PENDING_NOTE, costSentence, freightCostProvider 
 
 /** Saludo del agente (módulo 1), ajustado a las reglas de hoy: no entrega precios y dice que es automático. */
 export const AGENT_GREETING =
-  "Hola, bienvenido a CARGA360GO, la plataforma tecnológica que conecta cargas y transportistas en todo Chile. " +
+  "Hola, bienvenido a Carga360go, la plataforma tecnológica que conecta cargas y transportistas en todo Chile. " +
   "Soy su asistente virtual automático, no una persona. Puedo ayudarle a solicitar una cotización, registrarse, " +
   "consultar el estado de su cuenta o de una carga, o pasarle con una persona del equipo. ¿Qué necesita realizar?";
 
-export const DEFAULT_QUICK = ["Solicitar transporte", "Encontrar cargas", "Registrar mi camión", "Consultar un servicio", "Hablar con soporte"];
+/** Acciones del panel unificado (absorbe el antiguo Asistente): cotizar, publicar, registro, seguimiento, soporte. */
+export const DEFAULT_QUICK = [
+  "Cotizar flete",
+  "Publicar carga",
+  "Registro transportista",
+  "Seguimiento de carga",
+  "Hablar con soporte",
+];
 
 const NO_PRICE_NOTE = COST_EXPLANATION;
 
@@ -68,6 +75,7 @@ type TurnInput = {
   user?: PublicUser | null;
   ip?: string | null;
   now?: Date;
+  executive?: boolean;
 };
 
 type Outcome = {
@@ -166,7 +174,7 @@ async function handoff(conv: AgentConversation, input: TurnInput, reason: string
   const existing = latestLeadFor(conv.id, "derivacion");
   if (existing && conv.handoffAt) {
     return {
-      text: `Ya avisé al equipo (solicitud ${existing.code}). Una persona le responderá a la brevedad. También puede escribir por WhatsApp a ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}) o a ${BRAND.email}.`,
+      text: `Ya avisé al equipo (solicitud ${existing.code}). Una persona le responderá a la brevedad. También puede usar el botón de WhatsApp del sitio (pide su nombre y celular) o escribir a ${BRAND.email}.`,
       state: { ...EMPTY_STATE, leadId: existing.id },
       intent: "humano",
       mode: "flujo",
@@ -194,7 +202,7 @@ async function handoff(conv: AgentConversation, input: TurnInput, reason: string
   state = prefillFromUser(state, user);
   const intro =
     `Entendido. Registré su solicitud de atención con el número ${lead.code} y avisé al equipo de Carga 360 Go: una persona le responderá a la brevedad. ` +
-    `También puede escribir por WhatsApp a ${BRAND.whatsappDisplay} (https://wa.me/${BRAND.whatsapp}) o a ${BRAND.email}.`;
+    `También puede usar el botón de WhatsApp del sitio (pide su nombre y celular) o escribir a ${BRAND.email}.`;
   const next = askOrFinish(state, intro);
   return {
     text: next.text,
@@ -485,9 +493,9 @@ async function trackingTurn(conv: AgentConversation, state: AgentState, text: st
   };
 }
 
-async function assistantTurn(conv: AgentConversation, text: string): Promise<Outcome> {
+async function assistantTurn(conv: AgentConversation, text: string, executive = false): Promise<Outcome> {
   const history = listAgentMessages(conv.id, 12).map((m) => ({ direction: m.role === "cliente" ? ("in" as const) : ("out" as const), body: m.body }));
-  const decision = await decideTextReply(text, history, conv.channel === "whatsapp" ? "whatsapp" : "web");
+  const decision = await decideTextReply(text, history, conv.channel === "whatsapp" ? "whatsapp" : "web", { executive });
   const mode: AgentMode = decision.engine.startsWith("ia:") ? "ia" : "reglas";
   return { text: stripPricingTalk(decision.text), state: { ...EMPTY_STATE }, intent: "otro", mode, engine: decision.engine, handoff: decision.handoff };
 }
@@ -556,7 +564,7 @@ export async function handleAgentTurn(input: TurnInput): Promise<AgentReply> {
     } else if (parseTrackingCode(text)) {
       outcome = await trackingTurn(conv, { ...EMPTY_STATE, step: "seguimiento_codigo" }, text, now);
     } else {
-      outcome = await assistantTurn(conv, text);
+      outcome = await assistantTurn(conv, text, input.executive === true);
       if (outcome.handoff) {
         const handed = await handoff(conv, input, "la IA derivó", at);
         outcome = { ...handed, text: `${outcome.text}\n\n${handed.text}`, mode: outcome.mode };
