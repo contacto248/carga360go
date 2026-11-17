@@ -9,7 +9,7 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
   throw new Error("DATABASE_PATH de prueba no está configurada. Ejecuta npm test.");
 }
 
-import { closeDb, getDb, MIGRATION_23_SQL } from "../src/lib/db";
+import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL } from "../src/lib/db";
 
 const FIX = path.join(__dirname, "fixtures", "db");
 const ORIGINAL_PATH = process.env.DATABASE_PATH;
@@ -50,10 +50,9 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 27]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  for (const n of [26]) assert.equal(v.includes(n), false, `la migración ${n} está reservada`);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
   assert.equal(Math.max(...v), 27);
-  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_carrier_scores", "ops_score_events", "ops_telematics_sources", "ops_gps_receipts"]) assert.ok(hasTable(db, t), t);
+  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_carrier_scores", "ops_score_events", "ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs", "ops_telematics_sources", "ops_gps_receipts"]) assert.ok(hasTable(db, t), t);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_shipments`).get() as { n: number }).n, 0);
@@ -62,6 +61,9 @@ function assertFinalSchema(db: Database.Database) {
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_rate_cards`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_carrier_scores`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_score_events`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_allocation_rules`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_allocation_runs`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_jobs`).get() as { n: number }).n, 0);
   const usersSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql;
   assert.match(usersSql, /'transportista', 'mandante', 'admin'/);
   const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
@@ -393,4 +395,82 @@ test("abrir dos veces no repite migraciones", () => {
   assert.equal((db2.prepare(`SELECT COUNT(*) AS n FROM cost_toll_rates`).get() as { n: number }).n, tolls);
   closeDb();
   process.env.DATABASE_PATH = ORIGINAL_PATH;
+});
+
+test("la copia SQL de 026 coincide con el código y la reversa solo nombra esas tablas", () => {
+  const doc = fs.readFileSync(path.join(__dirname, "../docs/migrations/026-ops-asignacion.sql"), "utf8");
+  assert.equal(sqlBody(doc), sqlBody(MIGRATION_26_SQL));
+  assert.equal(/ALTER\s+TABLE/i.test(sqlBody(doc)), false);
+  const rollback = fs.readFileSync(path.join(__dirname, "../docs/migrations/026-ops-asignacion-rollback.sql"), "utf8");
+  for (const table of ["ops_jobs", "ops_allocation_decisions", "ops_allocation_candidates", "ops_allocation_runs", "ops_allocation_rules"]) {
+    assert.match(rollback, new RegExp(`DROP TABLE IF EXISTS ${table}`));
+  }
+  for (const index of [
+    "idx_ops_jobs_ref",
+    "idx_ops_jobs_due",
+    "idx_ops_allocation_decisions_run",
+    "idx_ops_allocation_candidates_run",
+    "idx_ops_allocation_runs_shipment",
+    "idx_ops_allocation_rules_org",
+  ]) {
+    assert.match(rollback, new RegExp(`DROP INDEX IF EXISTS ${index}`));
+  }
+  assert.match(rollback, /DELETE FROM schema_migrations WHERE version = 26/);
+  assert.equal(/DROP TABLE(?! IF EXISTS ops_)/.test(rollback.replace(/--.*$/gm, "")), false);
+});
+
+test("026 sobre base vacía y sobre producción v14 está presente junto con 022–025 y 027", () => {
+  const beforeFixture = protectedSnapshot(path.join(FIX, "produccion-v14.sqlite"));
+  try {
+    for (const fixture of [null, "produccion-v14.sqlite"] as const) {
+      const db = openCopy(fixture);
+      for (const table of ["ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs"]) {
+        assert.ok(hasTable(db, table), `${fixture ?? "vacia"} ${table}`);
+      }
+      for (const n of [22, 23, 24, 25, 26, 27]) assert.ok(versions(db).includes(n), String(n));
+      assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_allocation_rules`).get() as { n: number }).n, 0);
+      const file = process.env.DATABASE_PATH!;
+      closeDb();
+      if (fixture) assert.deepEqual(protectedSnapshot(file), beforeFixture);
+      process.env.DATABASE_PATH = ORIGINAL_PATH;
+    }
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
+});
+
+test("reversa 026 borra la asignación y conserva 022, 023, 024, 025 y 027", () => {
+  const db = openCopy("produccion-v14.sqlite");
+  const file = process.env.DATABASE_PATH!;
+  try {
+    assert.ok(hasTable(db, "ops_allocation_rules"));
+    assert.ok(hasTable(db, "ops_jobs"));
+    const before = {
+      users: db.prepare(`SELECT * FROM users ORDER BY id`).all(),
+      loads: db.prepare(`SELECT * FROM loads ORDER BY id`).all(),
+      offers: db.prepare(`SELECT * FROM offers ORDER BY id`).all(),
+    };
+    db.exec(fs.readFileSync(path.join(process.cwd(), "docs/migrations/026-ops-asignacion-rollback.sql"), "utf8"));
+    for (const table of ["ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs"]) {
+      assert.equal(hasTable(db, table), false, table);
+    }
+    assert.equal(versions(db).includes(26), false);
+    for (const n of [22, 23, 24, 25, 27]) assert.ok(versions(db).includes(n), String(n));
+    assert.equal(Math.max(...versions(db)), 27);
+    assert.ok(hasTable(db, "ops_organizations"));
+    assert.ok(hasTable(db, "ops_shipments"));
+    assert.ok(hasTable(db, "ops_zones"));
+    assert.ok(hasTable(db, "ops_carrier_scores"));
+    assert.ok(hasTable(db, "ops_telematics_sources"));
+    assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
+    assert.deepEqual(db.prepare(`SELECT * FROM loads ORDER BY id`).all(), before.loads);
+    assert.deepEqual(db.prepare(`SELECT * FROM offers ORDER BY id`).all(), before.offers);
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = file;
+    assertFinalSchema(getDb());
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
 });

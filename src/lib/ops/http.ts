@@ -24,3 +24,8 @@ export function opsGuard(handler: (request: Request, ctx: RouteCtx) => Promise<R
 export function procurementGuard(handler: (request: Request, ctx: RouteCtx) => Promise<Response>) {
   return opsGuard(handler, "OPS_PROCUREMENT_ENABLED");
 }
+
+/** Rutas de asignación: maestro y OPS_ALLOCATION_ENABLED. Apagado ⇒ 404. */
+export function allocationGuard(handler: (request: Request, ctx: RouteCtx) => Promise<Response>) {
+  return opsGuard(handler, "OPS_ALLOCATION_ENABLED");
+}
