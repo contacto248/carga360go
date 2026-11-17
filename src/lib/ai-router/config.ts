@@ -13,6 +13,15 @@ export const XAI_URL = "https://api.x.ai/v1/responses";
 export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
 export const DEFAULT_XAI_MODEL = "grok-4.7";
 export const DEFAULT_TIMEOUT_SECONDS = 120;
+/** Tope del prompt. Más bajo que el módulo de referencia (100000). */
+export const MAX_PROMPT_CHARS = 20_000;
+/** Tope diario de gasto en USD si AI_ROUTER_DAILY_USD no trae un número válido. */
+export const DEFAULT_DAILY_USD = 1;
+/** Peticiones por usuario en la ventana de tasa. */
+export const DEFAULT_USER_RATE = 10;
+/** Peticiones por tenant en la misma ventana. */
+export const DEFAULT_TENANT_RATE = 30;
+export const ROUTER_RATE_WINDOW_MS = 10 * 60 * 1000;
 
 const DEFAULT_PRICES = {
   openai: { input: 0.25, output: 2 },
@@ -80,6 +89,27 @@ export function readRouterEnv(env: NodeJS.ProcessEnv = process.env): RouterEnv {
       },
     },
   };
+}
+
+function boundedNumber(raw: string, fallback: number, min: number, max: number, integer: boolean): number {
+  if (!raw) return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < min || n > max) return fallback;
+  if (integer && !Number.isInteger(n)) return fallback;
+  return integer ? n : Math.round(n * 1e8) / 1e8;
+}
+
+/** Gasto máximo del día en USD. Vacío, negativo o mayor que 100 vuelve al default. */
+export function dailySpendCapUsd(env: NodeJS.ProcessEnv = process.env): number {
+  return boundedNumber(text(env, "AI_ROUTER_DAILY_USD"), DEFAULT_DAILY_USD, 0, 100, false);
+}
+
+export function routerUserLimit(env: NodeJS.ProcessEnv = process.env): number {
+  return boundedNumber(text(env, "AI_ROUTER_USER_LIMIT"), DEFAULT_USER_RATE, 1, 1_000, true);
+}
+
+export function routerTenantLimit(env: NodeJS.ProcessEnv = process.env): number {
+  return boundedNumber(text(env, "AI_ROUTER_TENANT_LIMIT"), DEFAULT_TENANT_RATE, 1, 5_000, true);
 }
 
 export function scrubSecrets(value: string, secrets: string[]): string {

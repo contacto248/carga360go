@@ -10,7 +10,8 @@ import { orchestrate } from "../src/lib/ai-router/orchestrator";
 import { estimateCost, providerOrder } from "../src/lib/ai-router/providers";
 import { sessionActor } from "../src/lib/ai-router/session";
 import { getDb } from "../src/lib/db";
-import { person } from "./helpers-agente";
+import { resetRateLimits } from "../src/lib/rate-limit";
+import { makeAdmin, person } from "./helpers-agente";
 
 const KEYS = [
   "AI_ROUTER_ENABLED",
@@ -23,6 +24,9 @@ const KEYS = [
   "OPENAI_OUTPUT_USD_PER_M",
   "XAI_INPUT_USD_PER_M",
   "XAI_OUTPUT_USD_PER_M",
+  "AI_ROUTER_DAILY_USD",
+  "AI_ROUTER_USER_LIMIT",
+  "AI_ROUTER_TENANT_LIMIT",
 ] as const;
 
 const realFetch = globalThis.fetch;
@@ -155,7 +159,7 @@ test("con el flag encendido y sin sesión responde 401", async () => {
 test("auto usa el proveedor más barato, calcula el coste y no guarda la clave", async () => {
   const openaiKey = marker("oa");
   const xaiKey = marker("xa");
-  const { user, token } = person("mandante", "router");
+  const { user, token } = makeAdmin(person("mandante", "router").user);
   const seen: string[] = [];
   const impl: typeof fetch = async (input, init) => {
     seen.push(String(input));
@@ -351,6 +355,198 @@ test("both con un proveedor sin clave persiste el error y la respuesta del otro"
   assert.equal(outcome.usage[1].result, "error");
   assert.equal(outcome.usage[1].errorCode, "ProviderDisabled");
   assert.equal(JSON.stringify(outcome).includes(openaiKey), false);
+});
+
+function providerOk(text: string): Response {
+  return jsonResponse({
+    id: "resp-ok",
+    output: [{ content: [{ type: "output_text", text }] }],
+    usage: { input_tokens: 1, output_tokens: 1 },
+  });
+}
+
+function postAs(token: string, prompt: string): Promise<Response> {
+  return POST(
+    new Request("http://127.0.0.1/api/ai/v1/orchestrate", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ prompt }),
+    }),
+  );
+}
+
+test("un rol interno con permiso ai.execute puede orquestar", async () => {
+  resetRateLimits();
+  const { token } = makeAdmin(person("mandante", "router-interno").user);
+  let calls = 0;
+  const impl: typeof fetch = async () => {
+    calls += 1;
+    return providerOk("interno");
+  };
+  await withEnv({ AI_ROUTER_ENABLED: "true", OPENAI_API_KEY: marker("oa"), XAI_API_KEY: marker("xa") }, async () => {
+    const previous = globalThis.fetch;
+    globalThis.fetch = impl;
+    try {
+      const response = await postAs(token, "consulta interna");
+      const body = (await response.json()) as { text: string };
+      assert.equal(response.status, 200);
+      assert.equal(body.text, "interno");
+      assert.equal(calls, 1);
+    } finally {
+      globalThis.fetch = previous;
+    }
+  });
+});
+
+test("mandante con sesión recibe 403 y no llama al proveedor", async () => {
+  const { token } = person("mandante", "router-mandante");
+  let calls = 0;
+  const previous = globalThis.fetch;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return providerOk("no");
+  };
+  try {
+    await withEnv({ AI_ROUTER_ENABLED: "true", OPENAI_API_KEY: marker("oa"), XAI_API_KEY: marker("xa") }, async () => {
+      const response = await postAs(token, "hola");
+      assert.equal(response.status, 403);
+      assert.equal(calls, 0);
+    });
+  } finally {
+    globalThis.fetch = previous;
+  }
+});
+
+test("transportista con sesión recibe 403 y no llama al proveedor", async () => {
+  const { token } = person("transportista", "router-carrier");
+  let calls = 0;
+  const previous = globalThis.fetch;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return providerOk("no");
+  };
+  try {
+    await withEnv({ AI_ROUTER_ENABLED: "true", OPENAI_API_KEY: marker("oa"), XAI_API_KEY: marker("xa") }, async () => {
+      const response = await postAs(token, "hola");
+      assert.equal(response.status, 403);
+      assert.equal(calls, 0);
+    });
+  } finally {
+    globalThis.fetch = previous;
+  }
+});
+
+test("el límite de tasa corta por usuario y por tenant", async () => {
+  const primero = makeAdmin(person("mandante", "router-tasa-a").user);
+  const segundo = makeAdmin(person("mandante", "router-tasa-b").user);
+  let calls = 0;
+  const impl: typeof fetch = async () => {
+    calls += 1;
+    return providerOk("cupo");
+  };
+  const previous = globalThis.fetch;
+  globalThis.fetch = impl;
+  try {
+    resetRateLimits();
+    await withEnv(
+      {
+        AI_ROUTER_ENABLED: "true",
+        OPENAI_API_KEY: marker("oa"),
+        XAI_API_KEY: marker("xa"),
+        AI_ROUTER_USER_LIMIT: "2",
+        AI_ROUTER_TENANT_LIMIT: "50",
+      },
+      async () => {
+        assert.equal((await postAs(primero.token, "uno")).status, 200);
+        assert.equal((await postAs(primero.token, "dos")).status, 200);
+        const blocked = await postAs(primero.token, "tres");
+        const body = (await blocked.json()) as { error: string; code?: string };
+        assert.equal(blocked.status, 429);
+        assert.match(body.error, /Demasiados intentos/);
+        assert.equal(body.code, undefined);
+        assert.equal(calls, 2);
+      },
+    );
+
+    resetRateLimits();
+    calls = 0;
+    await withEnv(
+      {
+        AI_ROUTER_ENABLED: "true",
+        OPENAI_API_KEY: marker("oa"),
+        XAI_API_KEY: marker("xa"),
+        AI_ROUTER_USER_LIMIT: "10",
+        AI_ROUTER_TENANT_LIMIT: "2",
+      },
+      async () => {
+        assert.equal((await postAs(primero.token, "tenant-a")).status, 200);
+        assert.equal((await postAs(segundo.token, "tenant-b")).status, 200);
+        const blocked = await postAs(primero.token, "tenant-c");
+        const body = (await blocked.json()) as { error: string };
+        assert.equal(blocked.status, 429);
+        assert.match(body.error, /Demasiados intentos/);
+        assert.equal(calls, 2);
+      },
+    );
+  } finally {
+    globalThis.fetch = previous;
+    resetRateLimits();
+  }
+});
+
+test("el tope diario de gasto responde 429 y no llama al proveedor", async () => {
+  resetRateLimits();
+  const { user, token } = makeAdmin(person("mandante", "router-tope").user);
+  const stamp = new Date().toISOString();
+  getDb()
+    .prepare(
+      `INSERT INTO ai_router_usage (
+        id, trace_id, user_id, tenant_id, provider, model, mode,
+        input_tokens, output_tokens, cost_usd, latency_ms, fallback_used, result, error_code, created_at
+      ) VALUES (?, ?, ?, NULL, 'openai', 'gpt-5-mini', 'auto', 1, 1, 1, 1, 0, 'ok', NULL, ?)`,
+    )
+    .run(`tope-${user.id}`, `trace-tope-${user.id.slice(0, 8)}`, user.id, stamp);
+  let calls = 0;
+  const previous = globalThis.fetch;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return providerOk("no");
+  };
+  try {
+    await withEnv(
+      { AI_ROUTER_ENABLED: "true", OPENAI_API_KEY: marker("oa"), XAI_API_KEY: marker("xa"), AI_ROUTER_DAILY_USD: "1" },
+      async () => {
+        const response = await postAs(token, "otro");
+        const body = (await response.json()) as { error: string; code: string };
+        assert.equal(response.status, 429);
+        assert.equal(body.code, "tope_diario");
+        assert.match(body.error, /Tope diario/);
+        assert.equal(calls, 0);
+      },
+    );
+  } finally {
+    globalThis.fetch = previous;
+  }
+});
+
+test("un prompt de más de 20000 caracteres responde 400 y no llama al proveedor", async () => {
+  resetRateLimits();
+  const { token } = makeAdmin(person("mandante", "router-prompt").user);
+  let calls = 0;
+  const previous = globalThis.fetch;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return providerOk("no");
+  };
+  try {
+    await withEnv({ AI_ROUTER_ENABLED: "true", OPENAI_API_KEY: marker("oa"), XAI_API_KEY: marker("xa") }, async () => {
+      const response = await postAs(token, "a".repeat(20_001));
+      assert.equal(response.status, 400);
+      assert.equal(calls, 0);
+    });
+  } finally {
+    globalThis.fetch = previous;
+  }
 });
 
 test("la migración 032 es aditiva y su reversa no toca la 031", () => {
