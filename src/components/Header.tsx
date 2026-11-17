@@ -11,6 +11,9 @@ const LINKS = [
   { href: "/mi-cuenta?rol=mandante", label: "Publicar carga" },
   { href: "/mi-cuenta", label: "Mi cuenta" },
   { href: "/tecnologia", label: "Tecnología" },
+  { href: "/clientes", label: "Clientes" },
+  { href: "/documentos", label: "Documentos" },
+  { href: "/finanzas", label: "Finanzas" },
 ];
 
 function activo(pathname: string, href: string) {
