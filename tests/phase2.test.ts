@@ -33,13 +33,15 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
   // Migración 14: contacto de respaldo y verificación manual (solo lectura 30 días) en users.
   // Migración 16: motor de costos (tablas cost_*). Se comprueba por número exacto para convivir con la 15 de otra rama.
-  // 22 organizaciones (OPS-101), 23 envíos (OPS-102), 25 puntaje (OPS-202) y 27 GPS (OPS-301).
-  assert.equal(version.v, 27);
+  // 22 organizaciones (OPS-101), 23 envíos (OPS-102), 25 puntaje (OPS-202), 27 GPS (OPS-301) y 28 traza.
+  assert.equal(version.v, 28);
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 22`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 23`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 24`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 25`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 27`).get());
+  assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 28`).get());
+  assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_allocation_traces'`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_shipments'`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_carrier_scores'`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 14`).get());

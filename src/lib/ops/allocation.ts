@@ -1,20 +1,20 @@
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { z } from "zod";
 import { isAccredited } from "../accreditation";
 import { audit, auditStrict } from "../audit";
 import { isCarrierLocked } from "../carrier";
-import { carrierCapacity } from "./capacity";
+import { carrierCapacity, type CapacityReasonCode } from "./capacity";
 import { equipmentById } from "../catalog";
 import { getDb } from "../db";
 import { AppError } from "../errors";
 import { todayChile } from "../format";
-import { matchTrucksForLoad } from "../match";
+import { MATCH_VERSION, blockingChecksFor, evaluateLoadTruck, type BlockingCheck } from "../match";
 import { acceptOffer, submitOffer } from "../offers";
 import { resolveRate } from "./procurement";
 import { appendEvent } from "./shipments";
 import { allocationMode, assertEnabled } from "./flags";
 import { can } from "./permissions";
-import { EQUIPMENT_IDS, type EquipmentId, type PublicUser, type Role, type Specs, type VerificationStatus } from "../types";
+import { EQUIPMENT_IDS, type EquipmentId, type LoadCore, type PublicUser, type Role, type Specs, type TruckCore, type VerificationStatus } from "../types";
 
 /**
  * Motor de asignación (OPS-203). Siempre propone (dry_run = 1).
@@ -33,7 +33,45 @@ const VENCER = "asignacion.vencer";
 
 type Pesos = { costo: number; desempeno: number; capacidad: number; disponibilidad: number };
 type StepFile = { tipo: AllocationStep };
-type WeightFile = { pesos: Pesos; pasos: StepFile[]; carrierUserId: string | null };
+type WeightFile = { version: string; pesos: Pesos; pasos: StepFile[]; carrierUserId: string | null };
+
+/** Esquema de pesos. Los valores de cada regla viven en weights_json, no se reaplican desde aquí al puntuar. */
+export const PESOS_VERSION = "pesos-v1";
+export const TRACE_VERSION = "trace-v1";
+const PESOS_V1: Pesos = { costo: 0.25, desempeno: 0.25, capacidad: 0.25, disponibilidad: 0.25 };
+
+export type DecisionTraceCandidate = {
+  carrierUserId: string;
+  truckId: string | null;
+  status: string;
+  rank: number;
+  reasonCode: string | null;
+  rateCode: "TARIFA_VIGENTE" | "SIN_TARIFA_VIGENTE";
+  rateClp: number | null;
+  matchScore: number | null;
+  score: number | null;
+  availability: string;
+  capacityCode: CapacityReasonCode | null;
+  blockingChecks: string[];
+  tieBreak: "id_camion" | null;
+};
+
+export type DecisionTrace = {
+  version: typeof TRACE_VERSION;
+  matchVersion: typeof MATCH_VERSION;
+  pesosVersion: string;
+  ruleId: string;
+  mode: string;
+  pesos: Pesos;
+  pickupDate: string;
+  candidates: DecisionTraceCandidate[];
+};
+
+export type AllocationTrace = {
+  version: string;
+  hash: string;
+  body: DecisionTrace;
+};
 
 type RuleRow = {
   id: string;
@@ -114,6 +152,11 @@ type Draft = {
   availability: string;
   reasons: string[];
   status: "propuesto" | "descartado";
+  reasonCode: string | null;
+  rateCode: "TARIFA_VIGENTE" | "SIN_TARIFA_VIGENTE";
+  capacityCode: CapacityReasonCode | null;
+  blockingChecks: string[];
+  tieBreak: "id_camion" | null;
   composite: number;
   windowOk: boolean;
   rank: number;
@@ -162,6 +205,7 @@ export type AllocationRun = {
   finishedAt: string | null;
   candidates: AllocationCandidate[];
   decisions: AllocationDecision[];
+  trace: AllocationTrace | null;
 };
 
 export type AllocationRule = {
@@ -170,6 +214,7 @@ export type AllocationRule = {
   laneId: string | null;
   equipment: string | null;
   mode: AllocationMode;
+  pesosVersion: string;
   pesos: Pesos;
   pasos: StepFile[];
   carrierUserId: string | null;
@@ -210,14 +255,13 @@ const proposeSchema = z.object({
 });
 
 const storedSchema = z.object({
+  version: z.string().trim().min(1).max(40).optional(),
   pesos: pesosSchema,
   pasos: z.array(stepSchema).min(1),
   carrierUserId: z.string().nullable(),
 });
 
 type JobHandler = (job: JobRow, now: Date) => void;
-
-const DEFAULT_PESOS: Pesos = { costo: 0.25, desempeno: 0.25, capacidad: 0.25, disponibilidad: 0.25 };
 
 function assertAllocation() {
   assertEnabled("OPS_ALLOCATION_ENABLED");
@@ -262,7 +306,12 @@ function reasonsOf(text: string): string[] {
 function readWeights(text: string): WeightFile {
   const parsed = storedSchema.safeParse(jsonObject(text));
   if (!parsed.success) throw new AppError("La regla de asignación está incompleta.");
-  return parsed.data;
+  return {
+    version: parsed.data.version ?? PESOS_VERSION,
+    pesos: parsed.data.pesos,
+    pasos: parsed.data.pasos,
+    carrierUserId: parsed.data.carrierUserId,
+  };
 }
 
 function mapRule(row: RuleRow): AllocationRule {
@@ -273,6 +322,7 @@ function mapRule(row: RuleRow): AllocationRule {
     laneId: row.lane_id,
     equipment: row.equipment,
     mode: row.mode,
+    pesosVersion: weights.version,
     pesos: weights.pesos,
     pasos: weights.pasos,
     carrierUserId: weights.carrierUserId,
@@ -329,6 +379,9 @@ function loadRunBundle(id: string): AllocationRun | null {
   if (!row) return null;
   const candidates = (db.prepare(`SELECT * FROM ops_allocation_candidates WHERE run_id = ? ORDER BY rank, id`).all(id) as CandidateRow[]).map(mapCandidate);
   const decisions = (db.prepare(`SELECT * FROM ops_allocation_decisions WHERE run_id = ? ORDER BY seq`).all(id) as DecisionRow[]).map(mapDecision);
+  const traceRow = db.prepare(`SELECT trace_version, trace_json, trace_hash FROM ops_allocation_traces WHERE run_id = ?`).get(id) as
+    | { trace_version: string; trace_json: string; trace_hash: string }
+    | undefined;
   return {
     id: row.id,
     shipmentId: row.shipment_id,
@@ -341,6 +394,7 @@ function loadRunBundle(id: string): AllocationRun | null {
     finishedAt: row.finished_at,
     candidates,
     decisions,
+    trace: traceRow ? { version: traceRow.trace_version, hash: traceRow.trace_hash, body: jsonObject(traceRow.trace_json) as DecisionTrace } : null,
   };
 }
 
@@ -433,13 +487,13 @@ function latestScore(userId: string): number | null {
 function rateFor(
   actor: PublicUser,
   input: { shipperOrgId: string; carrierOrgId: string | null; origin: string; destination: string; equipment: string; date: string },
-): number | null {
-  if (!(EQUIPMENT_IDS as readonly string[]).includes(input.equipment)) return null;
+): { amountClp: number | null; code: "TARIFA_VIGENTE" | "SIN_TARIFA_VIGENTE" } {
+  if (!(EQUIPMENT_IDS as readonly string[]).includes(input.equipment)) return { amountClp: null, code: "SIN_TARIFA_VIGENTE" };
   try {
     const found = resolveRate({ ...actor, role: "admin" }, input);
-    return found ? found.amountClp : null;
+    return found ? { amountClp: found.amountClp, code: "TARIFA_VIGENTE" } : { amountClp: null, code: "SIN_TARIFA_VIGENTE" };
   } catch (error) {
-    if (error instanceof AppError) return null;
+    if (error instanceof AppError) return { amountClp: null, code: "SIN_TARIFA_VIGENTE" };
     throw error;
   }
 }
@@ -584,21 +638,26 @@ function collectDrafts(actor: PublicUser, rule: AllocationRule, load: LoadSnap, 
         specs: specsOf(truck.specsJson),
         windowOk: covers(truck.availableFrom, truck.availableTo, pickup),
       }));
-    const matched = equipmentOk
-      ? matchTrucksForLoad(
-          {
-            equipment: load.equipment as EquipmentId,
-            weightT: load.weight_t,
-            origin: load.origin,
-            destination: load.destination,
-            pickupDate: load.pickup_date,
-            specs: specsOf(load.specs_json),
-          },
-          cores,
-        )
-      : [];
-    const best = matched[0];
-    const capacity = carrierCapacitySafe(person.id);
+    const loadCore: LoadCore | null = equipmentOk
+      ? {
+          equipment: load.equipment as EquipmentId,
+          weightT: load.weight_t,
+          origin: load.origin,
+          destination: load.destination,
+          pickupDate: load.pickup_date,
+          specs: specsOf(load.specs_json),
+        }
+      : null;
+    const evaluated = loadCore ? cores.map((truck) => ({ truck, evaluation: evaluateLoadTruck(loadCore, truck) })) : [];
+    const compatible = evaluated.filter((item) => item.evaluation.compatible);
+    compatible.sort((a, b) => {
+      const byScore = (b.evaluation.score ?? 0) - (a.evaluation.score ?? 0);
+      if (byScore !== 0) return byScore;
+      return a.truck.id < b.truck.id ? -1 : a.truck.id > b.truck.id ? 1 : 0;
+    });
+    const best = compatible[0];
+    const tieBreak = compatible.length > 1 && compatible[0].evaluation.score === compatible[1].evaluation.score ? ("id_camion" as const) : null;
+    const capacity = carrierCapacitySafe(person.id, pickup);
     const score = latestScore(person.id);
     const rate = rateFor(actor, {
       shipperOrgId: rule.shipperOrgId,
@@ -609,43 +668,47 @@ function collectDrafts(actor: PublicUser, rule: AllocationRule, load: LoadSnap, 
       date: pickup,
     });
     const reasons: string[] = [];
-    let status: Draft["status"] = "propuesto";
+    const state: { status: Draft["status"]; reasonCode: string | null } = { status: "propuesto", reasonCode: null };
+    const discard = (code: string, text: string) => {
+      if (state.status !== "descartado") {
+        state.status = "descartado";
+        state.reasonCode = code;
+      }
+      reasons.push(text);
+    };
     if (!best) {
-      status = "descartado";
-      reasons.push("sin camión compatible");
+      const nearest = [...evaluated].sort((a, b) => (a.truck.id < b.truck.id ? -1 : a.truck.id > b.truck.id ? 1 : 0))[0];
+      discard(cores.length ? (nearest?.evaluation.reasonCode ?? "EQUIPO") : "SIN_CAMION", "sin camión compatible");
     } else {
       reasons.push(`camión ${equipmentById(best.truck.equipment).label.toLowerCase()} compatible`);
     }
-    if (capacity.status === "ocupado") {
-      status = "descartado";
-      reasons.push(capacity.reason);
-    } else {
-      reasons.push(capacity.status === "disponible" ? "disponible" : capacity.reason);
-    }
+    if (capacity.status === "ocupado") discard(capacity.reasonCode ?? "OCUPADO", capacity.reason);
+    else reasons.push(capacity.status === "disponible" ? "disponible" : capacity.reason);
     if (score != null) reasons.push(`puntaje ${Math.round(score)}`);
-    if (rate != null) reasons.push(`tarifa vigente de ${rate} CLP`);
-    if (rule.mode === "directa" && person.id !== rule.carrierUserId) {
-      status = "descartado";
-      reasons.push("la regla directa fija a otro transportista");
-    }
-    if (rule.mode === "por_tarifa" && rate == null) {
-      status = "descartado";
-      reasons.push("sin tarifa vigente");
-    }
+    if (rate.amountClp != null) reasons.push(`tarifa vigente de ${rate.amountClp} CLP`);
+    if (rule.mode === "directa" && person.id !== rule.carrierUserId) discard("REGLA_DIRECTA", "la regla directa fija a otro transportista");
+    if (rule.mode === "por_tarifa" && rate.code === "SIN_TARIFA_VIGENTE") discard("SIN_TARIFA_VIGENTE", "sin tarifa vigente");
     if (rule.mode === "por_desempeno" && (score == null || (rule.minScore != null && score < rule.minScore))) {
-      status = "descartado";
-      reasons.push(score == null ? "sin puntaje" : "puntaje bajo el mínimo");
+      discard(score == null ? "SIN_PUNTAJE" : "PUNTAJE_BAJO", score == null ? "sin puntaje" : "puntaje bajo el mínimo");
     }
-    const truck = best?.truck as (typeof cores)[number] | undefined;
+    if (state.status === "descartado" && !state.reasonCode) state.reasonCode = "SIN_CAMION";
+    if (state.status === "descartado" && state.reasonCode) reasons.push(state.reasonCode);
+    const truck = best?.truck;
+    const blocking = best?.evaluation.blockingChecks ?? (loadCore ? blockingChecksFor(loadCore, blankTruck(loadCore)) : []);
     drafts.push({
       carrierUserId: person.id,
       truckId: truck?.id ?? null,
-      rateClp: rate,
+      rateClp: rate.amountClp,
       score,
-      matchScore: best ? best.match.score : null,
+      matchScore: best ? best.evaluation.score : null,
       availability: capacity.status,
       reasons,
-      status,
+      status: state.status,
+      reasonCode: state.reasonCode,
+      rateCode: rate.code,
+      capacityCode: capacity.reasonCode,
+      blockingChecks: blocking.map((check) => check.code),
+      tieBreak,
       composite: 0,
       windowOk: truck?.windowOk ?? false,
       rank: 0,
@@ -656,11 +719,107 @@ function collectDrafts(actor: PublicUser, rule: AllocationRule, load: LoadSnap, 
   return drafts;
 }
 
-function carrierCapacitySafe(userId: string) {
+function blankTruck(load: LoadCore): TruckCore {
+  return {
+    equipment: load.equipment,
+    tonnage: load.weightT,
+    origin: load.origin,
+    destination: load.destination,
+    availableFrom: load.pickupDate,
+    availableTo: load.pickupDate,
+    specs: {},
+  };
+}
+
+function pickupOf(load: LoadSnap): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(load.pickup_date) ? load.pickup_date : todayChile();
+}
+
+export function hashDecisionTrace(body: DecisionTrace): string {
+  return createHash("sha256").update(canonicalJson(body), "utf8").digest("hex");
+}
+
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
+  if (Array.isArray(value)) return `[${value.map((item) => canonicalJson(item)).join(",")}]`;
+  const entries = Object.entries(value as Record<string, unknown>).sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
+  return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`).join(",")}}`;
+}
+
+function decisionTrace(rule: AllocationRule, drafts: Draft[], invited: Draft | null, pickupDate: string): DecisionTrace {
+  const candidates: DecisionTraceCandidate[] = drafts.map((draft) => {
+    const status = invited === draft ? "invitado" : draft.status;
+    return {
+      carrierUserId: draft.carrierUserId,
+      truckId: draft.truckId,
+      status,
+      rank: draft.rank || drafts.length,
+      reasonCode: status === "descartado" ? (draft.reasonCode ?? "SIN_CAMION") : null,
+      rateCode: draft.rateCode,
+      rateClp: draft.rateClp,
+      matchScore: draft.matchScore,
+      score: draft.score,
+      availability: draft.availability,
+      capacityCode: draft.capacityCode,
+      blockingChecks: [...draft.blockingChecks].sort(),
+      tieBreak: draft.tieBreak,
+    };
+  });
+  candidates.sort((left, right) => left.rank - right.rank || (left.carrierUserId < right.carrierUserId ? -1 : left.carrierUserId > right.carrierUserId ? 1 : 0));
+  return {
+    version: TRACE_VERSION,
+    matchVersion: MATCH_VERSION,
+    pesosVersion: rule.pesosVersion,
+    ruleId: rule.id,
+    mode: rule.mode,
+    pesos: rule.pesos,
+    pickupDate,
+    candidates,
+  };
+}
+
+function blocksForConfirmation(load: LoadSnap, truckId: string | null): BlockingCheck[] {
+  if (!(EQUIPMENT_IDS as readonly string[]).includes(load.equipment)) return [];
+  const loadCore: LoadCore = {
+    equipment: load.equipment as EquipmentId,
+    weightT: load.weight_t,
+    origin: load.origin,
+    destination: load.destination,
+    pickupDate: load.pickup_date,
+    specs: specsOf(load.specs_json),
+  };
+  const row = truckId
+    ? (getDb()
+        .prepare(
+          `SELECT equipment, tonnage, origin, destination, available_from AS availableFrom, available_to AS availableTo, specs_json AS specsJson
+           FROM trucks WHERE id = ?`,
+        )
+        .get(truckId) as
+        | { equipment: string; tonnage: number; origin: string; destination: string; availableFrom: string; availableTo: string; specsJson: string }
+        | undefined)
+    : undefined;
+  const truck: TruckCore =
+    row && (EQUIPMENT_IDS as readonly string[]).includes(row.equipment)
+      ? {
+          equipment: row.equipment as EquipmentId,
+          tonnage: row.tonnage,
+          origin: row.origin,
+          destination: row.destination,
+          availableFrom: row.availableFrom,
+          availableTo: row.availableTo,
+          specs: specsOf(row.specsJson),
+        }
+      : blankTruck(loadCore);
+  return blockingChecksFor(loadCore, truck);
+}
+
+function carrierCapacitySafe(userId: string, pickupDate: string) {
   try {
-    return carrierCapacity(userId);
+    return carrierCapacity(userId, pickupDate);
   } catch (error) {
-    if (error instanceof AppError) return { status: "sin_datos" as const, reason: error.message };
+    if (error instanceof AppError) {
+      return { status: "sin_datos" as const, reason: error.message, reasonCode: "SIN_CAMION" as const, truckId: null, tonnage: null, loadId: null };
+    }
     throw error;
   }
 }
@@ -699,7 +858,7 @@ function applySteps(rule: AllocationRule, drafts: Draft[], excludedCount: number
       if (winner && rule.mode === "directa") winner.reasons.unshift("transportista fijado por la regla");
       decisions.push({
         step: "ordenar",
-        input: { modo: rule.mode, pesos: rule.pesos },
+        input: { modo: rule.mode, pesosVersion: rule.pesosVersion, pesos: rule.pesos },
         output: { orden: kept.map((draft) => draft.carrierUserId), empate },
       });
     } else if (step.tipo === "invitar") {
@@ -749,9 +908,9 @@ export function createRule(user: PublicUser, body: unknown, ip: string | null = 
     const lane = getDb().prepare(`SELECT org_id FROM ops_lanes WHERE id = ?`).get(input.laneId) as { org_id: string } | undefined;
     if (!lane || lane.org_id !== input.shipperOrgId) throw new AppError("La ruta no pertenece a la organización.");
   }
-  const pesos = input.pesos ?? DEFAULT_PESOS;
+  const pesos = input.pesos ?? PESOS_V1;
   const pasos = ensureSteps(input.pasos ?? defaultSteps(input.mode));
-  const file: WeightFile = { pesos, pasos, carrierUserId: input.carrierUserId ?? null };
+  const file: WeightFile = { version: PESOS_VERSION, pesos, pasos, carrierUserId: input.carrierUserId ?? null };
   const now = new Date().toISOString();
   const id = randomUUID();
   const db = getDb();
@@ -877,6 +1036,11 @@ export function proposeAllocation(user: PublicUser, body: unknown, ip: string | 
       );
     }
     for (const decision of plan.decisions) addDecision(db, runId, decision.step, rule.id, decision.input, decision.output, "motor", stamp);
+    const trace = decisionTrace(rule, drafts, plan.invited, pickupOf(load));
+    const traceJson = canonicalJson(trace);
+    db.prepare(
+      `INSERT INTO ops_allocation_traces (id, run_id, trace_version, trace_json, trace_hash, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
+    ).run(randomUUID(), runId, TRACE_VERSION, traceJson, hashDecisionTrace(trace), stamp);
     if (invitedId) enqueueJob(db, VENCER, invitedId, plan.due, 3, stamp);
     appendEvent({
       shipmentId: shipment.id,
@@ -965,6 +1129,8 @@ export async function confirmAllocation(user: PublicUser, runId: string, candida
   const load = loadOf(shipment.load_id);
   if (!load) throw new AppError("No encontrado.", 404);
   if (load.is_demo) throw new AppError("Esta carga es de demostración y no se adjudica.", 409);
+  const blocks = blocksForConfirmation(load, candidate.truckId);
+  if (blocks.length) throw new AppError(`No se puede confirmar: ${blocks.map((item) => item.detail).join(" ")}`, 409);
   if (load.status === "adjudicada") {
     const awarded = getDb()
       .prepare(`SELECT carrier_id FROM offers WHERE id = ?`)
