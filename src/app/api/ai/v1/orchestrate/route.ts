@@ -1,7 +1,9 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { aiRouterEnabled, readRouterEnv, scrubSecrets } from "@/lib/ai-router/config";
+import { assertAiExecute } from "@/lib/ai-router/access";
+import { aiRouterEnabled, MAX_PROMPT_CHARS, readRouterEnv, scrubSecrets } from "@/lib/ai-router/config";
+import { assertRouterLimits } from "@/lib/ai-router/limits";
 import { orchestrate } from "@/lib/ai-router/orchestrator";
 import { sessionActor } from "@/lib/ai-router/session";
 import { persistRouterUsage } from "@/lib/ai-router/usage-store";
@@ -12,7 +14,7 @@ import { userFromHeaders } from "@/lib/request-auth";
 export const dynamic = "force-dynamic";
 
 const Body = z.object({
-  prompt: z.string().min(1).max(100_000),
+  prompt: z.string().min(1).max(MAX_PROMPT_CHARS),
   provider: z.enum(["auto", "openai", "xai", "both"]).default("auto"),
   max_output_tokens: z.number().int().min(1).max(8000).default(1200),
 });
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
     assertSameOrigin(request);
     const user = userFromHeaders(request.headers);
     if (!user) throw new AppError("Debes iniciar sesión.", 401);
+    assertAiExecute(user);
     let raw: unknown;
     try {
       raw = await request.json();
@@ -40,6 +43,7 @@ export async function POST(request: Request) {
     const parsed = Body.safeParse(raw);
     if (!parsed.success) throw new AppError("Solicitud inválida.", 400);
     const actor = sessionActor(user);
+    assertRouterLimits(actor.userId, actor.tenantId);
     const settings = readRouterEnv();
     const traceId = randomUUID();
     const outcome = await orchestrate({

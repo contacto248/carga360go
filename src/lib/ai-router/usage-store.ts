@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { getDb } from "../db";
+import { todayChile } from "../format";
 import type { UsageDraft } from "./orchestrator";
 
 const ERRORS = new Set(["ProviderDisabled", "Timeout", "UpstreamError", "NetworkError", "InvalidResponse"]);
@@ -44,4 +45,47 @@ export function persistRouterUsage(traceId: string, userId: string, tenantId: st
     }
   });
   write(rows);
+}
+
+function chileOffsetMs(instant: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Santiago",
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(instant);
+  const pick = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((part) => part.type === type)?.value);
+  const asUtc = Date.UTC(pick("year"), pick("month") - 1, pick("day"), pick("hour"), pick("minute"), pick("second"));
+  return asUtc - instant.getTime();
+}
+
+/** Inicio del día civil de Chile, en ISO UTC. */
+export function chileDayStartIso(now = new Date()): string {
+  const [year, month, date] = todayChile(now).split("-").map(Number);
+  const offset = chileOffsetMs(new Date(Date.UTC(year, month - 1, date, 15, 0, 0)));
+  return new Date(Date.UTC(year, month - 1, date, 0, 0, 0) - offset).toISOString();
+}
+
+/**
+ * Gasto ya persistido desde el inicio del día en Chile.
+ * Con tenant, suma ese tenant. Sin tenant, solo las filas de ese usuario sin tenant.
+ */
+export function routerSpendUsd(userId: string, tenantId: string | null, now = new Date()): number {
+  const row = getDb()
+    .prepare(
+      `SELECT COALESCE(SUM(cost_usd), 0) AS total
+       FROM ai_router_usage
+       WHERE created_at >= ?
+         AND (
+           (? IS NOT NULL AND tenant_id = ?)
+           OR (? IS NULL AND tenant_id IS NULL AND user_id = ?)
+         )`,
+    )
+    .get(chileDayStartIso(now), tenantId, tenantId, tenantId, userId) as { total: number };
+  const total = Number(row?.total);
+  return Number.isFinite(total) && total > 0 ? total : 0;
 }
