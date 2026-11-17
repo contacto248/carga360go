@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import { AppError } from "../src/lib/errors";
@@ -252,19 +254,32 @@ test("no hay credenciales hardcodeadas ni escritura de producción", () => {
   assert.doesNotMatch(page, /page\.locator\(|page\.\$\(/);
 });
 
-test("el skill cita la automatización avanzada y omite scripts truncados", () => {
+test("el skill v2 cita API, validador y la guía avanzada", () => {
   const skill = read(".cursor/skills/carga360go-agents/SKILL.md");
   assert.match(skill, /references\/advanced-web-automation\.md/);
+  assert.match(skill, /references\/api-web-automation\.md/);
   assert.match(skill, /generate_report\.py/);
-  assert.doesNotMatch(skill, /validate_knowledge_base\.py/);
-  assert.doesNotMatch(skill, /generate_status\.py/);
+  assert.match(skill, /generate_status\.py/);
+  assert.match(skill, /validate_knowledge_base\.py/);
   const guide = read(".cursor/skills/carga360go-agents/references/advanced-web-automation.md");
-  assert.match(guide, /runSummaryRoutine/);
   assert.match(guide, /withRetry/);
-  assert.match(guide, /no llama a xAI/i);
-  assert.match(guide, /cron/i);
+  const api = read(".cursor/skills/carga360go-agents/references/api-web-automation.md");
+  assert.match(api, /APIRequestContext/);
+  assert.match(api, /401/);
+  assert.match(api, /429/);
+  assert.match(api, /5xx/);
+  assert.doesNotMatch(api, /Bearer\s+[A-Za-z0-9\-._]{12,}/);
   const root = path.join(ROOT, ".cursor/skills/carga360go-agents/scripts");
+  const validator = path.join(root, "validate_knowledge_base.py");
+  const sample = path.join(ROOT, ".cursor/skills/carga360go-agents/assets/knowledge-base-sample.jsonl");
   assert.equal(fs.existsSync(path.join(root, "generate_report.py")), true);
-  assert.equal(fs.existsSync(path.join(root, "generate_status.py")), false);
-  assert.equal(fs.existsSync(path.join(root, "validate_knowledge_base.py")), false);
+  assert.equal(fs.existsSync(path.join(root, "generate_status.py")), true);
+  const ok = spawnSync("python3", [validator, sample], { encoding: "utf8" });
+  assert.equal(ok.status, 0, ok.stderr);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "kb-"));
+  const bad = path.join(dir, "bad.jsonl");
+  fs.writeFileSync(bad, "{}\n");
+  const fail = spawnSync("python3", [validator, bad], { encoding: "utf8" });
+  assert.equal(fail.status, 1);
+  assert.match(fail.stderr, /faltan campos/);
 });

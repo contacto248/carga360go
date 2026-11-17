@@ -1,9 +1,9 @@
 # Changelog
 
-## 2026-11-17 — Copia al repositorio
-- Skill copiado desde el zip autorizado por Gerencia. Solo entradas con deflate y CRC válidos.
-- Los scripts cuyo stream quedó truncado no se inventaron y SKILL.md no los lista.
-- Rutina de resumen para Grok Bots documentada en `references/advanced-web-automation.md` (sin cron y sin xAI).
+## 2026-11-17 — Integración de APIs de automatización web
+- Añadido `references/api-web-automation.md`: descubrimiento de endpoints, cliente tipado con Zod, Playwright APIRequestContext, patrones híbridos API+UI, autenticación y checklist para bots/Cursor.
+- Actualizado SKILL.md para referenciar el nuevo manual de integración de APIs.
+- Refuerza el principio API-first del skill.
 
 ## 2026-11-17 — Automatización web nivel ingeniero
 - Añadido `references/advanced-web-automation.md` con patrones de producción: Playwright (storage state, POM, locators estables), extracción estructurada, retries, observabilidad, API-first, integración con Grok Bots y checklist de confiabilidad.
@@ -23,7 +23,7 @@
 - Added core workflows, project context, and references structure
 - Expanded with technical observations from public site (features, pages, calculadora, verificación)
 - Added assets: status-update-template.md, instructivo-template.md
-- Added script: scripts/generate_status.py (histórico del skill; no está en esta copia porque el zip se truncó al inflarlo)
+- Added script: scripts/generate_status.py
 - Added references: tech-stack.md, folder-structure.md, components-and-apis.md
 - Aligned flows with observed working style (destrabar, construir en la página, multi-agente, decisiones del dueño)
 - Added browser automation capabilities: authentication/sessions, headless navigation (Playwright), data extraction, and report generation

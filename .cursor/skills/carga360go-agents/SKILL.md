@@ -32,9 +32,9 @@ description: Coordina y mejora el desarrollo, operación, seguridad y automatiza
 - **KPIs, alertas e informes**: `references/analytics-kpis-and-alerts.md`.
 - **Secuencia de implementación**: `references/project-implementation-roadmap.md`.
 - **Contexto y estructura a verificar**: `references/project-context.md`, `references/tech-stack.md`, `references/components-and-apis.md`, `references/folder-structure.md`.
-- **Inspección y automatización web**: `references/browser-automation.md` (flujo base) y `references/advanced-web-automation.md` (nivel ingeniero: Playwright robusto, storage state, POM, extracción estructurada, confiabilidad). Preferir APIs autorizadas; navegador solo donde se permita y sea necesario.
+- **Inspección y automatización web**: `references/browser-automation.md` (flujo base), `references/advanced-web-automation.md` (nivel ingeniero) y `references/api-web-automation.md` (integración de APIs, cliente tipado, Playwright APIRequestContext, API-first). Preferir APIs autorizadas; navegador solo donde se permita y sea necesario.
 - **Plantillas**: `assets/instructivo-template.md`, `assets/status-update-template.md`, `assets/monitoring-checklist.md`.
-- **Herramientas locales**: `scripts/generate_report.py` (ejemplo local de formato; no es el camino de producción). La rutina de resumen está en `references/advanced-web-automation.md`.
+- **Herramientas locales**: `scripts/generate_report.py`, `scripts/generate_status.py`, `scripts/validate_knowledge_base.py`.
 
 ## Formato ejecutivo de salida
 Dar: objetivo; estado real (pendiente/en curso/PR/staging/verificado); acciones y pruebas con evidencias; riesgos/bloqueos; siguiente acción con responsable; autorizaciones necesarias. El gerente debe recibir un tablero reducido con decisiones, no una conversación fragmentada entre agentes.

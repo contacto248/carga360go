@@ -37,13 +37,11 @@ export default defineConfig({
 });
 ```
 
-En este repositorio la config real está en `playwright.config.ts`: `storageState` sale de `STORAGE_STATE` y `baseURL` de `PLAYWRIGHT_BASE_URL` (por defecto `http://127.0.0.1:4317`, el dev local). Así un arranque accidental no pega a producción.
-
 ### Manejo de sesión (storage state)
 - Login una vez → `context.storageState({ path: 'auth.json' })`.
 - Reutilizar en ejecuciones posteriores (bots/rutinas).
 - Validar sesión: comprobar elemento de “Mi panel” o endpoint `/api/me`.
-- Si expira → un bot con secretos de entorno puede reloguear y regenerar el storage state. Este repositorio no lo hace: `isSessionExpired` solo detecta y corta, sin credenciales ni login real.
+- Si expira → relogin automático y regenerar storage state.
 
 ### Locators estables (orden de preferencia)
 1. `getByRole`, `getByLabel`, `getByPlaceholder`, `getByText` (accesibilidad).
@@ -70,7 +68,7 @@ export class LoadsPage {
 - Extraer tablas → array de objetos tipados.
 - Normalizar: precios CLP (quitar puntos/comas), fechas ISO, pesos en kg/ton.
 - Validar con schema (Zod o similar) antes de procesar.
-- Guardar raw + clean + metadata (timestamp, URL, user role). En este repositorio el flujo de producción devuelve raw y clean en memoria (y los tests los retienen en el proceso). No escribe en disco de producción.
+- Guardar raw + clean + metadata (timestamp, URL, user role).
 
 ## Confiabilidad y manejo de errores
 
@@ -101,31 +99,12 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
 
 - Encapsular flujos en funciones reutilizables.
 - Para rutinas recurrentes (resumen diario de cargas, monitoreo de panel, verificación de documentos):
-  1. Bot mantiene storage state (solo por entorno; este repo no guarda la sesión).
+  1. Bot mantiene storage state.
   2. Ejecuta extracción.
   3. Compara con estado anterior (memoria del bot).
-  4. Genera reporte Markdown/CSV/Excel en el entorno del bot, no en disco de producción.
+  4. Genera reporte Markdown/CSV/Excel.
   5. Notifica solo deltas o alertas.
-- `scripts/generate_report.py` es un ejemplo local de formato. La rutina de este repositorio no lo llama y no programa un cron.
-
-## Rutina de resumen para Grok Bots (este repositorio)
-
-Flujo reutilizable y API-first. No hay cron nuevo y la rutina no llama a xAI (tampoco en CI).
-
-1. Quien invoca entrega un `source` con datos ya obtenidos (módulo interno o API autorizada). `runPublicFaqSummary` lee `src/lib/faq.ts` en memoria: el mismo contenido público de `/faq`, sin HTTP a producción.
-2. `guardAutomationRate` (`src/lib/web-automation/rate.ts`) aplica `rateLimit` de `src/lib/rate-limit.ts` antes de leer.
-3. `withRetry` (`src/lib/web-automation/retry.ts`) reintenta fallos transitorios con backoff exponencial (`baseDelayMs * 2^intento`). No reintenta sesión expirada ni el 429 del propio límite.
-4. `isSessionExpired` (`src/lib/web-automation/session.ts`) mira status 401, la URL final y `Location` hacia `/ingreso` o `/login`, y el texto explícito de sesión expirada. No hay login real ni credenciales. La sesión de browser, si existe, llega solo por `STORAGE_STATE`.
-5. Cada fila pasa por `keepRawAndClean`: CLP a entero y fecha a `YYYY-MM-DD`, validadas con zod. `{ raw, clean }` queda en memoria.
-6. `renderSummary` devuelve el Markdown. Este código no escribe disco.
-
-Código: `runSummaryRoutine` en `src/lib/web-automation/routine.ts`.
-
-UI de ejemplo, solo si no hay API: Page Object `e2e/faq.page.ts` sobre `/faq` (ruta pública ya existente). Locators con `getByRole` (`main`, heading, button, link).
-
-Playwright (`playwright.config.ts`): `storageState` desde `STORAGE_STATE` (si falta, sin sesión); `trace: 'on-first-retry'`; `screenshot: 'only-on-failure'`; `retries: 2`.
-
-El e2e no corre en CI (el workflow no instala browser). Script local, con el dev server arriba: `npm run test:e2e`. Los tests de schema, retry, rate limit y ausencia de credenciales sí corren en `npm test`.
+- Usar `scripts/` del skill para formateo de reportes.
 
 ## Observabilidad y debugging
 

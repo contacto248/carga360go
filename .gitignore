@@ -45,6 +45,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Python del skill (no versionar bytecode)
+__pycache__/
+*.pyc
+
 # Playwright local (el e2e no corre en CI; nunca subir sesión)
 /test-results/
 /playwright-report/
