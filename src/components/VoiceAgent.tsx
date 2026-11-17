@@ -7,9 +7,9 @@ import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 import { avatarPublicStatus, type AvatarPublicStatus } from "@/lib/agent/avatar";
 
 /**
- * FAB único Carga360 (texto y voz). Marca visible en textos: Carga360go.
- * Absorbe WhatsApp y las acciones del antiguo Asistente/chat web.
- * Voz: Web Speech API del navegador (speechSynthesis + SpeechRecognition) en es-CL / es-ES.
+ * Un solo FAB: AI.CARGA360. En el sitio público abre /agente-360go.
+ * En /admin/bassam el mismo botón abre el panel (modo ejecutivo), sin un segundo flotante.
+ * Voz del panel: Web Speech API (speechSynthesis + SpeechRecognition) en es-CL / es-ES.
  * No se graba ni se guarda audio: solo se envía el texto reconocido. Sin claves ni servicios de pago.
  */
 type Msg = { id: string; role: "user" | "assistant"; text: string; at: string };
@@ -74,28 +74,31 @@ export function VoiceAgentLauncher({ waNumber, waText }: { waNumber: string; waT
     setHidden(path.startsWith("/admin") && !onBassam);
   }, []);
   if (hidden) return null;
+  function openAgent() {
+    if ("speechSynthesis" in window) window.speechSynthesis.resume();
+    if (bassam) {
+      setOpen(true);
+      return;
+    }
+    window.location.assign("/agente-360go");
+  }
   return (
     <div className={`help-dock${open ? " is-open" : ""}`}>
-      {bassam ? (
-        <button type="button" className="help-fab help-exec" onClick={() => { if ("speechSynthesis" in window) window.speechSynthesis.resume(); setOpen(true); }} aria-expanded={open} aria-controls="c360-agent-panel">
-          Asistente IA ejecutivo
-        </button>
-      ) : null}
-            {open ? <AgentPanel waNumber={waNumber} waText={waText} onClose={() => setOpen(false)} executive={bassam} /> : null}
+      {open ? <AgentPanel waNumber={waNumber} waText={waText} onClose={() => setOpen(false)} executive={bassam} /> : null}
       {!open ? (
         <button
           type="button"
           className="help-fab agent-fab"
-          onClick={() => { if ("speechSynthesis" in window) window.speechSynthesis.resume(); setOpen(true); }}
+          onClick={openAgent}
           aria-expanded={false}
           aria-controls="c360-agent-panel"
-          aria-label="Abrir Carga360"
+          aria-label="Abrir AI.CARGA360"
         >
           <AgentAvatar state="idle" size={28} className="agent-fab-avatar" label="Carga360go" />
-          <span>Carga360</span>
+          <span>AI.CARGA360</span>
         </button>
       ) : (
-        <button type="button" className="help-fab is-close" onClick={() => setOpen(false)} aria-expanded={true} aria-controls="c360-agent-panel" aria-label="Cerrar Carga360">
+        <button type="button" className="help-fab is-close" onClick={() => setOpen(false)} aria-expanded={true} aria-controls="c360-agent-panel" aria-label="Cerrar AI.CARGA360">
           ✕
         </button>
       )}
@@ -345,8 +348,8 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
       <header className="chat-head">
         <AgentAvatar state={avatarState} size={44} className="agent-head-avatar" label="Carga360go" />
         <div className="chat-head-copy">
-          {executive ? <h2 id={titleId}>Asistente IA ejecutivo</h2> : <h2 id={titleId}>Carga360</h2>}
-          <p>Asistente · español de Chile · Carga360go</p>
+          <h2 id={titleId}>AI.CARGA360</h2>
+          <p>AI.CARGA360 · español de Chile · Carga360go</p>
         </div>
         <div className="chat-head-actions">
           {ttsSupported ? (
@@ -357,7 +360,7 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
           <button type="button" className="chat-x" onClick={reset} aria-label="Nueva conversación" title="Nueva conversación" disabled={enabled === false}>
             ↺
           </button>
-          <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar Carga360">
+          <button type="button" className="chat-x" onClick={onClose} aria-label="Cerrar AI.CARGA360">
             ✕
           </button>
         </div>
@@ -474,7 +477,7 @@ function AgentPanel({ waNumber, waText, onClose, executive = false }: { waNumber
                 ? "Detener el micrófono"
                 : micDenied
                   ? "Reintentar permiso de micrófono"
-                  : "Hablar con Carga360go"
+                  : "Hablar con AI.CARGA360"
             }
             title={micDenied ? "Sin permiso de micrófono" : listening ? "Micrófono activo" : "Hablar"}
           >

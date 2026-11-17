@@ -23,6 +23,18 @@ const nextConfig: NextConfig = {
     ].join("; ");
     return [
       {
+        source: "/manifest.webmanifest",
+        headers: [{ key: "Vary", value: "Referer" }],
+      },
+      {
+        source: "/agente-360go/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-cache" },
+          { key: "Service-Worker-Allowed", value: "/agente-360go" },
+        ],
+      },
+      {
         source: "/:path*",
         // nosniff, X-Frame-Options, Referrer-Policy, Permissions-Policy y HSTS los agrega nginx.
         headers: [

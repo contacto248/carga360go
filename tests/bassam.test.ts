@@ -237,7 +237,8 @@ test("el asistente ejecutivo usa el mismo prompt y el botón está sobre el chat
   assert.equal(executive.includes("manychat"), false);
   // Decisión Gerencia 16-11: el chat flotante antiguo se retiró (T-064); el modo ejecutivo vive en VoiceAgent, solo en /admin/bassam.
   const voice = fs.readFileSync(new URL("../src/components/VoiceAgent.tsx", import.meta.url), "utf8");
-  assert.match(voice, /Asistente IA ejecutivo/);
+  assert.match(voice, /AI\.CARGA360/);
+  assert.doesNotMatch(voice, /Asistente IA ejecutivo/);
   assert.match(voice, /executive: true/);
   assert.match(voice, /\/admin\/bassam/);
   const whatsapp = fs.readFileSync(new URL("../src/lib/whatsapp/config.ts", import.meta.url), "utf8");

@@ -88,7 +88,7 @@ export default function TecnologiaPage() {
               <li>
                 <span className="tower-n">04</span>
                 <div>
-                  <strong>Agente Carga360go</strong>
+                  <strong>AI.CARGA360</strong>
                   <p>Voz y texto en el navegador (Web Speech API), sin claves de pago.</p>
                 </div>
               </li>
@@ -186,7 +186,7 @@ export default function TecnologiaPage() {
         <div className="wrap">
           <div className="cta-band">
             <h2>Ver la plataforma en acción</h2>
-            <p>Publica una carga o un camión, o habla con el Agente Carga360go desde cualquier página pública.</p>
+            <p>Publica una carga o un camión, o habla con AI.CARGA360 desde cualquier página pública.</p>
             <div className="cta">
               <Link className="btn" href="/registro">
                 Crear cuenta

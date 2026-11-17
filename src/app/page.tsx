@@ -302,7 +302,7 @@ export default async function HomePage() {
             <h2>Publica tu primera carga o tu camión</h2>
             <p>
               Registra tu empresa o tu cuenta de transportista, o escríbenos a {BRAND.email} o al WhatsApp publicado en
-              el sitio. Escribe al Agente Carga360go desde el botón «Carga360».
+              el sitio. Escribe a AI.CARGA360 desde el botón «AI.CARGA360».
             </p>
             <div className="cta">
               <Link className="btn" href="/registro">

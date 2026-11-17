@@ -31,7 +31,7 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   assert.doesNotMatch(home, /costo real/i);
   assert.match(home, /Empresas y mandantes/);
   assert.match(home, /Transportistas/);
-  assert.match(home, /Agente Carga360go/);
+  assert.match(home, /AI\.CARGA360/);
   assert.match(home, /Decide mejor y más rápido/);
   assert.match(home, /Eficiencia operativa/);
   assert.match(home, /Crece con respaldo/);
@@ -42,7 +42,7 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
   assert.match(home, /id="faq"/);
-  assert.match(home, /Escribe al Agente Carga360go/);
+  assert.match(home, /Escribe a AI\.CARGA360/);
   assert.doesNotMatch(home, /Hablar con el Agente|También puede hablarte/i);
   // Portada corta: verticales/equipos viven en /tecnologia (no en el fold).
   assert.doesNotMatch(home, /Equipos con ficha técnica/);
@@ -56,8 +56,9 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(footer, /VoiceAgent/);
   assert.doesNotMatch(footer, /ChatWidget|HelpLauncher|webChatEnabled/);
   const agent = read("src/components/VoiceAgent.tsx");
-  assert.match(agent, />Carga360</);
-  assert.match(agent, /id=\{titleId\}>Carga360</);
+  assert.match(agent, />AI\.CARGA360</);
+  assert.match(agent, /id=\{titleId\}>AI\.CARGA360</);
+  assert.match(agent, /\/agente-360go/);
   assert.match(agent, /Carga360go/);
   assert.match(agent, /Continuar por WhatsApp/);
   assert.match(agent, /speechSynthesis/);
