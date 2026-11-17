@@ -6,6 +6,7 @@
  * Los handlers son funciones puras Request -> Response para poder probarlos sin Next.
  */
 import { accreditationOf } from "./accreditation";
+import { assertSameOrigin } from "./api";
 import { audit } from "./audit";
 import { notifyDocumentUploaded, notifyNewRegistration } from "./admin-notify";
 import fs from "fs";
@@ -55,10 +56,12 @@ function noContent(): Response {
   return new Response(null, { status: 204, headers: NO_STORE });
 }
 
-/** Envuelve un handler: errores conocidos -> {error} con su código; el resto -> 500 genérico. */
+/** Envuelve un handler: errores conocidos -> {error} con su código; el resto -> 500 genérico.
+ *  Las mutaciones usan el mismo assertSameOrigin que la web. Bearer sin cookie queda exento. */
 export function mobile(handler: (request: Request, id?: string) => Promise<Response> | Response) {
   return async (request: Request, id?: string): Promise<Response> => {
     try {
+      if (request.method !== "GET" && request.method !== "HEAD") assertSameOrigin(request);
       return await handler(request, id);
     } catch (error) {
       if (error instanceof AppError) return json(error.code ? { error: error.message, code: error.code } : { error: error.message }, error.status);
