@@ -1,0 +1,641 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://carga360go.cl/schemas/solicitud-transporte/1.1.0",
+  "title": "Solicitud de transporte Carga360go v1.1",
+  "description": "PROPUESTA. Entrada al motor de validación. Los nombres siguen LoadInput (src/lib/listings.ts) y EQUIPMENT_IDS (src/lib/types.ts). Los rangos numéricos son propuesta configurable, no normativa.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "origin",
+    "destination",
+    "equipment",
+    "cargo",
+    "pickupWindow"
+  ],
+  "properties": {
+    "meta": {
+      "$ref": "#/$defs/meta"
+    },
+    "origin": {
+      "$ref": "#/$defs/place"
+    },
+    "destination": {
+      "$ref": "#/$defs/place"
+    },
+    "equipment": {
+      "description": "Igual a EQUIPMENT_IDS en src/lib/types.ts.",
+      "enum": [
+        "rampla_plana",
+        "sider",
+        "furgon_seco",
+        "refrigerado",
+        "cama_baja",
+        "tolva",
+        "estanque",
+        "portacontenedor",
+        "camion_34",
+        "portaautos",
+        "peligrosa",
+        "otro"
+      ]
+    },
+    "cargo": {
+      "$ref": "#/$defs/cargo"
+    },
+    "pickupWindow": {
+      "$ref": "#/$defs/window"
+    },
+    "deliveryWindow": {
+      "$ref": "#/$defs/window"
+    },
+    "requirements": {
+      "$ref": "#/$defs/requirements"
+    },
+    "contact": {
+      "$ref": "#/$defs/contact"
+    },
+    "commercial": {
+      "$ref": "#/$defs/commercial"
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2000
+    }
+  },
+  "$defs": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "channel",
+        "idempotencyKey"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "enum": [
+            "1.0.0",
+            "1.1.0"
+          ]
+        },
+        "testData": {
+          "type": "boolean",
+          "description": "v1.1 (PLAYBOOK_OPS_DISPATCH.md §2.1). Marca de datos de prueba, además de la llave EJEMPLO- y de notes con EJEMPLO. Solo con schemaVersion 1.1.0."
+        },
+        "channel": {
+          "enum": [
+            "web",
+            "app",
+            "whatsapp",
+            "bot",
+            "telefono",
+            "api"
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{15,127}$"
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "locale": {
+          "const": "es-CL"
+        },
+        "botId": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "conversationId": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "draftLeadCode": {
+          "type": "string",
+          "pattern": "^C360-[A-Z0-9]{6}$"
+        },
+        "suggestedFields": {
+          "description": "Campos que propuso la IA o una regla. El motor los revalida como cualquier otro dato.",
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "source"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^(/[^/]+)+$",
+                "description": "JSON Pointer (RFC 6901) al campo sugerido."
+              },
+              "source": {
+                "enum": [
+                  "ia",
+                  "regla",
+                  "cuenta",
+                  "historial"
+                ]
+              },
+              "model": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "confirmedByUser": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        }
+      },
+      "if": {
+        "required": [
+          "testData"
+        ]
+      },
+      "then": {
+        "properties": {
+          "schemaVersion": {
+            "const": "1.1.0"
+          }
+        }
+      }
+    },
+    "place": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "comuna"
+          ]
+        },
+        {
+          "required": [
+            "comunaCut"
+          ]
+        }
+      ],
+      "properties": {
+        "address": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "comuna": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "comunaCut": {
+          "type": "string",
+          "pattern": "^[0-9]{5}$"
+        },
+        "region": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "regionCut": {
+          "type": "string",
+          "pattern": "^[0-9]{2}$"
+        },
+        "coords": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "lat",
+            "lng"
+          ],
+          "properties": {
+            "lat": {
+              "type": "number",
+              "minimum": -56.6,
+              "maximum": -17.4
+            },
+            "lng": {
+              "type": "number",
+              "minimum": -109.5,
+              "maximum": -66.0
+            },
+            "source": {
+              "enum": [
+                "usuario",
+                "gps",
+                "geocodificador",
+                "catalogo"
+              ]
+            }
+          }
+        },
+        "siteType": {
+          "enum": [
+            "bodega",
+            "puerto",
+            "faena_minera",
+            "planta",
+            "obra",
+            "domicilio",
+            "otro"
+          ]
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "maxLength": 12
+        }
+      }
+    },
+    "cargo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "weight"
+      ],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 500
+        },
+        "cargoType": {
+          "enum": [
+            "general",
+            "pallets",
+            "granel_solido",
+            "granel_liquido",
+            "contenedor",
+            "maquinaria",
+            "vehiculos",
+            "refrigerada",
+            "peligrosa",
+            "mudanza",
+            "otro"
+          ]
+        },
+        "weight": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/quantity"
+            }
+          ],
+          "properties": {
+            "unit": {
+              "enum": [
+                "kg",
+                "t"
+              ]
+            }
+          }
+        },
+        "dimensions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "length",
+            "width",
+            "height",
+            "unit"
+          ],
+          "properties": {
+            "length": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "unit": {
+              "enum": [
+                "cm",
+                "m"
+              ]
+            }
+          }
+        },
+        "volume": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/quantity"
+            }
+          ],
+          "properties": {
+            "unit": {
+              "enum": [
+                "m3",
+                "l"
+              ]
+            }
+          }
+        },
+        "pallets": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "packages": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "indivisible": {
+          "type": "boolean"
+        },
+        "specs": {
+          "description": "Campos propios del equipo (loadFields de EQUIPMENT en src/lib/catalog.ts). Se pasan a cleanSpecs().",
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "from"
+          ]
+        },
+        {
+          "required": [
+            "date"
+          ]
+        }
+      ],
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date",
+          "description": "Solo día (YYYY-MM-DD, hora de Chile). Compatible con pickupDate actual."
+        },
+        "from": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 con offset, ej. 2026-11-20T08:00:00-03:00."
+        },
+        "to": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "flexible": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "accreditation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "Ids de DOC_CATALOG y LEGACY_DOC_LABELS (src/lib/catalog.ts) más los marcados (nuevo) en la sección 2.4.",
+          "enum": [
+            "licencia",
+            "cedula",
+            "hoja_vida",
+            "antecedentes",
+            "manejo_defensivo",
+            "induccion",
+            "padron",
+            "revision",
+            "permiso",
+            "soap",
+            "seguro_carga",
+            "gases",
+            "acred_ingreso",
+            "res_sanitaria",
+            "aut_peligrosa",
+            "permiso_sobredim",
+            "acreditacion_minera",
+            "induccion_faena",
+            "otra"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Ej. clase de licencia A4/A5, nombre de la faena o del recinto."
+        }
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dangerous": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "unNumber": {
+              "type": "string",
+              "pattern": "^(UN|ONU)? ?[0-9]{4}$"
+            },
+            "class": {
+              "type": "string",
+              "pattern": "^[1-9](\\.[1-6])?$"
+            },
+            "packingGroup": {
+              "enum": [
+                "I",
+                "II",
+                "III"
+              ]
+            },
+            "properShippingName": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "sdsAvailable": {
+              "type": "boolean",
+              "description": "Hoja de Datos de Seguridad disponible (DS 298, art. 30 b)."
+            }
+          }
+        },
+        "refrigerated": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "targetC": {
+              "type": "number",
+              "minimum": -80,
+              "maximum": 60
+            },
+            "minC": {
+              "type": "number",
+              "minimum": -80,
+              "maximum": 60
+            },
+            "maxC": {
+              "type": "number",
+              "minimum": -80,
+              "maximum": 60
+            }
+          }
+        },
+        "mining": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "faena": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "mandanteMinero": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "inductionRequired": {
+              "type": "boolean"
+            },
+            "accreditations": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "$ref": "#/$defs/accreditation"
+              }
+            }
+          }
+        },
+        "accreditations": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/accreditation"
+          }
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "required": [
+            "phone"
+          ]
+        },
+        {
+          "required": [
+            "email"
+          ]
+        },
+        {
+          "required": [
+            "useAccountContact"
+          ],
+          "properties": {
+            "useAccountContact": {
+              "const": true
+            }
+          }
+        }
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 160
+        },
+        "preferredChannel": {
+          "enum": [
+            "whatsapp",
+            "telefono",
+            "email"
+          ]
+        },
+        "useAccountContact": {
+          "type": "boolean"
+        }
+      }
+    },
+    "commercial": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "budgetClp": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "offerHours": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 720
+        },
+        "allowImprove": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "soloVerificados": {
+          "type": "boolean"
+        },
+        "inmediata": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
