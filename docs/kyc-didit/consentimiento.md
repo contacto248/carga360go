@@ -1,7 +1,7 @@
 # Consentimiento para la verificación de identidad (datos biométricos)
 
 > **Estado:** aprobado para publicarse **junto con** `KYC_FEATURE_ENABLED=true` (Bastián, 11-nov-2026; texto revisado por un abogado).
-> Es el mismo texto de `src/lib/kyc/consent.ts` (versión `kyc-1.0-2026-11-11`).
+> Es el mismo texto de `src/lib/kyc/consent.ts` (versión `kyc-1.1-2026-11-17`).
 > Con el flag apagado no se muestra ni se publica.
 >
 > **Pendiente de confirmación de Bastián (no bloquea el texto, pero hay que confirmarlo antes de producción):**
@@ -9,7 +9,7 @@
 
 **Consentimiento para verificar tu identidad (datos biométricos)**
 
-CARGA360GO SpA (RUT 78.553.352-6, Colón 352 of. 318, La Serena) necesita verificar la identidad de cada persona que usa Carga360go, sea mandante o transportista, para evitar suplantaciones y fraudes en la contratación de fletes.
+CARGA360GO SpA (RUT 78.553.352-6), que opera solo en línea en Chile, necesita verificar la identidad de cada persona que usa Carga360go, sea mandante o transportista, para evitar suplantaciones y fraudes en la contratación de fletes.
 
 Para eso te pediremos una foto de tu cédula de identidad chilena (por ambos lados) y una selfie en video corta. Con ellas se comprueba que la cédula es auténtica y está vigente, que eres una persona real presente en ese momento (prueba de vida) y que tu rostro coincide con la foto de la cédula. La imagen de tu rostro y su comparación son datos biométricos, que la Ley 21.719 considera datos personales sensibles.
 

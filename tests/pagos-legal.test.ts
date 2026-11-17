@@ -22,13 +22,13 @@ function withEnv(env: Record<string, string | undefined>, fn: () => void) {
   }
 }
 
-test("textos de pagos publicados con el cobro apagado: versiones 1.1/1.4 y aviso de disponibilidad", () => {
+test("textos de pagos publicados con el cobro apagado: versiones 1.3/1.7 y aviso de disponibilidad", () => {
   withEnv({ PAYMENTS_FEATURE_ENABLED: "false", PAYMENTS_LEGAL_PUBLISHED: "true", KYC_FEATURE_ENABLED: undefined }, () => {
     assert.equal(paymentsEnabled(), false);
     assert.equal(paymentsLegalPublished(), true);
     assert.equal(paymentsComingSoon(), true);
-    assert.equal(termsVersion(), "1.1-2026-11-11");
-    assert.equal(privacyVersion(), "1.4-2026-11-11");
+    assert.equal(termsVersion(), "1.3-2026-11-17");
+    assert.equal(privacyVersion(), "1.7-2026-11-17");
     const terms = termsSections();
     const pagos = terms.find((s) => s.id === "pagos");
     assert.ok(pagos);
@@ -48,11 +48,11 @@ test("con el cobro encendido no aparece el aviso de disponibilidad", () => {
   });
 });
 
-test("sin flags se mantienen los textos publicados antes (1.0 / 1.2)", () => {
+test("sin flags se publican los textos vigentes (1.2 / 1.5), sin la sección de pagos", () => {
   withEnv({ PAYMENTS_FEATURE_ENABLED: undefined, PAYMENTS_LEGAL_PUBLISHED: undefined, KYC_FEATURE_ENABLED: undefined }, () => {
     assert.equal(paymentsLegalPublished(), false);
-    assert.equal(termsVersion(), "1.0-2026-11-10");
-    assert.equal(privacyVersion(), "1.2-2026-11-10");
+    assert.equal(termsVersion(), "1.2-2026-11-17");
+    assert.equal(privacyVersion(), "1.5-2026-11-17");
     assert.ok(!termsSections().some((s) => s.id === "pagos"));
   });
 });

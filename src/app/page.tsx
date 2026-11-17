@@ -11,7 +11,35 @@ import { formatDateCL, waLink } from "@/lib/format";
 import { RegionsDashboard } from "@/components/RegionsDashboard";
 import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
 
-export const metadata: Metadata = { alternates: { canonical: "/" } };
+const HOME_TITLE = "Carga360go — Cargas y camiones de transporte en todo Chile, de Arica a Punta Arenas";
+const HOME_DESCRIPTION =
+  "Busca carga en Chile, retornos y camiones disponibles para carga. Plataforma tecnológica automatizada de transporte por regiones de Arica a Punta Arenas. Mira nuestro video.";
+
+export const metadata: Metadata = {
+  description: HOME_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    locale: "es_CL",
+    type: "website",
+    siteName: "Carga360go",
+    images: [
+      {
+        url: "https://www.carga360go.cl/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Carga360go — Cargas y camiones en todo Chile",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    images: ["https://www.carga360go.cl/og.jpg"],
+  },
+};
 
 const FAQ = [
   {
@@ -81,11 +109,11 @@ export default async function HomePage() {
       <section className="hero hero2">
         <div className="wrap hero-grid">
           <div>
-            <span className="pill hero-pill">30 días gratis por cuenta · 16 regiones · de Arica a Punta Arenas</span>
-            <h1>Conectamos cargas y camiones. Movemos la industria de Chile.</h1>
+            <span className="pill hero-pill">16 regiones · de Arica a Punta Arenas</span>
+            <h1>Busca carga en Chile, retornos y camiones disponibles</h1>
             <p>
-              Publica tu carga o tu camión, encuentra coincidencias por ruta, fecha y equipo, y coordina en directo. Menos
-              viajes en vacío, sin comisión por el flete.
+              Plataforma tecnológica automatizada de transporte por regiones, de Arica a Punta Arenas. Publica tu carga o tu
+              camión y revisa coincidencias por ruta, fecha y equipo.
             </p>
             <QuickSearch />
             <div className="cta">
@@ -233,7 +261,7 @@ export default async function HomePage() {
         <div className="wrap">
           <div className="rdash-head">
             <div>
-              <h2>Cobertura</h2>
+              <h2>Cobertura de Arica a Punta Arenas</h2>
               <p className="lead">
                 Operamos en las 16 regiones, de Arica a Punta Arenas. Para arrancar con actividad útil, priorizamos tres
                 corredores piloto: Calama–Antofagasta, Calama–Copiapó y Antofagasta–Copiapó. Esa prioridad se confirma o se

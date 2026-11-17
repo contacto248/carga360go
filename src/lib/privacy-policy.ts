@@ -10,7 +10,7 @@ import { privacyUpdated, privacyVersion, PRIVACY_UPDATED, PRIVACY_VERSION } from
 
 /**
  * Texto único de la Política de Privacidad. Lo usan la página /privacidad y el generador del PDF/DOCX
- * (scripts/export-legal-docs.py). La versión 1.3 (verificación de identidad) solo se incluye
+ * (scripts/export-legal-docs.py). La versión 1.6 (verificación de identidad) solo se incluye
  * con KYC_FEATURE_ENABLED=true, junto con el resto del módulo. Ver policyMeta() y policySections().
  */
 export type PolicyBlock = string | { list: string[] } | { table: [string, string][] };
@@ -53,7 +53,8 @@ export const POLICY_SECTIONS: PolicySection[] = [
           ["Razón social", `${RAZON} (${BRAND.company})`],
           ["Nombre de fantasía", "Carga360go / Carga 360 Go"],
           ["RUT", BRAND.rut],
-          ["Domicilio", "Colón 352, oficina 318, La Serena, Región de Coquimbo, Chile"],
+          ["País", "Chile"],
+          ["Operación", "Solo en línea"],
           ["Representante legal", `${BRAND.manager} (Gerente General y Administrador)`],
           ["Correo de contacto y de privacidad", BRAND.email],
           ["Teléfono / WhatsApp", PHONE],
@@ -229,7 +230,7 @@ export const POLICY_SECTIONS: PolicySection[] = [
           "Retirar tu consentimiento en cualquier momento.",
         ],
       },
-      `Cómo ejercerlos: escribe a ${BRAND.email} con el asunto «Derechos de datos personales», indicando tu nombre, RUT, el correo de tu cuenta y qué derecho quieres ejercer. Para proteger tu cuenta podremos pedirte que confirmes tu identidad. También puedes enviarla por escrito a Colón 352, oficina 318, La Serena.`,
+      `Cómo ejercerlos: escribe a ${BRAND.email} con el asunto «Derechos de datos personales», indicando tu nombre, RUT, el correo de tu cuenta y qué derecho quieres ejercer. Para proteger tu cuenta podremos pedirte que confirmes tu identidad.`,
       "Plazo: acusaremos recibo y responderemos por escrito dentro de los plazos legales. Con la Ley N° 21.719, el plazo es de 30 días corridos desde la solicitud, prorrogable por una sola vez hasta por otros 30 días, avisándote. Las solicitudes de bloqueo temporal se responden dentro de 2 días hábiles.",
       "Si rechazamos total o parcialmente tu solicitud te explicaremos el motivo. Si no quedas conforme, o si no respondemos a tiempo, puedes reclamar ante la Agencia de Protección de Datos Personales dentro de 30 días hábiles (desde su entrada en funcionamiento) o ante los tribunales competentes.",
     ],
@@ -253,14 +254,14 @@ export const POLICY_SECTIONS: PolicySection[] = [
     title: "15. Cambios a esta política",
     blocks: [
       `Podemos actualizar esta política por cambios legales o del servicio. Publicaremos la nueva versión en ${SITE}/privacidad con su fecha y número de versión. Si los cambios son importantes, te avisaremos por correo y, cuando la ley lo exija, te pediremos aceptarla nuevamente. Guardamos qué versión aceptó cada usuario y cuándo.`,
-      "Historial: versión 1.0 (10 de noviembre de 2026), publicación inicial. Versión 1.1 (10 de noviembre de 2026): los datos de contacto se revelan solo al adjudicar una oferta y solo entre las dos partes, y solo las cuentas 100% acreditadas pueden publicar, ofertar y recibir contactos. Versión 1.2 (10 de noviembre de 2026): campaña de inscripción con 30 días gratis por cuenta desde su inscripción y futura membresía (valores por definir); se guarda la fecha de término del periodo gratis; la aceptación se pide junto con los Términos de uso.",
+      "Historial: versión 1.0 (10 de noviembre de 2026), publicación inicial. Versión 1.1 (10 de noviembre de 2026): los datos de contacto se revelan solo al adjudicar una oferta y solo entre las dos partes, y solo las cuentas 100% acreditadas pueden publicar, ofertar y recibir contactos. Versión 1.2 (10 de noviembre de 2026): campaña de inscripción con 30 días gratis por cuenta desde su inscripción y futura membresía (valores por definir); se guarda la fecha de término del periodo gratis; la aceptación se pide junto con los Términos de uso. Versión 1.5 (17 de noviembre de 2026): se elimina el domicilio de calle. Carga360go opera solo en línea, en Chile; el contacto es el correo y el WhatsApp indicados.",
     ],
   },
   {
     id: "contacto",
     title: "16. Contacto",
     blocks: [
-      `Para cualquier duda sobre esta política o tus datos: ${BRAND.email} · WhatsApp ${PHONE} · Colón 352, oficina 318, La Serena, Chile.`,
+      `Para cualquier duda sobre esta política o tus datos: ${BRAND.email} · WhatsApp ${PHONE}.`,
       `${CAMPAIGN_TEXT} ${CAMPAIGN_PROMISE} El detalle está en los Términos de uso (${SITE}/terminos).`,
     ],
   },
@@ -283,13 +284,21 @@ const KYC_POLICY_SECTION: PolicySection = {
   ],
 };
 
-/** Política vigente: con el flag incluye la sección 17 y ajustes relacionados; sin el flag, la 1.2 publicada. */
+/** Política vigente: con el flag incluye la sección 17 y ajustes relacionados; sin el flag, la 1.5 publicada. */
 export function policySections(): PolicySection[] {
   const base = kycPolicySections();
   return paymentsLegalPublished() ? withPayments(base) : base;
 }
 
 const NO_PAYMENTS_SENTENCE = "No recopilamos datos de tarjetas ni de medios de pago: hoy la plataforma no tiene un sistema de pago.";
+const ADDRESS_HISTORY_MARKER = " Versión 1.5 (17 de noviembre de 2026):";
+
+/** Inserta una nota de historial antes del cambio de domicilio, para conservar el orden de versiones. */
+function insertHistoryNote(block: string, note: string): string {
+  const at = block.indexOf(ADDRESS_HISTORY_MARKER);
+  if (at === -1) return `${block}${note}`;
+  return `${block.slice(0, at)}${note}${block.slice(at)}`;
+}
 
 /** Pago de fletes con Mercado Pago (PAYMENTS_FEATURE_ENABLED=true): corrige las frases sobre pagos y agrega una sección. */
 function withPayments(sections: PolicySection[]): PolicySection[] {
@@ -305,7 +314,8 @@ function withPayments(sections: PolicySection[]): PolicySection[] {
           );
         }
         if (block.startsWith("Historial:")) {
-          return `${block} Versión 1.4 (11 de noviembre de 2026): pago de fletes con Mercado Pago (datos del pago, cuenta Mercado Pago del transportista y comprobantes de entrega) en la sección ${number}; versión borrador sujeta a revisión legal.`;
+          const note = ` Versión 1.4 (11 de noviembre de 2026): pago de fletes con Mercado Pago (datos del pago, cuenta Mercado Pago del transportista y comprobantes de entrega) en la sección ${number}; versión borrador sujeta a revisión legal.`;
+          return `${insertHistoryNote(block, note)} Versión 1.7 (17 de noviembre de 2026): se mantiene el pago de fletes y queda eliminado el domicilio de calle; la operación es solo en línea, en Chile.`;
         }
         return block;
       }
@@ -383,7 +393,10 @@ function kycPolicySections(): PolicySection[] {
         ...section,
         blocks: section.blocks.map((block) =>
           typeof block === "string" && block.startsWith("Historial:")
-            ? `${block} Versión 1.3 (11 de noviembre de 2026): verificación de identidad con cédula y reconocimiento facial (datos biométricos) a cargo de Didit; no se consulta el Registro Civil; plazos de conservación de imágenes (30 días) y del resultado (hasta 12 meses tras el cierre de la cuenta) propuestos, pendientes de confirmación.`
+            ? `${insertHistoryNote(
+                block,
+                " Versión 1.3 (11 de noviembre de 2026): verificación de identidad con cédula y reconocimiento facial (datos biométricos) a cargo de Didit; no se consulta el Registro Civil; plazos de conservación de imágenes (30 días) y del resultado (hasta 12 meses tras el cierre de la cuenta) propuestos, pendientes de confirmación.",
+              )} Versión 1.6 (17 de noviembre de 2026): se mantiene la verificación de identidad y queda eliminado el domicilio de calle; la operación es solo en línea, en Chile.`
             : block,
         ),
       };

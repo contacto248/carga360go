@@ -7,7 +7,6 @@ export const BRAND = {
   whatsapp: "56958428693",
   whatsappDisplay: "+56 9 5842 8693",
   email: "contacto@carga360go.cl",
-  address: "Colón 352, oficina 318, La Serena, Región de Coquimbo",
   manager: "Bastián Andrés Salas Moraleda",
   infoMessage: "Hola Carga 360 Go, quiero información",
   whatsappChannel: "https://whatsapp.com/channel/0029Vb8rA9T6xCSJPzzp1z2k",

@@ -38,7 +38,7 @@ for s in d["sections"]:
                 c[0].width = Cm(5); c[1].width = Cm(11.5)
             doc.add_paragraph()
 foot = sec.footer.paragraphs[0]
-foot.text = "CARGA360 GO SpA · RUT 78.553.352-6 · Colón 352 of. 318, La Serena · contacto@carga360go.cl · +56 9 5842 8693"
+foot.text = "CARGA360 GO SpA · RUT 78.553.352-6 · Chile · contacto@carga360go.cl · +56 9 5842 8693"
 foot.alignment = WD_ALIGN_PARAGRAPH.CENTER; foot.runs[0].font.size = Pt(8)
 out = os.path.join(outdir, base + ".docx"); doc.save(out)
 subprocess.run(["soffice", "--headless", "--convert-to", "pdf", "--outdir", outdir, out], check=True, capture_output=True)

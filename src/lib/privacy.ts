@@ -3,26 +3,25 @@ import { kycEnabled } from "./kyc/config";
 import { paymentsLegalPublished } from "./pagos/config";
 
 /** Versión publicada hoy (sin el módulo KYC). */
-export const PRIVACY_VERSION_BASE = "1.2-2026-11-10";
-export const PRIVACY_UPDATED_BASE = "10 de noviembre de 2026";
+export const PRIVACY_VERSION_BASE = "1.5-2026-11-17";
+export const PRIVACY_UPDATED_BASE = "17 de noviembre de 2026";
 /**
  * Versión que se publica junto con KYC_FEATURE_ENABLED=true
  * (adición de verificación de identidad y datos biométricos).
  */
-export const PRIVACY_VERSION_KYC = "1.3-2026-11-11";
-export const PRIVACY_UPDATED_KYC = "11 de noviembre de 2026";
+export const PRIVACY_VERSION_KYC = "1.6-2026-11-17";
+export const PRIVACY_UPDATED_KYC = "17 de noviembre de 2026";
 
 /**
- * Versión vigente según el flag. Con el flag apagado se mantiene la 1.2
- * (la política publicada no cambia). Al encenderlo, sube a 1.3 y el sitio
- * pide a todas las cuentas aceptarla de nuevo.
+ * Versión vigente según el flag. Con el flag apagado se publica la 1.5.
+ * Al encender KYC, sube a 1.6 y el sitio pide a todas las cuentas aceptarla de nuevo.
  */
 /**
  * Versión que se usa con PAYMENTS_FEATURE_ENABLED=true (pago de fletes con Mercado Pago).
  * Solo staging mientras el flag siga apagado en producción.
  */
-export const PRIVACY_VERSION_PAYMENTS = "1.4-2026-11-11";
-export const PRIVACY_UPDATED_PAYMENTS = "11 de noviembre de 2026";
+export const PRIVACY_VERSION_PAYMENTS = "1.7-2026-11-17";
+export const PRIVACY_UPDATED_PAYMENTS = "17 de noviembre de 2026";
 
 export function privacyVersion(): string {
   if (paymentsLegalPublished()) return PRIVACY_VERSION_PAYMENTS;
@@ -39,11 +38,11 @@ export const PRIVACY_VERSION = PRIVACY_VERSION_BASE;
 export const PRIVACY_UPDATED = PRIVACY_UPDATED_BASE;
 
 /** Versión vigente de los Términos de uso. Cambiarla cuando cambie el texto de /terminos. */
-export const TERMS_VERSION = "1.0-2026-11-10";
-export const TERMS_UPDATED = "10 de noviembre de 2026";
+export const TERMS_VERSION = "1.2-2026-11-17";
+export const TERMS_UPDATED = "17 de noviembre de 2026";
 /** Términos con el pago de fletes (PAYMENTS_FEATURE_ENABLED=true). Al cambiar la versión, el sitio pide aceptarlos de nuevo. */
-export const TERMS_VERSION_PAYMENTS = "1.1-2026-11-11";
-export const TERMS_UPDATED_PAYMENTS = "11 de noviembre de 2026";
+export const TERMS_VERSION_PAYMENTS = "1.3-2026-11-17";
+export const TERMS_UPDATED_PAYMENTS = "17 de noviembre de 2026";
 
 export function termsVersion(): string {
   return paymentsLegalPublished() ? TERMS_VERSION_PAYMENTS : TERMS_VERSION;

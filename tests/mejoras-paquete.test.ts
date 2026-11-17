@@ -44,7 +44,13 @@ function account(role: "transportista" | "mandante", name: string, city = "Santi
 
 test("la portada usa el copy del paquete y no promete acreditación 100% ni auditorías de calidad", () => {
   const home = read("src/app/page.tsx");
-  assert.match(home, /Conectamos cargas y camiones\. Movemos la industria de Chile\./);
+  assert.match(home, /Busca carga en Chile, retornos y camiones disponibles/);
+  assert.match(home, /de Arica a Punta Arenas/);
+  assert.equal((home.match(/<h1>/g) || []).length, 1);
+  assert.match(
+    home,
+    /Busca carga en Chile, retornos y camiones disponibles para carga\. Plataforma tecnológica automatizada de transporte por regiones de Arica a Punta Arenas\. Mira nuestro video\./,
+  );
   assert.match(home, /Soy transportista: encuentra cargas/);
   assert.match(home, /Soy empresa: encuentra camiones/);
   assert.match(home, /Calcular un flete referencial/);
