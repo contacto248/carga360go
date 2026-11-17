@@ -283,10 +283,34 @@ const KYC_POLICY_SECTION: PolicySection = {
   ],
 };
 
-/** Política vigente: con el flag incluye la sección 17 y ajustes relacionados; sin el flag, la 1.2 publicada. */
+/** Ancla estable de la sección Ley N° 21.719 (la barra de cookies enlaza /privacidad#ley-21719). */
+export const LEY_21719_SECTION_ID = "ley-21719";
+
+/**
+ * Sección añadida por orden de Gerencia (16-11-2026). No modifica el texto de las secciones anteriores.
+ * La fecha 01-12-2026 se usa solo como vigencia de la Ley N° 21.719.
+ */
+const LEY_21719_SECTION: PolicySection = {
+  id: LEY_21719_SECTION_ID,
+  title: "Ley N° 21.719 de Protección de Datos Personales",
+  blocks: [
+    `La Ley N° 21.719 de Protección de Datos Personales está vigente desde el 1 de diciembre de 2026 (01-12-2026).`,
+    `Responsable del tratamiento: ${BRAND.name}, razón social ${RAZON} (${BRAND.company}). El correo de contacto y de privacidad es ${BRAND.email}.`,
+    "Qué datos se tratan y para qué. Tratamos los datos de la cuenta (tipo de cuenta, razón social o nombre, RUT, nombre de contacto, correo, WhatsApp o teléfono, región y ciudad, y la contraseña solo como huella cifrada), la verificación y la acreditación, los documentos de transportistas, las publicaciones de cargas y camiones, las ofertas, las alertas que activas, los datos técnicos (dirección IP, fecha y hora, navegador o aplicación y registros del servidor) y las comunicaciones que nos envías. Los usamos para crear y administrar la cuenta, acreditar usuarios, publicar y sugerir coincidencias entre cargas y camiones, poner en contacto al mandante y al transportista elegido solo cuando se adjudica una oferta, enviar avisos del servicio, mantener la seguridad y cumplir obligaciones legales.",
+    "Base legal. Tu consentimiento, al aceptar esta política al registrarte y, para las cookies de HubSpot, al elegir «Aceptar» en la barra de cookies. La ejecución de la relación con el usuario (Términos de uso). El interés legítimo de mantener una plataforma segura, prevenir fraudes y acreditar a mandantes y transportistas. El cumplimiento de obligaciones legales.",
+    `Derechos del titular. Puedes pedir acceso, rectificación, supresión, oposición, portabilidad y bloqueo. Para ejercerlos escribe a ${BRAND.email} con el asunto «Derechos de datos personales», indicando tu nombre, RUT, el correo de tu cuenta y qué derecho quieres ejercer. Por ese mismo correo puedes retirar tu consentimiento. Responderemos dentro de los plazos que fija la Ley N° 21.719.`,
+    "Conservación. Los datos de la cuenta, las publicaciones, las ofertas y los documentos se guardan mientras la cuenta esté activa. Si pides eliminarla, la borramos dentro de 30 días corridos, salvo lo que debamos conservar por obligación legal o para defendernos ante reclamos. El registro de auditoría se conserva hasta 2 años y los registros técnicos del servidor hasta 90 días. Los códigos de verificación y los enlaces de recuperación vencen en horas o pocos días.",
+    "Terceros. HubSpot es opcional: solo cargamos sus cookies de medición o marketing si en la barra eliges «Aceptar». Si eliges «Solo necesarias», no se carga HubSpot. Los demás proveedores que tratan datos por nuestra cuenta están en la sección de proveedores de esta política.",
+    "Cookies. La cookie técnica «c360_session» mantiene tu sesión iniciada de forma segura y dura hasta 14 días o hasta que cierres sesión. Las cookies de HubSpot no son necesarias para usar el sitio y solo se usan con el consentimiento de la barra.",
+  ],
+};
+
+/** Política vigente: con el flag incluye la sección 17 y ajustes relacionados; sin el flag, la 1.2 publicada. Siempre incluye la sección de la Ley N° 21.719. */
 export function policySections(): PolicySection[] {
   const base = kycPolicySections();
-  return paymentsLegalPublished() ? withPayments(base) : base;
+  const sections = paymentsLegalPublished() ? withPayments(base) : base;
+  if (sections.some((section) => section.id === LEY_21719_SECTION_ID)) return sections;
+  return sections.concat(LEY_21719_SECTION);
 }
 
 const NO_PAYMENTS_SENTENCE = "No recopilamos datos de tarjetas ni de medios de pago: hoy la plataforma no tiene un sistema de pago.";
