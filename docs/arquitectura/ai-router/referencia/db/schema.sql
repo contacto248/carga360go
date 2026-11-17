@@ -1,0 +1,15 @@
+create extension if not exists pgcrypto;
+create table if not exists tenants(id uuid primary key default gen_random_uuid(),name text not null,active boolean not null default true,created_at timestamptz default now());
+create table if not exists users(id uuid primary key default gen_random_uuid(),tenant_id uuid not null references tenants(id),email citext not null,password_hash text not null,active boolean not null default true,mfa_enabled boolean not null default false,mfa_secret text,created_at timestamptz default now(),unique(tenant_id,email));
+create table if not exists roles(id uuid primary key default gen_random_uuid(),name text unique not null,description text);
+create table if not exists permissions(id uuid primary key default gen_random_uuid(),name text unique not null,description text);
+create table if not exists user_roles(user_id uuid references users(id) on delete cascade,role_id uuid references roles(id) on delete cascade,primary key(user_id,role_id));
+create table if not exists role_permissions(role_id uuid references roles(id) on delete cascade,permission_id uuid references permissions(id) on delete cascade,primary key(role_id,permission_id));
+create table if not exists revoked_tokens(jti uuid primary key,expires_at timestamptz not null);
+create table if not exists audit_logs(id bigserial primary key,event text not null,user_id uuid,tenant_id uuid,detail jsonb not null default '{}',created_at timestamptz default now());
+create table if not exists ai_usage(id bigserial primary key,trace_id uuid not null,user_id uuid not null,tenant_id uuid not null,provider text not null,model text not null,input_tokens int default 0,output_tokens int default 0,cost_usd numeric(14,8) default 0,latency_ms int,fallback_used boolean default false,created_at timestamptz default now());
+insert into permissions(name) values('ai.execute'),('audit.read'),('user.manage'),('role.assign') on conflict do nothing;
+insert into roles(name,description) values('SUPER_ADMIN','Control total'),('TENANT_ADMIN','Administra su empresa'),('AI_USER','Puede usar el orquestador'),('AUDITOR','Consulta auditoria y consumo') on conflict do nothing;
+insert into role_permissions select r.id,p.id from roles r cross join permissions p where r.name='SUPER_ADMIN' on conflict do nothing;
+insert into role_permissions select r.id,p.id from roles r join permissions p on p.name='ai.execute' where r.name='AI_USER' on conflict do nothing;
+insert into role_permissions select r.id,p.id from roles r join permissions p on p.name in('ai.execute','audit.read','user.manage','role.assign') where r.name='TENANT_ADMIN' on conflict do nothing;
