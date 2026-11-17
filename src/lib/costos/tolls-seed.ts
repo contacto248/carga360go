@@ -17,12 +17,16 @@ export function seedTolls(db: Database.Database) {
     `INSERT OR IGNORE INTO cost_toll_rates (id, plaza_id, category, rate_type, amount, valid_from, valid_to, source_id, checked_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
-  for (const s of TOLL_SOURCES) insSource.run(s.id, s.name, s.url, s.sha256, s.sha256, TOLLS_CHECKED_AT, TOLLS_CHECKED_AT);
+  for (const s of TOLL_SOURCES) {
+    const checked = s.checkedAt ?? TOLLS_CHECKED_AT;
+    insSource.run(s.id, s.name, s.url, s.sha256, s.sha256, checked, checked);
+  }
   for (const p of TOLL_PLAZAS) {
     const src = TOLL_SOURCES.find((s) => s.id === p.sourceId)!;
+    const checked = src.checkedAt ?? TOLLS_CHECKED_AT;
     insPlaza.run(p.id, p.name, p.concession, p.route, p.km, p.lat, p.lon, p.direction, p.scheme, p.kind, p.locationSource, p.locationNote, p.sourceId, p.note ?? null);
     for (const r of p.rates) {
-      insRate.run(`${p.id}:${r.category}:${r.rateType}:${src.validFrom}`, p.id, r.category, r.rateType, r.amount, src.validFrom, src.validTo, src.id, TOLLS_CHECKED_AT);
+      insRate.run(`${p.id}:${r.category}:${r.rateType}:${src.validFrom}`, p.id, r.category, r.rateType, r.amount, src.validFrom, src.validTo, src.id, checked);
     }
   }
 }

@@ -111,26 +111,170 @@ function notConnected(id: string, label: string, requirement: string): RouteProv
   };
 }
 
-/** Adaptadores de pago: quedan declarados y NO CONECTADOS hasta que Gerencia autorice clave y costo. */
-export const googleRoutesProvider = notConnected(
-  "google_routes",
-  "Google Routes API (perfil camión / peajes)",
-  "Requiere cuenta de Google Cloud con facturación y GOOGLE_ROUTES_API_KEY. Servicio de pago por solicitud.",
-);
+type GoogleStep = { distanceMeters?: number; navigationInstruction?: { instructions?: string } };
+type GoogleRouteBody = {
+  routes?: {
+    distanceMeters?: number;
+    duration?: string;
+    polyline?: { encodedPolyline?: string };
+    legs?: { steps?: GoogleStep[] }[];
+  }[];
+};
+
+function googleSeconds(value: string | undefined): number {
+  if (!value || !value.endsWith("s")) return Number.NaN;
+  return Number(value.slice(0, -1));
+}
+
+function stepsFromGoogle(legs: { steps?: GoogleStep[] }[] | undefined): RouteStep[] {
+  const steps: RouteStep[] = [];
+  for (const leg of legs ?? []) {
+    for (const step of leg.steps ?? []) {
+      const name = step.navigationInstruction?.instructions ?? "";
+      steps.push({
+        name,
+        ref: "",
+        distanceM: step.distanceMeters ?? 0,
+        toll: /peaje/i.test(name),
+        motorway: /autopista|ruta\s*\d/i.test(name),
+      });
+    }
+  }
+  return steps;
+}
+
+/** Respuesta de Routes API (computeRoutes). La polilínea es precisión 5. */
+export function parseGoogleRoutesBody(data: GoogleRouteBody): Omit<RouteResult, "via" | "viaLabel" | "cached"> {
+  const main = data.routes?.[0];
+  const distanceM = main?.distanceMeters;
+  const durationS = googleSeconds(main?.duration);
+  const encoded = main?.polyline?.encodedPolyline;
+  if (!main || !distanceM || !Number.isFinite(durationS) || !encoded) throw new SourceError("Google Routes no devolvió una ruta.");
+  return {
+    provider: "google_maps",
+    profile: "DRIVE",
+    truckAware: false,
+    distanceM,
+    durationS,
+    geometry: decodePolyline(encoded, 5),
+    steps: stepsFromGoogle(main.legs),
+    alternatives: [],
+    fetchedAt: new Date().toISOString(),
+    attribution: "Ruta: Google Maps (Routes API)",
+  };
+}
+
+type GoogleDirectionsBody = {
+  status?: string;
+  routes?: {
+    overview_polyline?: { points?: string };
+    legs?: { distance?: { value?: number }; duration?: { value?: number }; steps?: { distance?: { value?: number }; html_instructions?: string }[] }[];
+  }[];
+};
+
+/** Respuesta de Directions API. La polilínea general es precisión 5. */
+export function parseGoogleDirectionsBody(data: GoogleDirectionsBody): Omit<RouteResult, "via" | "viaLabel" | "cached"> {
+  const main = data.routes?.[0];
+  const legs = main?.legs ?? [];
+  const distanceM = legs.reduce((sum, leg) => sum + (leg.distance?.value ?? 0), 0);
+  const durationS = legs.reduce((sum, leg) => sum + (leg.duration?.value ?? 0), 0);
+  const encoded = main?.overview_polyline?.points;
+  if (data.status && data.status !== "OK") throw new SourceError("Google Directions no devolvió una ruta.");
+  if (!main || !distanceM || !durationS || !encoded) throw new SourceError("Google Directions no devolvió una ruta.");
+  const steps: RouteStep[] = [];
+  for (const leg of legs) {
+    for (const step of leg.steps ?? []) {
+      const name = (step.html_instructions ?? "").replace(/<[^>]+>/g, "");
+      steps.push({ name, ref: "", distanceM: step.distance?.value ?? 0, toll: /peaje/i.test(name), motorway: /autopista|ruta\s*\d/i.test(name) });
+    }
+  }
+  return {
+    provider: "google_maps",
+    profile: "driving",
+    truckAware: false,
+    distanceM,
+    durationS,
+    geometry: decodePolyline(encoded, 5),
+    steps,
+    alternatives: [],
+    fetchedAt: new Date().toISOString(),
+    attribution: "Ruta: Google Maps (Directions API)",
+  };
+}
+
+function googleKey(): string {
+  return process.env.GOOGLE_MAPS_API_KEY?.trim() ?? "";
+}
+
+/**
+ * Google Maps solo si GOOGLE_MAPS_API_KEY está en el entorno al ejecutar.
+ * La clave no se declara en el repositorio. Primero Routes API (la clave va en un header);
+ * si esa llamada falla, Directions API.
+ */
+export const googleMapsProvider: RouteProvider = {
+  id: "google_maps",
+  label: "Google Maps (Routes API, con Directions API de respaldo)",
+  truckAware: false,
+  requirement: "Se usa solo cuando el entorno del proceso tiene GOOGLE_MAPS_API_KEY. Sin esa variable queda inactivo y la ruta sale de OSRM.",
+  connected: () => googleKey().length > 0,
+  async route(points) {
+    const key = googleKey();
+    if (!key) throw new SourceError("Google Maps no está conectado.");
+    const origin = { location: { latLng: { latitude: points[0].lat, longitude: points[0].lon } } };
+    const destination = { location: { latLng: { latitude: points[points.length - 1].lat, longitude: points[points.length - 1].lon } } };
+    const intermediates = points.slice(1, -1).map((point) => ({ location: { latLng: { latitude: point.lat, longitude: point.lon } } }));
+    const payload: Record<string, unknown> = { origin, destination, travelMode: "DRIVE", languageCode: "es-CL", units: "METRIC" };
+    if (intermediates.length) payload.intermediates = intermediates;
+    try {
+      const response = await fetchSource("https://routes.googleapis.com/directions/v2:computeRoutes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": key,
+          "X-Goog-FieldMask": "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.steps.distanceMeters,routes.legs.steps.navigationInstruction",
+        },
+        body: JSON.stringify(payload),
+        timeoutMs: 30_000,
+      });
+      return parseGoogleRoutesBody((await response.json()) as GoogleRouteBody);
+    } catch {
+      const url = new URL("https://maps.googleapis.com/maps/api/directions/json");
+      url.searchParams.set("origin", `${points[0].lat},${points[0].lon}`);
+      url.searchParams.set("destination", `${points[points.length - 1].lat},${points[points.length - 1].lon}`);
+      if (intermediates.length) url.searchParams.set("waypoints", points.slice(1, -1).map((point) => `${point.lat},${point.lon}`).join("|"));
+      url.searchParams.set("language", "es");
+      url.searchParams.set("key", key);
+      const response = await fetchSource(url.toString(), { timeoutMs: 30_000 });
+      return parseGoogleDirectionsBody((await response.json()) as GoogleDirectionsBody);
+    }
+  },
+};
 export const hereProvider = notConnected(
   "here_truck",
   "HERE Routing v8 (transportMode=truck, peajes)",
   "Requiere cuenta HERE y HERE_API_KEY. Servicio con cuota gratuita y luego pago.",
 );
 
-export const ROUTE_PROVIDERS: RouteProvider[] = [osrmProvider, orsHgvProvider, googleRoutesProvider, hereProvider];
+export const ROUTE_PROVIDERS: RouteProvider[] = [osrmProvider, orsHgvProvider, googleMapsProvider, hereProvider];
 
-/** Proveedor activo: el primero con perfil de camión que esté conectado; si no, OSRM. */
+/**
+ * Proveedor activo. Google Maps solo si la clave llega en el entorno de ejecución.
+ * Si no, un proveedor de camión ya conectado (ORS) o, en su defecto, OSRM público.
+ * `preferred` (COSTOS_ROUTE_PROVIDER) puede forzar un proveedor que esté conectado.
+ */
+export function chooseProvider(env: { preferred?: string; googleKey?: string } = {}): RouteProvider {
+  const googleOn = Boolean(env.googleKey?.trim());
+  const preferred = ROUTE_PROVIDERS.find((provider) => {
+    if (provider.id !== env.preferred) return false;
+    return provider.id === "google_maps" ? googleOn : provider.connected();
+  });
+  if (preferred) return preferred;
+  if (googleOn) return googleMapsProvider;
+  return ROUTE_PROVIDERS.find((provider) => provider.truckAware && provider.connected()) ?? osrmProvider;
+}
+
 export function activeProvider(): RouteProvider {
-  const preferred = process.env.COSTOS_ROUTE_PROVIDER;
-  const byId = ROUTE_PROVIDERS.find((p) => p.id === preferred && p.connected());
-  if (byId) return byId;
-  return ROUTE_PROVIDERS.find((p) => p.truckAware && p.connected()) ?? osrmProvider;
+  return chooseProvider({ preferred: process.env.COSTOS_ROUTE_PROVIDER, googleKey: process.env.GOOGLE_MAPS_API_KEY });
 }
 
 /**
