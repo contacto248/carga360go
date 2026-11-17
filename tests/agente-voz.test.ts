@@ -142,13 +142,15 @@ test("API apagada por defecto: GET enabled false y POST 503", async () => {
 test("cotización completa: lead en la base, resumen confirmado, sin precios ni comisiones", async () => {
   enable();
   const init = await GET(new Request(`${BASE}/api/agente`), ctx);
-  const initData = (await init.json()) as { greeting: string; status: { ai: string; voice: { id: string; connected: boolean; state: string }[] } };
+  const initData = (await init.json()) as { greeting: string; status?: unknown };
   assert.match(initData.greeting, /Carga360go/);
   assert.doesNotMatch(initData.greeting, /CARGA360GO/);
   assert.match(initData.greeting, /automático, no una persona/);
-  assert.equal(initData.status.ai, "no_configurada");
-  assert.equal(initData.status.voice.find((v) => v.id === "twilio")?.connected, false);
-  assert.match(initData.status.voice.find((v) => v.id === "twilio")!.state, /NO CONECTADA/);
+  // El GET público no expone status técnico (IA/voz/avatar/env); eso vive en /admin/agente.
+  assert.equal(initData.status, undefined);
+  assert.equal(JSON.stringify(initData).includes("NO CONECTADA"), false);
+  assert.equal(JSON.stringify(initData).includes("modeLabel"), false);
+  assert.equal(JSON.stringify(initData).includes("AVATAR_"), false);
 
   const { cookie, last } = await talk([
     "Quiero cotizar un flete",

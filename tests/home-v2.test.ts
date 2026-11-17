@@ -56,6 +56,7 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(agent, /es-CL/);
   assert.match(agent, /es-ES/);
   assert.match(agent, /AgentAvatar/);
+  assert.match(agent, /AgentAvatarStage/);
   assert.match(agent, /agent-wa-cta/);
   assert.match(agent, /Continuar por WhatsApp/);
   assert.match(agent, /chat-head-copy/);
@@ -84,6 +85,8 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(engine, /Seguimiento de carga/);
   assert.match(engine, /Hablar con soporte/);
   assert.ok(fs.existsSync(path.join(ROOT, "src/components/AgentAvatar.tsx")));
+  assert.ok(fs.existsSync(path.join(ROOT, "src/components/AgentAvatarStage.tsx")));
+  assert.ok(fs.existsSync(path.join(ROOT, "src/lib/agent/avatar.ts")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/brand/agent-mark.svg")));
   const waDoc = read("docs/diseno-whatsapp-cloud-api-agente.md");
   assert.match(waDoc, /Estado Meta \(16-11-2026, lectura\)/);
