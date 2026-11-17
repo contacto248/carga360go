@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   COOKIE_CONSENT_EVENT,
@@ -47,7 +46,8 @@ export function CookieConsentBanner() {
         <div className="cookie-banner-copy">
           <strong id="cookie-banner-title">Cookies</strong>
           <p id="cookie-banner-desc">
-            Sesión necesaria · HubSpot opcional · <Link href="/privacidad">Privacidad</Link>
+            <a href="/privacidad#ley-21719">Ley 21.719</a>
+            {" · Sesión necesaria · HubSpot opcional"}
           </p>
         </div>
         <div className="cookie-banner-actions">

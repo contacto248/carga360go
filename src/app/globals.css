@@ -621,8 +621,9 @@ body:has(.cookie-banner) footer.foot{padding-bottom:calc(72px + env(safe-area-in
     z-index:41;
   }
   .cookie-banner-inner{gap:6px 8px}
-  .cookie-banner-copy strong{font-size:.72rem;margin-right:4px}
-  .cookie-banner-copy p{font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+  .cookie-banner-copy{display:flex;align-items:center;gap:4px;overflow:hidden}
+  .cookie-banner-copy strong{flex:0 0 auto;font-size:.72rem;margin-right:0}
+  .cookie-banner-copy p{display:block;flex:1 1 auto;min-width:0;max-width:none;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cookie-banner-actions .btn{padding:4px 8px;font-size:.7rem}
   body:has(.cookie-banner){padding-bottom:calc(56px + 48px + env(safe-area-inset-bottom,0px))}
   body:has(.cookie-banner) footer.foot{padding-bottom:calc(56px + 56px + env(safe-area-inset-bottom,0px))}

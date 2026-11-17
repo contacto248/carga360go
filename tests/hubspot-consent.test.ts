@@ -11,6 +11,7 @@ import {
   serializeCookieConsent,
 } from "../src/lib/cookie-consent";
 import { DEFAULT_HUBSPOT_PORTAL_ID, hubspotPortalId, hubspotScriptSrc } from "../src/lib/hubspot";
+import { LEY_21719_SECTION_ID, policySections } from "../src/lib/privacy-policy";
 
 const ROOT = path.join(import.meta.dirname, "..");
 
@@ -73,4 +74,31 @@ test("T-063: layout carga HubSpot tras banner; script async/defer y CSP", () => 
   const csp = read("next.config.ts");
   assert.match(csp, /js\.hs-scripts\.com/);
   assert.match(csp, /js\.hs-analytics\.net/);
+});
+
+test("Ley 21.719: falla si falta la sección en la política o el enlace de la barra", () => {
+  const section = policySections().find((item) => item.id === LEY_21719_SECTION_ID);
+  assert.ok(section, "falta la sección de la Ley 21.719");
+  assert.equal(LEY_21719_SECTION_ID, "ley-21719");
+  const text = JSON.stringify(section);
+  assert.match(text, /Carga360go/);
+  assert.match(text, /contacto@carga360go\.cl/);
+  assert.match(text, /01-12-2026/);
+  assert.match(text, /Qué datos se tratan/);
+  assert.match(text, /Base legal/);
+  assert.match(text, /acceso, rectificación, supresión, oposición, portabilidad y bloqueo/);
+  assert.match(text, /Conservación/);
+  assert.match(text, /HubSpot es opcional/);
+  assert.match(text, /Cookies/);
+  assert.doesNotMatch(text, /comisi[oó]n|precio|membres[ií]a|\bmulta\b|\bISO\b|SOC 2|registro n[°ºo]/i);
+
+  const banner = read("src/components/CookieConsentBanner.tsx")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "");
+  const desc = banner.match(/id="cookie-banner-desc"[\s\S]*?<\/p>/)?.[0] ?? "";
+  assert.match(desc, /Ley 21\.719/, "falta la mención a la Ley 21.719 en la barra");
+  assert.match(desc, new RegExp(`<a href="/privacidad#${LEY_21719_SECTION_ID}">Ley 21\\.719</a>`), "falta el enlace a la sección");
+  assert.match(banner, /cookie-banner-compact/);
+  assert.match(banner, /Solo necesarias/);
+  assert.match(banner, /Aceptar/);
 });
