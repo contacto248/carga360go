@@ -1,3 +1,4 @@
+import { createHash } from "crypto";
 import fs from "fs";
 import path from "path";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "./bassam/schema";
@@ -793,6 +794,41 @@ BEGIN
 END;
 `;
 
+/**
+ * Migración 033: hash SHA-256 del token del enlace público de seguimiento.
+ * La 032 es el uso del orquestador. Esta no la modifica.
+ * Aditiva: una columna en ops_tracking_links y el reemplazo del token en claro por su hash.
+ * sha256(texto) es el mismo SHA-256 hexadecimal que tokenHash. Se registra antes de ejecutar el SQL.
+ * No altera users, loads, offers, trip_events ni las migraciones 022–032.
+ * Copia en docs/migrations/033-tracking-token-hash.sql.
+ * Reversa: docs/migrations/033-tracking-token-hash-rollback.sql.
+ * La reversa no recupera el secreto.
+ */
+export const MIGRATION_33_SQL = `
+ALTER TABLE ops_tracking_links ADD COLUMN token_hash TEXT NOT NULL DEFAULT '';
+
+UPDATE ops_tracking_links
+SET token_hash = CASE
+  WHEN length(token) = 64 AND token NOT GLOB '*[^0-9a-f]*' THEN token
+  ELSE sha256(token)
+END
+WHERE token_hash = '';
+
+UPDATE ops_tracking_links
+SET token = token_hash
+WHERE token != token_hash;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ops_tracking_links_token_hash ON ops_tracking_links(token_hash);
+`;
+
+/** Misma función que tokenHash en auth.ts. auth.ts importa esta base, así que el hash vive aquí para la migración. */
+function registerSha256(db: Database.Database) {
+  db.function("sha256", { deterministic: true }, (value: unknown) => {
+    if (typeof value !== "string") return null;
+    return createHash("sha256").update(value, "utf8").digest("hex");
+  });
+}
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1343,6 +1379,15 @@ function migrate(db: Database.Database) {
     const apply = db.transaction(() => {
       db.exec(MIGRATION_32_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (32, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // Hash del enlace de seguimiento (033). La 032 queda intacta. Se comprueba el número 33, no el máximo.
+  if (!hasMigration(db, 33)) {
+    const apply = db.transaction(() => {
+      registerSha256(db);
+      if (!hasColumn(db, "ops_tracking_links", "token_hash")) db.exec(MIGRATION_33_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (33, ?)`).run(new Date().toISOString());
     });
     apply();
   }

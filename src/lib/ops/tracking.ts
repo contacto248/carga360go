@@ -1,6 +1,7 @@
-import { randomBytes } from "crypto";
+import { randomBytes, timingSafeEqual } from "crypto";
 import { z } from "zod";
 import { auditStrict } from "../audit";
+import { tokenHash } from "../auth";
 import { getDb } from "../db";
 import { AppError } from "../errors";
 import type { PublicUser } from "../types";
@@ -93,17 +94,34 @@ function viewFor(shipmentId: string, token: string): TrackingView {
   };
 }
 
-/** Un token por envío. No incluye correo, teléfono, nombre ni alertas internas. */
-export function issueTrackingLink(user: PublicUser, shipmentId: string): { token: string; path: string; created: boolean } {
+const DUMMY_TOKEN_HASH = "0".repeat(64);
+
+export type IssuedTrackingLink = { token: string; path: string; created: true } | { created: false };
+
+/** Compara el hash guardado con el calculado. Siempre lee los dos buffers del mismo largo. */
+function sameTokenHash(stored: string | undefined, computed: string): boolean {
+  const right = Buffer.from(computed, "utf8");
+  const candidate = stored != null && Buffer.byteLength(stored) === right.length ? stored : DUMMY_TOKEN_HASH;
+  const left = Buffer.from(candidate, "utf8");
+  if (left.length !== right.length) return false;
+  return timingSafeEqual(left, right) && stored === candidate;
+}
+
+/**
+ * Un token por envío. No incluye correo, teléfono, nombre ni alertas internas.
+ * El secreto se devuelve solo al emitirlo. La base guarda el hash y la auditoría, un prefijo de 6 caracteres.
+ */
+export function issueTrackingLink(user: PublicUser, shipmentId: string): IssuedTrackingLink {
   const shipment = requireShipment(user, shipmentId);
   const db = getDb();
-  const existing = db.prepare(`SELECT token FROM ops_tracking_links WHERE shipment_id = ?`).get(shipment.id) as { token: string } | undefined;
-  if (existing) return { token: existing.token, path: `/seguimiento/${existing.token}`, created: false };
+  const existing = db.prepare(`SELECT 1 AS ok FROM ops_tracking_links WHERE shipment_id = ?`).get(shipment.id);
+  if (existing) return { created: false };
   const token = randomBytes(24).toString("base64url");
+  const hash = tokenHash(token);
   const now = new Date().toISOString();
   db.transaction(() => {
-    db.prepare(`INSERT INTO ops_tracking_links (token, shipment_id, created_at) VALUES (?, ?, ?)`).run(token, shipment.id, now);
-    auditStrict(user, "ops.seguimiento_emitido", { type: "envio", id: shipment.id }, { token });
+    db.prepare(`INSERT INTO ops_tracking_links (token, token_hash, shipment_id, created_at) VALUES (?, ?, ?, ?)`).run(hash, hash, shipment.id, now);
+    auditStrict(user, "ops.seguimiento_emitido", { type: "envio", id: shipment.id }, { prefijo: token.slice(0, 6) });
   })();
   return { token, path: `/seguimiento/${token}`, created: true };
 }
@@ -111,9 +129,11 @@ export function issueTrackingLink(user: PublicUser, shipmentId: string): { token
 /** Estado, posición y ETA para el cliente. No lee ni devuelve ops_alerts. */
 export function readTracking(token: string): TrackingView {
   if (!/^[A-Za-z0-9_-]{16,80}$/.test(token)) throw new AppError("No encontrado.", 404);
-  const row = getDb().prepare(`SELECT shipment_id AS shipmentId FROM ops_tracking_links WHERE token = ?`).get(token) as
-    | { shipmentId: string }
-    | undefined;
-  if (!row) throw new AppError("No encontrado.", 404);
+  const hash = tokenHash(token);
+  const row = getDb()
+    .prepare(`SELECT token_hash AS tokenHash, shipment_id AS shipmentId FROM ops_tracking_links WHERE token_hash = ?`)
+    .get(hash) as { tokenHash: string; shipmentId: string } | undefined;
+  const matches = sameTokenHash(row?.tokenHash, hash);
+  if (!row || !matches) throw new AppError("No encontrado.", 404);
   return viewFor(row.shipmentId, token);
 }
