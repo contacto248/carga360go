@@ -77,8 +77,10 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.doesNotMatch(chat, /help-fab|btn wa fab|help-wa/);
   const css = read("src/app/globals.css");
   assert.match(css, /cookie-banner/);
-  assert.match(css, /cookie-banner-compact|padding:8px 0/);
+  assert.match(css, /cookie-banner-compact|padding:6px 0/);
   assert.match(css, /body:has\(\.cookie-banner\) \.help-dock/);
+  assert.match(css, /body:has\(\.cookie-banner\)\{padding-bottom/);
+  assert.match(css, /bottom:calc\(56px \+ env\(safe-area-inset-bottom/);
   assert.match(css, /goog-te-banner-frame/);
   assert.match(css, /chat-head-copy/);
   assert.match(css, /chat-head-actions/);

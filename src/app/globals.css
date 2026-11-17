@@ -299,14 +299,11 @@ body:has(.help-dock) footer.foot{padding-bottom:100px}
   .agente-acred{bottom:calc(148px + env(safe-area-inset-bottom))}
   .chat-panel{max-height:calc(100dvh - 160px - env(safe-area-inset-bottom))}
 }
-/* Banner cookies (z-index 45): subir el dock para no taparlo ni quedar tapado. */
-body:has(.cookie-banner) .help-dock{bottom:calc(64px + env(safe-area-inset-bottom))}
+/* Banner cookies: subir el FAB por encima de cookies (+ tabbar en móvil). */
+body:has(.cookie-banner) .help-dock{bottom:calc(56px + env(safe-area-inset-bottom))}
 @media(max-width:819px){
-  body:has(.cookie-banner) .help-dock{bottom:calc(72px + 64px + env(safe-area-inset-bottom))}
-  body:has(.cookie-banner) .chat-panel{max-height:calc(100dvh - 200px - env(safe-area-inset-bottom))}
-}
-@media(max-width:560px){
-  body:has(.cookie-banner) .help-dock{bottom:calc(72px + 88px + env(safe-area-inset-bottom))}
+  body:has(.cookie-banner) .help-dock{bottom:calc(56px + 48px + 14px + env(safe-area-inset-bottom))}
+  body:has(.cookie-banner) .chat-panel{max-height:calc(100dvh - 180px - env(safe-area-inset-bottom))}
 }
 
 /* ===== Diseño visual nov-2026 · capa 2 (paleta del logo, contraste AA, foco, tarjetas, mapa) =====
@@ -603,22 +600,32 @@ footer.foot a:hover{color:#ffd7bd}
 @media(prefers-reduced-motion:reduce){.home-video-brand,.home-video-title,.home-video-lead,.home-video-stage,.home-video-actions{animation:none}}
 
 /* Banner mínimo de cookies (Ley 21.719) — HubSpot solo tras aceptar marketing.
-   Compacto abajo: no debe tapar el fold ni empujar el encabezado. */
-.cookie-banner{position:fixed;left:0;right:0;bottom:0;z-index:45;background:#0B1633;color:#e6edf8;border-top:1px solid #ffffff22;box-shadow:0 -6px 18px #00000040;padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px))}
-.cookie-banner-inner{display:flex;flex-wrap:nowrap;gap:10px 14px;align-items:center;justify-content:space-between}
+   Compacto abajo: no tapa encabezado ni botones del pie; en móvil va SOBRE el tabbar. */
+.cookie-banner{position:fixed;left:0;right:0;bottom:0;z-index:45;background:#0B1633;color:#e6edf8;border-top:1px solid #ffffff22;box-shadow:0 -6px 18px #00000040;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}
+.cookie-banner-inner{display:flex;flex-wrap:nowrap;gap:8px 12px;align-items:center;justify-content:space-between}
 .cookie-banner-copy{flex:1 1 auto;min-width:0}
-.cookie-banner-copy strong{display:inline;color:#fff;font-size:.82rem;margin-right:6px}
-.cookie-banner-copy p{display:inline;margin:0;font-size:.78rem;line-height:1.35;color:#c5d2e6}
+.cookie-banner-copy strong{display:inline;color:#fff;font-size:.78rem;margin-right:6px}
+.cookie-banner-copy p{display:inline;margin:0;font-size:.74rem;line-height:1.3;color:#c5d2e6}
 .cookie-banner-copy a{color:#ffb98c;text-decoration:underline}
 .cookie-banner-actions{display:flex;flex-wrap:nowrap;gap:6px;flex:0 0 auto}
-.cookie-banner-actions .btn{padding:6px 10px;font-size:.78rem}
+.cookie-banner-actions .btn{padding:5px 10px;font-size:.74rem;min-height:0;line-height:1.2}
 .cookie-banner-actions .btn.sec{background:#fff;color:var(--navy);border-color:transparent}
-@media(max-width:560px){
-  .cookie-banner-inner{flex-wrap:wrap;gap:8px}
-  .cookie-banner-copy strong{display:block;margin:0 0 2px}
-  .cookie-banner-copy p{display:block}
-  .cookie-banner-actions{width:100%}
-  .cookie-banner-actions .btn{flex:1 1 auto}
+/* Espacio inferior del documento mientras el banner está visible (no tapa pie/CTAs). */
+body:has(.cookie-banner){padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+body:has(.cookie-banner) footer.foot{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+@media(max-width:819px){
+  /* Tabbar ~56px + safe-area: cookies encima, sin cubrir accesos ni botones. */
+  .cookie-banner{
+    bottom:calc(56px + env(safe-area-inset-bottom,0px));
+    padding:6px 0;
+    z-index:41;
+  }
+  .cookie-banner-inner{gap:6px 8px}
+  .cookie-banner-copy strong{font-size:.72rem;margin-right:4px}
+  .cookie-banner-copy p{font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+  .cookie-banner-actions .btn{padding:4px 8px;font-size:.7rem}
+  body:has(.cookie-banner){padding-bottom:calc(56px + 48px + env(safe-area-inset-bottom,0px))}
+  body:has(.cookie-banner) footer.foot{padding-bottom:calc(56px + 56px + env(safe-area-inset-bottom,0px))}
 }
 /* Google Translate (widget del navegador / GTM): no tapar ni empujar el header */
 .goog-te-banner-frame,.goog-te-balloon-frame,#goog-gt-tt,.goog-te-spinner-pos{display:none!important}
