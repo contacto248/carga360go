@@ -262,7 +262,10 @@ test("el conector recalcula el ETA, abre alertas con evidencia y el enlace no ll
     assert.ok(internas.some((item) => item.kind === "sin_senal"));
     const repeat = await call(postSeguimiento, `/api/ops/envios/${shipment.id}/seguimiento`, "POST", { id: shipment.id }, adminCookie);
     assert.equal(repeat.status, 200);
-    assert.equal(((await repeat.json()) as { token: string }).token, link.token);
+    const repeatBody = (await repeat.json()) as { created?: boolean; token?: string };
+    assert.equal(repeatBody.created, false);
+    assert.equal(repeatBody.token, undefined);
+    assert.equal(JSON.stringify(repeatBody).includes(link.token), false);
     const missing = await call(getPublico, "/api/ops/seguimiento/no-existe-token-xxxx", "GET", { token: "no-existe-token-xxxx" });
     assert.equal(missing.status, 404);
 
