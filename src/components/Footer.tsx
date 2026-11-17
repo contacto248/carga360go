@@ -36,7 +36,6 @@ export function Footer() {
           <div>
             <h4>Herramientas</h4>
             <Link href="/herramientas/calculadora">Calculadora de flete</Link>
-            <Link href="/cotizador">Cotizador</Link>
             <Link href="/tecnologia">Tecnología</Link>
             <Link href="/regiones">Panel de regiones</Link>
             <Link href="/panel#alertas">Alertas por correo</Link>
@@ -51,9 +50,8 @@ export function Footer() {
               WhatsApp {BRAND.whatsappDisplay}
             </WhatsAppContactGate>
             <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-            <span>{BRAND.address}</span>
+            <span>Operamos solo en línea, en Chile.</span>
             <Link href="/contacto">Contacto</Link>
-            <Link href="/guias">Guías</Link>
             <Link href="/faq">Preguntas frecuentes</Link>
             <Link href="/como-verificamos">Cómo verificamos</Link>
             <Link href="/transporte-minero-chile">Transporte minero</Link>

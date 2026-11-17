@@ -13,7 +13,8 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   const home = read("src/app/page.tsx");
   assert.match(home, /brand-hero/);
   assert.match(home, /Carga360go/);
-  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
+  assert.match(home, /Carga en Chile: retornos y camiones disponibles en la torre de control, de Arica a Punta Arenas\./);
+  assert.equal((home.match(/<h1>/g) || []).length, 1);
   assert.match(home, /Publicar carga/);
   assert.match(home, /Encontrar camión/);
   assert.match(home, /Historial de eventos/);
@@ -153,7 +154,9 @@ test("T-062 página /guias existe (hub marketing; nunca 404)", () => {
   const sitemap = read("src/app/sitemap.ts");
   assert.match(sitemap, /\/guias/);
   const footer = read("src/components/Footer.tsx");
-  assert.match(footer, /href="\/guias"/);
+  assert.doesNotMatch(footer, /href="\/guias"/);
+  assert.doesNotMatch(footer, /href="\/cotizador"/);
+  assert.doesNotMatch(footer, /href="\/seguimiento"/);
 });
 
 test("T-060 página /tecnologia con demos marcadas y controles reales (sin sellos falsos)", () => {

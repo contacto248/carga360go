@@ -9,10 +9,34 @@ import { formatDateCL } from "@/lib/format";
 import { FAQ } from "@/lib/faq";
 import { liveStats, recentListings, timeAgo } from "@/lib/stats";
 
+const HOME_TITLE = "Carga360go — Trazabilidad y automatización de cargas y camiones en Chile";
+const HOME_DESCRIPTION =
+  "Busca carga en Chile, retornos y camiones disponibles para carga. Plataforma tecnológica automatizada de transporte por regiones de Arica a Punta Arenas. Mira nuestro video.";
+
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
-  description:
-    "Carga360go conecta cargas, camiones y retornos en Chile desde una sola torre de control. Publica tu carga o tu camión, ve el calce y un costo de referencia desglosado.",
+  description: HOME_DESCRIPTION,
+  openGraph: {
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    locale: "es_CL",
+    type: "website",
+    siteName: "Carga360go",
+    images: [
+      {
+        url: "https://www.carga360go.cl/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Carga360go — Cargas y camiones en todo Chile",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: HOME_TITLE,
+    description: HOME_DESCRIPTION,
+    images: ["https://www.carga360go.cl/og.jpg"],
+  },
 };
 
 /** Pasos de operación (torre de control + cómo funciona) — variantes seguras T-065. */
@@ -89,7 +113,7 @@ export default async function HomePage() {
             <p className="brand-hero" aria-label="Marca">
               Carga360go
             </p>
-            <h1>Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas.</h1>
+            <h1>Carga en Chile: retornos y camiones disponibles en la torre de control, de Arica a Punta Arenas.</h1>
             <p className="hero-lead">
               En Carga360go publicas tu carga o tu camión, ves el calce —también en retornos— y un costo de referencia
               desglosado: ruta, peajes según ejes, diésel y costos de operación. Ves el historial de la publicación, las

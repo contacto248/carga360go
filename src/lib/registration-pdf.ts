@@ -194,7 +194,7 @@ export function buildRegistrationPdf(data: RegistrationData): Buffer {
   }
 
   pdf.line(left, 70, right, 70);
-  pdf.text(left, 56, `${BRAND.company} · RUT ${BRAND.rut} · ${BRAND.address}`, { size: 8, color: GRAY });
+  pdf.text(left, 56, `${BRAND.company} · RUT ${BRAND.rut} · Chile`, { size: 8, color: GRAY });
   pdf.text(left, 44, `${BRAND.email} · WhatsApp ${BRAND.whatsappDisplay} · www.carga360go.cl`, { size: 8, color: GRAY });
   return pdf.toBuffer({ title: `Comprobante de inscripción ${data.folio}`, author: BRAND.company });
 }

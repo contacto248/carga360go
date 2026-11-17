@@ -25,7 +25,7 @@ export function termsMeta() {
 }
 
 export const TERMS_INTRO: string[] = [
-  `Carga360go es una plataforma de ${RAZON} (también escrita ${BRAND.company}), RUT ${BRAND.rut}, con domicilio en Colón 352, oficina 318, La Serena, Región de Coquimbo, Chile. Contacto: ${BRAND.email} · WhatsApp ${BRAND.whatsappDisplay}.`,
+  `Carga360go es una plataforma de ${RAZON} (también escrita ${BRAND.company}), RUT ${BRAND.rut}, que opera solo en línea en Chile. Contacto: ${BRAND.email} · WhatsApp ${BRAND.whatsappDisplay}.`,
   "Al marcar la casilla «He leído y acepto los Términos de uso» al crear tu cuenta, o al aceptarlos cuando te los presentemos al ingresar, declaras haberlos leído y aceptas estas condiciones. Si no estás de acuerdo, no uses la plataforma.",
 ];
 
@@ -113,14 +113,14 @@ export const TERMS_SECTIONS: PolicySection[] = [
     title: "11. Cambios a estos términos",
     blocks: [
       `Podemos actualizar estos términos por cambios legales o del servicio. Publicaremos la nueva versión en ${SITE}/terminos con su fecha y número de versión, te avisaremos y te pediremos aceptarla al ingresar. Guardamos qué versión aceptó cada usuario y cuándo.`,
-      "Historial: versión 1.0 (10 de noviembre de 2026): términos versionados con aceptación obligatoria y acreditación 100%. Versión 1.2 (17 de noviembre de 2026): el sitio público no aplica un periodo gratis de 30 días ni cobra una membresía.",
+      "Historial: versión 1.0 (10 de noviembre de 2026): términos versionados con aceptación obligatoria y acreditación 100%. Versión 1.2 (17 de noviembre de 2026): el sitio público no aplica un periodo gratis de 30 días ni cobra una membresía. Versión 1.4 (17 de noviembre de 2026): se elimina el domicilio de calle. Carga360go opera solo en línea, en Chile; consultas y reclamos por correo y WhatsApp.",
     ],
   },
   {
     id: "ley",
     title: "12. Ley aplicable y contacto",
     blocks: [
-      `Estos términos se rigen por las leyes de la República de Chile. Consultas y reclamos: ${BRAND.email}, WhatsApp ${BRAND.whatsappDisplay} o por escrito a ${RAZON}, Colón 352, oficina 318, La Serena, Chile.`,
+      `Estos términos se rigen por las leyes de la República de Chile. Consultas y reclamos: ${BRAND.email} o WhatsApp ${BRAND.whatsappDisplay}.`,
     ],
   },
 ];
@@ -171,7 +171,7 @@ export function termsSections(): PolicySection[] {
     blocks: section.blocks.map((block) => {
       if (typeof block === "string") {
         if (block.startsWith("Historial:")) {
-          return `${block} Versión 1.1 (11 de noviembre de 2026): pago de fletes con Mercado Pago directo al transportista, cuotas de anticipo y saldo, comisión de Mercado Pago a cargo del mandante, comisión de la plataforma $0, reclamos en horas hábiles y Política de Pagos (borrador sujeto a revisión legal).`;
+          return `${block} Versión 1.1 (11 de noviembre de 2026): pago de fletes con Mercado Pago directo al transportista, cuotas de anticipo y saldo, comisión de Mercado Pago a cargo del mandante, comisión de la plataforma $0, reclamos en horas hábiles y Política de Pagos (borrador sujeto a revisión legal). Versión 1.5 (17 de noviembre de 2026): se mantiene el pago de fletes y queda eliminado el domicilio de calle; la operación es solo en línea, en Chile.`;
         }
         return fix(block);
       }

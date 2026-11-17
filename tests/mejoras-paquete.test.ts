@@ -44,7 +44,11 @@ function account(role: "transportista" | "mandante", name: string, city = "Santi
 
 test("la portada usa el copy del paquete y no promete acreditación 100% ni auditorías de calidad", () => {
   const home = read("src/app/page.tsx");
-  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
+  assert.match(home, /Carga en Chile: retornos y camiones disponibles en la torre de control, de Arica a Punta Arenas\./);
+  assert.match(
+    home,
+    /Busca carga en Chile, retornos y camiones disponibles para carga\. Plataforma tecnológica automatizada de transporte por regiones de Arica a Punta Arenas\. Mira nuestro video\./,
+  );
   assert.match(home, /Carga360go/);
   assert.match(home, /Tengo carga/);
   assert.match(home, /Tengo camión o retorno/);

@@ -3,13 +3,13 @@ import { kycEnabled } from "./kyc/config";
 import { paymentsLegalPublished } from "./pagos/config";
 
 /** Versión publicada hoy (sin el módulo KYC). */
-export const PRIVACY_VERSION_BASE = "1.5-2026-11-17";
+export const PRIVACY_VERSION_BASE = "1.8-2026-11-17";
 export const PRIVACY_UPDATED_BASE = "17 de noviembre de 2026";
 /**
  * Versión que se publica junto con KYC_FEATURE_ENABLED=true
  * (adición de verificación de identidad y datos biométricos).
  */
-export const PRIVACY_VERSION_KYC = "1.6-2026-11-17";
+export const PRIVACY_VERSION_KYC = "1.9-2026-11-17";
 export const PRIVACY_UPDATED_KYC = "17 de noviembre de 2026";
 
 /**
@@ -21,7 +21,7 @@ export const PRIVACY_UPDATED_KYC = "17 de noviembre de 2026";
  * Versión que se usa con PAYMENTS_FEATURE_ENABLED=true (pago de fletes con Mercado Pago).
  * Solo staging mientras el flag siga apagado en producción.
  */
-export const PRIVACY_VERSION_PAYMENTS = "1.7-2026-11-17";
+export const PRIVACY_VERSION_PAYMENTS = "1.10-2026-11-17";
 export const PRIVACY_UPDATED_PAYMENTS = "17 de noviembre de 2026";
 
 export function privacyVersion(): string {
@@ -39,10 +39,10 @@ export const PRIVACY_VERSION = PRIVACY_VERSION_BASE;
 export const PRIVACY_UPDATED = PRIVACY_UPDATED_BASE;
 
 /** Versión vigente de los Términos de uso. Cambiarla cuando cambie el texto de /terminos. */
-export const TERMS_VERSION = "1.2-2026-11-17";
+export const TERMS_VERSION = "1.4-2026-11-17";
 export const TERMS_UPDATED = "17 de noviembre de 2026";
 /** Términos con el pago de fletes (PAYMENTS_FEATURE_ENABLED=true). Al cambiar la versión, el sitio pide aceptarlos de nuevo. */
-export const TERMS_VERSION_PAYMENTS = "1.3-2026-11-17";
+export const TERMS_VERSION_PAYMENTS = "1.5-2026-11-17";
 export const TERMS_UPDATED_PAYMENTS = "17 de noviembre de 2026";
 
 export function termsVersion(): string {

@@ -85,7 +85,7 @@ test("flags apagados por defecto: política 1.2, sin OTP entrante y sin plazo de
   assert.equal(process.env.WHATSAPP_OTP_INBOUND_ENABLED, undefined);
   assert.equal(whatsappOtpInboundEnabled(), false);
   assert.equal(privacyVersion(), PRIVACY_VERSION_BASE);
-  assert.equal(policyMeta().version, "1.5-2026-11-17");
+  assert.equal(policyMeta().version, "1.8-2026-11-17");
   assert.equal(policySections().some((section) => section.id === "identidad"), false);
   const user = newUser("mandante", "flags-off");
   assert.equal(graceOf(user.id), null);
@@ -101,7 +101,7 @@ test("con el flag, se publica la política 1.3 con la sección de identidad y si
   onKyc();
   try {
     assert.equal(privacyVersion(), PRIVACY_VERSION_KYC);
-    assert.equal(policyMeta().version, "1.6-2026-11-17");
+    assert.equal(policyMeta().version, "1.9-2026-11-17");
     const sections = policySections();
     assert.ok(sections.some((section) => section.id === "identidad"));
     const text = JSON.stringify(sections);
@@ -110,7 +110,7 @@ test("con el flag, se publica la política 1.3 con la sección de identidad y si
     assert.match(text, /30 días/);
     assert.match(text, /12 meses/);
     assert.doesNotMatch(text, /Si se activa, también la validación del RUN/);
-    assert.equal(KYC_CONSENT_VERSION, "kyc-1.0-2026-11-11");
+    assert.equal(KYC_CONSENT_VERSION, "kyc-1.1-2026-11-17");
     assert.equal(KYC_RETENTION_PENDING_CONFIRMATION, true);
     assert.equal(KYC_RETENTION_IMAGES_DAYS_PROPOSED, 30);
     assert.equal(KYC_RETENTION_RESULTS_MONTHS_AFTER_CLOSE_PROPOSED, 12);
