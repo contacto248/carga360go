@@ -70,6 +70,8 @@ export const AUDIT_LABELS: Record<string, string> = {
   "ops.organizacion_creada": "Organización operativa creada",
   "ops.miembro_agregado": "Miembro de organización agregado",
   "ops.miembro_actualizado": "Miembro de organización actualizado",
+  "ops.envio_creado": "Envío operativo creado",
+  "ops.evento": "Evento de la bitácora del envío",
 };
 
 function writeAudit(
@@ -162,6 +164,7 @@ const TARGETS: Record<string, string> = {
   costos: "Motor de costos",
   cotizacion: "Cotización",
   ops_organizacion: "Organización",
+  envio: "Envío",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */

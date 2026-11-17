@@ -9,7 +9,7 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
   throw new Error("DATABASE_PATH de prueba no está configurada. Ejecuta npm test.");
 }
 
-import { closeDb, getDb } from "../src/lib/db";
+import { closeDb, getDb, MIGRATION_23_SQL } from "../src/lib/db";
 
 const FIX = path.join(__dirname, "fixtures", "db");
 const ORIGINAL_PATH = process.env.DATABASE_PATH;
@@ -50,11 +50,12 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  assert.equal(Math.max(...v), 22);
-  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members"]) assert.ok(hasTable(db, t), t);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  assert.equal(Math.max(...v), 23);
+  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events"]) assert.ok(hasTable(db, t), t);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_shipments`).get() as { n: number }).n, 0);
   const usersSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql;
   assert.match(usersSql, /'transportista', 'mandante', 'admin'/);
   const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
@@ -100,7 +101,7 @@ test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni 
   const file = process.env.DATABASE_PATH!;
   closeDb();
   const after = snapshot(file);
-  assert.deepEqual(after, { ...before, version: 22 });
+  assert.deepEqual(after, { ...before, version: 23 });
   const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
   assert.equal(mandante.backup_contact, "respaldo@demo.local");
   assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
@@ -154,11 +155,12 @@ test("reconcilia la migración 14 alternativa sin perder datos ni repetir su reg
   }
 });
 
-test("reversa 022 borra solo las tablas OPS y deja el esquema en 21", () => {
+test("reversa 022 borra solo organizaciones y deja la migración 023", () => {
   const db = openCopy("produccion-v14.sqlite");
   const file = process.env.DATABASE_PATH!;
   try {
     assert.ok(hasTable(db, "ops_organizations"));
+    assert.ok(hasTable(db, "ops_shipments"));
     const before = {
       users: db.prepare(`SELECT * FROM users ORDER BY id`).all(),
       loads: db.prepare(`SELECT * FROM loads ORDER BY id`).all(),
@@ -169,7 +171,9 @@ test("reversa 022 borra solo las tablas OPS y deja el esquema en 21", () => {
     assert.equal(hasTable(db, "ops_organizations"), false);
     assert.equal(hasTable(db, "ops_org_members"), false);
     assert.equal(versions(db).includes(22), false);
-    assert.equal(Math.max(...versions(db)), 21);
+    assert.ok(hasTable(db, "ops_shipments"));
+    assert.ok(versions(db).includes(23));
+    assert.equal(Math.max(...versions(db)), 23);
     assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
     assert.deepEqual(db.prepare(`SELECT * FROM loads ORDER BY id`).all(), before.loads);
     assert.deepEqual(db.prepare(`SELECT * FROM trucks ORDER BY id`).all(), before.trucks);
@@ -179,6 +183,112 @@ test("reversa 022 borra solo las tablas OPS y deja el esquema en 21", () => {
     process.env.DATABASE_PATH = file;
     // Reabrir aplica de nuevo la 022: el sitio vuelve a quedar en el esquema vigente.
     assertFinalSchema(getDb());
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
+});
+
+const PROTECTED = ["users", "loads", "offers", "trip_events"] as const;
+
+function sqlBody(text: string) {
+  return text
+    .split("\n")
+    .filter((line) => !line.trim().startsWith("--"))
+    .join("\n")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function protectedSnapshot(file: string) {
+  const db = new Database(file, { readonly: true });
+  const out: Record<string, { cols: string[]; rows: unknown[] }> = {};
+  for (const table of PROTECTED) {
+    const cols = (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((column) => column.name);
+    const rows = db.prepare(`SELECT * FROM ${table} ORDER BY id`).all();
+    out[table] = { cols, rows };
+  }
+  db.close();
+  return out;
+}
+
+function protectedCols(db: Database.Database) {
+  const out: Record<string, string[]> = {};
+  for (const table of PROTECTED) {
+    out[table] = (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((column) => column.name);
+  }
+  return out;
+}
+
+test("la copia SQL de 023 coincide con el código y la reversa solo nombra esas tablas", () => {
+  const doc = fs.readFileSync(path.join(__dirname, "../docs/migrations/023-ops-envios.sql"), "utf8");
+  assert.equal(sqlBody(doc), sqlBody(MIGRATION_23_SQL));
+  const rollback = fs.readFileSync(path.join(__dirname, "../docs/migrations/023-ops-envios-rollback.sql"), "utf8");
+  assert.match(rollback, /DROP TABLE IF EXISTS ops_events/);
+  assert.match(rollback, /DROP TABLE IF EXISTS ops_shipments/);
+  assert.match(rollback, /DROP INDEX IF EXISTS idx_ops_events_shipment/);
+  assert.match(rollback, /DROP INDEX IF EXISTS idx_ops_shipments_stage/);
+  assert.match(rollback, /DELETE FROM schema_migrations WHERE version = 23/);
+  assert.equal(/DROP TABLE(?! IF EXISTS ops_)/.test(rollback.replace(/--.*$/gm, "")), false);
+});
+
+test("023 sobre base vacía y sobre producción v14 no altera tablas previas; la reversa deja la 022", () => {
+  const beforeFixture = protectedSnapshot(path.join(FIX, "produccion-v14.sqlite"));
+  const rollback = fs.readFileSync(path.join(__dirname, "../docs/migrations/023-ops-envios-rollback.sql"), "utf8");
+  const rollback22 = fs.readFileSync(path.join(__dirname, "../docs/migrations/022-ops-organizaciones-rollback.sql"), "utf8");
+  try {
+    for (const fixture of [null, "produccion-v14.sqlite"] as const) {
+      const db = openCopy(fixture);
+      assert.ok(hasTable(db, "ops_shipments"), fixture ?? "vacia");
+      assert.ok(hasTable(db, "ops_events"), fixture ?? "vacia");
+      assert.ok(hasTable(db, "ops_organizations"));
+      assert.ok(versions(db).includes(22));
+      assert.ok(versions(db).includes(23));
+      const file = process.env.DATABASE_PATH!;
+      closeDb();
+      if (fixture) assert.deepEqual(protectedSnapshot(file), beforeFixture);
+      const raw = new Database(file);
+      raw.pragma("foreign_keys = ON");
+      if (!fixture) {
+        for (const table of PROTECTED) {
+          assert.equal((raw.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n, 0, table);
+        }
+      }
+      const colsBefore = protectedCols(raw);
+      raw.exec(rollback);
+      assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_shipments'`).get()), false);
+      assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_events'`).get()), false);
+      const left = raw
+        .prepare(
+          `SELECT name FROM sqlite_master
+           WHERE name IN ('ops_shipments', 'ops_events', 'idx_ops_shipments_stage', 'idx_ops_events_shipment')
+              OR name LIKE 'sqlite_autoindex_ops_shipments%'
+              OR name LIKE 'sqlite_autoindex_ops_events%'`,
+        )
+        .all();
+      assert.deepEqual(left, []);
+      assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_organizations'`).get()), true);
+      const afterVersions = (raw.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all() as { version: number }[]).map((row) => row.version);
+      assert.equal(afterVersions.includes(23), false);
+      assert.ok(afterVersions.includes(22));
+      assert.equal(Math.max(...afterVersions), 22);
+      assert.deepEqual(protectedCols(raw), colsBefore);
+      raw.exec(rollback22);
+      const unwound = (raw.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all() as { version: number }[]).map((row) => row.version);
+      assert.equal(unwound.includes(22), false);
+      assert.equal(Math.max(...unwound), 21);
+      assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_organizations'`).get()), false);
+      assert.equal((raw.prepare(`PRAGMA foreign_key_check`).all() as unknown[]).length, 0);
+      assert.equal((raw.prepare(`PRAGMA integrity_check`).get() as { integrity_check: string }).integrity_check, "ok");
+      raw.close();
+      process.env.DATABASE_PATH = file;
+      const again = getDb();
+      assert.ok(versions(again).includes(22));
+      assert.ok(versions(again).includes(23));
+      assert.ok(hasTable(again, "ops_shipments"));
+      assert.ok(hasTable(again, "ops_organizations"));
+      closeDb();
+    }
+  } finally {
     closeDb();
     process.env.DATABASE_PATH = ORIGINAL_PATH;
   }
