@@ -47,6 +47,7 @@ test("flags OPS apagados por defecto y valores raros no encienden", () => {
           OPS_ALLOCATION_AUTO: child,
           OPS_API_V1_ENABLED: child,
           OPS_OPERACION_ENABLED: child,
+          OPS_INCIDENCIAS_ENABLED: child,
         },
         () => {
           assert.equal(isEnabled("OPS_FEATURE_ENABLED"), masterOn, `maestro ${String(master)}`);

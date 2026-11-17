@@ -82,6 +82,9 @@ export const AUDIT_LABELS: Record<string, string> = {
   "ops.eta_calculado": "ETA recalculado con la última posición",
   "ops.alerta_abierta": "Alerta de torre abierta",
   "ops.alerta_umbral": "Umbral de alerta actualizado",
+  "ops.incidencia_abierta": "Incidencia de operación abierta",
+  "ops.incidencia_cerrada": "Incidencia de operación cerrada",
+  "ops.envio_operacion": "Envío vinculado a una operación",
   "ops.seguimiento_emitido": "Enlace de seguimiento emitido",
   "ops.operacion_creada": "Operación creada",
 };

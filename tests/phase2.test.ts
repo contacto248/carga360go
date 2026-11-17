@@ -33,8 +33,8 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
   // Migración 14: contacto de respaldo y verificación manual (solo lectura 30 días) en users.
   // Migración 16: motor de costos (tablas cost_*). Se comprueba por número exacto para convivir con la 15 de otra rama.
-  // 22 organizaciones, 23 envíos, 27 GPS, 28 traza, 29 torre, 30 alta de operación, 31 severidad, 32 uso del orquestador y 33 hash del enlace.
-  assert.equal(version.v, 33);
+  // 22 organizaciones, 23 envíos, 27 GPS, 28 traza, 29 torre, 30 alta de operación, 31 severidad, 32 uso del orquestador, 33 hash del enlace y 34 incidencias.
+  assert.equal(version.v, 34);
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 22`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 23`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 24`).get());
@@ -48,6 +48,8 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 33`).get());
   const linkCols = (db.prepare(`PRAGMA table_info(ops_tracking_links)`).all() as { name: string }[]).map((column) => column.name);
   assert.ok(linkCols.includes("token_hash"));
+  assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 34`).get());
+  assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_operation_alerts'`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ai_router_usage'`).get());
   const alertCols = (db.prepare(`PRAGMA table_info(ops_alerts)`).all() as { name: string }[]).map((column) => column.name);
   assert.ok(alertCols.includes("severity"));

@@ -838,6 +838,53 @@ function registerSha256(db: Database.Database) {
   });
 }
 
+/**
+ * Migración 034: alertas de operación (incidencias) y vínculo envío → operación.
+ * La 033 (hash del enlace) queda intacta. Se comprueba el número 34, no el máximo.
+ * Aditiva. No cambia ops_alerts ni los kinds atraso, detencion y sin_senal.
+ * No altera users, loads, offers, trip_events, trip_gps_points ni las migraciones 022–032.
+ * Copia en docs/migrations/034-ops-operation-alerts.sql.
+ * Reversa: docs/migrations/034-ops-operation-alerts-rollback.sql.
+ */
+export const MIGRATION_34_SQL = `
+CREATE TABLE IF NOT EXISTS ops_operation_alerts (
+  id TEXT PRIMARY KEY,
+  shipment_id TEXT NOT NULL REFERENCES ops_shipments(id) ON DELETE CASCADE,
+  operation_id TEXT REFERENCES ops_operations(id) ON DELETE SET NULL,
+  kind TEXT NOT NULL CHECK (kind IN (
+    'atraso', 'detencion', 'sin_senal',
+    'desvio_geocerca', 'espera_destino', 'siniestro', 'rechazo_entrega', 'entrega_con_reparos',
+    'documento_vencido', 'documento_faltante', 'sin_asignar', 'retiro_no_iniciado', 'cambio_no_verificado',
+    'sin_contacto', 'evidencia_faltante', 'cierre_pendiente', 'diferencia_costo', 'temperatura_fuera_rango',
+    'incidente_seguridad'
+  )),
+  severity TEXT NOT NULL CHECK (severity IN ('baja', 'media', 'alta')),
+  status TEXT NOT NULL CHECK (status IN ('abierta', 'cerrada')),
+  source TEXT NOT NULL CHECK (source IN ('automatica', 'manual')),
+  evidence_json TEXT NOT NULL,
+  opened_by TEXT,
+  opened_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  closed_at TEXT,
+  closed_by TEXT,
+  close_reason TEXT CHECK (close_reason IS NULL OR close_reason IN ('condicion_resuelta', 'resuelta_manual', 'descartada', 'duplicada')),
+  CHECK (
+    (status = 'abierta' AND closed_at IS NULL AND close_reason IS NULL)
+    OR (status = 'cerrada' AND closed_at IS NOT NULL AND close_reason IS NOT NULL)
+  )
+);
+CREATE INDEX IF NOT EXISTS idx_ops_operation_alerts_shipment ON ops_operation_alerts(shipment_id, status);
+CREATE INDEX IF NOT EXISTS idx_ops_operation_alerts_operation ON ops_operation_alerts(operation_id, status);
+CREATE INDEX IF NOT EXISTS idx_ops_operation_alerts_kind ON ops_operation_alerts(kind, status, opened_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ops_operation_alerts_open ON ops_operation_alerts(shipment_id, kind) WHERE status = 'abierta';
+`;
+
+/** Columna nullable ops_shipments.operation_id. Sin REFERENCES, para que la reversa pueda hacer DROP COLUMN. */
+export const MIGRATION_34_COLUMN_SQL = `
+ALTER TABLE ops_shipments ADD COLUMN operation_id TEXT;
+CREATE INDEX IF NOT EXISTS idx_ops_shipments_operation ON ops_shipments(operation_id);
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1397,6 +1444,18 @@ function migrate(db: Database.Database) {
       registerSha256(db);
       if (!hasColumn(db, "ops_tracking_links", "token_hash")) db.exec(MIGRATION_33_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (33, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // Alertas de operación (034). La 033 queda intacta. Se comprueba el número 34, no el máximo.
+  if (!hasMigration(db, 34)) {
+    const apply = db.transaction(() => {
+      // Tabla nueva e índice. La columna del envío va aparte si todavía no existe.
+      // No toca ops_alerts ni 022–033. Sin filas de ejemplo.
+      // Copia en docs/migrations/034-ops-operation-alerts.sql. Reversa: 034-ops-operation-alerts-rollback.sql.
+      db.exec(MIGRATION_34_SQL);
+      if (!hasColumn(db, "ops_shipments", "operation_id")) db.exec(MIGRATION_34_COLUMN_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (34, ?)`).run(new Date().toISOString());
     });
     apply();
   }

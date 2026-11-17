@@ -9,7 +9,7 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
   throw new Error("DATABASE_PATH de prueba no está configurada. Ejecuta npm test.");
 }
 
-import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL, MIGRATION_28_SQL, MIGRATION_29_SQL, MIGRATION_30_SQL, MIGRATION_31_SQL } from "../src/lib/db";
+import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL, MIGRATION_28_SQL, MIGRATION_29_SQL, MIGRATION_30_SQL, MIGRATION_31_SQL, MIGRATION_34_COLUMN_SQL, MIGRATION_34_SQL } from "../src/lib/db";
 
 const FIX = path.join(__dirname, "fixtures", "db");
 const ORIGINAL_PATH = process.env.DATABASE_PATH;
@@ -50,9 +50,9 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  assert.equal(Math.max(...v), 33);
-  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_carrier_scores", "ops_score_events", "ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs", "ops_allocation_traces", "ops_telematics_sources", "ops_gps_receipts", "ops_geofences", "ops_eta_snapshots", "ops_alert_rules", "ops_alerts", "ops_tracking_links", "ops_operations", "ops_operation_keys", "ops_operation_counters", "ai_router_usage"]) assert.ok(hasTable(db, t), t);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  assert.equal(Math.max(...v), 34);
+  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_carrier_scores", "ops_score_events", "ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs", "ops_allocation_traces", "ops_telematics_sources", "ops_gps_receipts", "ops_geofences", "ops_eta_snapshots", "ops_alert_rules", "ops_alerts", "ops_tracking_links", "ops_operations", "ops_operation_keys", "ops_operation_counters", "ai_router_usage", "ops_operation_alerts"]) assert.ok(hasTable(db, t), t);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_shipments`).get() as { n: number }).n, 0);
@@ -73,6 +73,9 @@ function assertFinalSchema(db: Database.Database) {
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_operation_keys`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_operation_counters`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ai_router_usage`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_operation_alerts`).get() as { n: number }).n, 0);
+  const shipmentCols = (db.prepare(`PRAGMA table_info(ops_shipments)`).all() as { name: string }[]).map((column) => column.name);
+  assert.ok(shipmentCols.includes("operation_id"));
   const usersSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql;
   assert.match(usersSql, /'transportista', 'mandante', 'admin'/);
   const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
@@ -118,7 +121,7 @@ test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni 
   const file = process.env.DATABASE_PATH!;
   closeDb();
   const after = snapshot(file);
-  assert.deepEqual(after, { ...before, version: 33 });
+  assert.deepEqual(after, { ...before, version: 34 });
   const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
   assert.equal(mandante.backup_contact, "respaldo@demo.local");
   assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
@@ -193,7 +196,7 @@ test("reversa 022 borra solo organizaciones y deja la 023 y la 027", () => {
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(versions(db).includes(23));
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 33);
+    assert.equal(Math.max(...versions(db)), 34);
     assert.equal(hasTable(db, "ops_telematics_sources"), true);
     assert.equal(hasTable(db, "ops_gps_receipts"), true);
     assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
@@ -294,14 +297,14 @@ test("023 sobre base vacía y sobre producción v14 no altera tablas previas; la
       assert.equal(afterVersions.includes(23), false);
       assert.ok(afterVersions.includes(22));
       assert.ok(afterVersions.includes(27));
-      assert.equal(Math.max(...afterVersions), 33);
+      assert.equal(Math.max(...afterVersions), 34);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_telematics_sources'`).get()), true);
       assert.deepEqual(protectedCols(raw), colsBefore);
       raw.exec(rollback22);
       const unwound = (raw.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all() as { version: number }[]).map((row) => row.version);
       assert.equal(unwound.includes(22), false);
       assert.ok(unwound.includes(27));
-      assert.equal(Math.max(...unwound), 33);
+      assert.equal(Math.max(...unwound), 34);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_organizations'`).get()), false);
       assert.equal((raw.prepare(`PRAGMA foreign_key_check`).all() as unknown[]).length, 0);
       assert.equal((raw.prepare(`PRAGMA integrity_check`).get() as { integrity_check: string }).integrity_check, "ok");
@@ -339,7 +342,7 @@ test("reversa 024 borra solo procurement y deja la 023", () => {
     assert.equal(versions(db).includes(24), false);
     assert.equal(versions(db).includes(23), true);
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 33);
+    assert.equal(Math.max(...versions(db)), 34);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_telematics_sources"));
@@ -375,7 +378,7 @@ test("reversa 025 borra puntajes y conserva 022, 023, 024 y 027", () => {
     assert.equal(hasTable(db, "ops_score_events"), false);
     assert.equal(versions(db).includes(25), false);
     for (const n of [22, 23, 24, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 33);
+    assert.equal(Math.max(...versions(db)), 34);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
@@ -466,7 +469,7 @@ test("reversa 026 borra la asignación y conserva 022, 023, 024, 025 y 027", () 
     }
     assert.equal(versions(db).includes(26), false);
     for (const n of [22, 23, 24, 25, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 33);
+    assert.equal(Math.max(...versions(db)), 34);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
@@ -622,6 +625,63 @@ test("la copia SQL de 031 agrega severity y la reversa solo quita esa columna", 
     assert.ok(hasTable(retried, "ops_alerts"));
     assert.ok(hasTable(retried, "ops_operations"));
     assert.equal((retried.prepare(`SELECT COUNT(*) AS n FROM ops_alerts WHERE id = 'alerta-previa'`).get() as { n: number }).n, 1);
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
+});
+
+test("la copia SQL de 034 coincide, la reversa no toca ops_alerts y los CHECK rechazan valores fuera de lista", () => {
+  const doc = fs.readFileSync(path.join(__dirname, "../docs/migrations/034-ops-operation-alerts.sql"), "utf8");
+  assert.equal(sqlBody(doc), sqlBody(`${MIGRATION_34_SQL}\n${MIGRATION_34_COLUMN_SQL}`));
+  const rollback = fs.readFileSync(path.join(__dirname, "../docs/migrations/034-ops-operation-alerts-rollback.sql"), "utf8");
+  const rollbackSql = rollback.replace(/--.*$/gm, "");
+  assert.match(rollbackSql, /DROP TABLE IF EXISTS ops_operation_alerts/);
+  assert.match(rollbackSql, /DROP COLUMN operation_id/);
+  assert.match(rollbackSql, /DELETE FROM schema_migrations WHERE version = 34/);
+  assert.equal(/ops_alerts/.test(rollbackSql), false);
+  const db = openCopy(null);
+  try {
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version = 34`).get() as { n: number }).n, 1);
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_operation_alerts`).get() as { n: number }).n, 0);
+    const cols = (db.prepare(`PRAGMA table_info(ops_shipments)`).all() as { name: string }[]).map((column) => column.name);
+    assert.ok(cols.includes("operation_id"));
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_shipments WHERE operation_id IS NOT NULL`).get() as { n: number }).n, 0);
+    db.exec(MIGRATION_34_SQL);
+    db.exec(MIGRATION_34_SQL);
+    closeDb();
+    const retried = getDb();
+    assert.equal((retried.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version = 34`).get() as { n: number }).n, 1);
+    const shipmentId = "22222222-2222-4222-8222-222222222222";
+    const stamp = "2026-11-18T13:00:00.000Z";
+    retried.prepare(
+      `INSERT INTO ops_shipments (
+        id, load_id, shipper_org_id, carrier_org_id, rate_card_id, lane_id, assigned_offer_id,
+        stage, planned_pickup_at, planned_delivery_at, created_at, updated_at
+      ) VALUES (?, NULL, NULL, NULL, NULL, NULL, NULL, 'ejecucion', NULL, NULL, ?, ?)`,
+    ).run(shipmentId, stamp, stamp);
+    assert.equal((retried.prepare(`SELECT operation_id FROM ops_shipments WHERE id = ?`).get(shipmentId) as { operation_id: string | null }).operation_id, null);
+    const insert = `INSERT INTO ops_operation_alerts (
+      id, shipment_id, operation_id, kind, severity, status, source, evidence_json, opened_by, opened_at, updated_at, closed_at, closed_by, close_reason
+    ) VALUES (?, ?, NULL, ?, ?, ?, 'automatica', '{}', NULL, ?, ?, ?, NULL, ?)`;
+    retried.prepare(insert).run("ok-abierta", shipmentId, "desvio_geocerca", "alta", "abierta", stamp, stamp, null, null);
+    assert.throws(() => retried.prepare(insert).run("bad-kind", shipmentId, "inventada", "alta", "abierta", stamp, stamp, null, null));
+    assert.throws(() => retried.prepare(insert).run("bad-sev", shipmentId, "siniestro", "critica", "abierta", stamp, stamp, null, null));
+    assert.throws(() => retried.prepare(insert).run("bad-status", shipmentId, "siniestro", "alta", "pausada", stamp, stamp, null, null));
+    assert.throws(() => retried.prepare(insert).run("bad-reason", shipmentId, "siniestro", "alta", "cerrada", stamp, stamp, stamp, "otra"));
+    assert.throws(() => retried.prepare(insert).run("bad-open", shipmentId, "siniestro", "alta", "abierta", stamp, stamp, stamp, null));
+    assert.throws(() => retried.prepare(insert).run("bad-closed", shipmentId, "siniestro", "alta", "cerrada", stamp, stamp, null, null));
+    retried.prepare(insert).run("ok-closed", shipmentId, "espera_destino", "media", "cerrada", stamp, stamp, stamp, "condicion_resuelta");
+    retried.exec(rollback);
+    assert.equal(hasTable(retried, "ops_operation_alerts"), false);
+    assert.equal(
+      (retried.prepare(`PRAGMA table_info(ops_shipments)`).all() as { name: string }[]).some((column) => column.name === "operation_id"),
+      false,
+    );
+    assert.equal(versions(retried).includes(34), false);
+    assert.ok(versions(retried).includes(32));
+    assert.ok(hasTable(retried, "ops_alerts"));
+    assert.ok(hasTable(retried, "ops_shipments"));
   } finally {
     closeDb();
     process.env.DATABASE_PATH = ORIGINAL_PATH;

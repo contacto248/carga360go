@@ -48,7 +48,7 @@ function stop(child) {
 
 const port = await freePort();
 const env = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
-for (const name of ["OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED", "OPS_OPERACION_ENABLED"]) {
+for (const name of ["OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED", "OPS_OPERACION_ENABLED", "OPS_INCIDENCIAS_ENABLED"]) {
   delete env[name];
 }
 
@@ -104,6 +104,20 @@ try {
     }
     if (html.includes("Alta de operación")) throw new Error(`${pathname} renderizó el alta de operación`);
     if (html.includes("Cargando")) throw new Error(`${pathname} mostró el loading (streaming 200)`);
+  }
+
+  const apis = [
+    ["/api/ops/alertas/evaluar", "POST"],
+    ["/api/ops/envios/00000000-0000-4000-8000-000000009901/incidencias", "GET"],
+    ["/api/ops/envios/00000000-0000-4000-8000-000000009901/incidencias", "POST"],
+    ["/api/ops/envios/00000000-0000-4000-8000-000000009901/operacion", "PUT"],
+  ];
+  for (const [pathname, method] of apis) {
+    const response = await fetch(`http://127.0.0.1:${port}${pathname}`, { method, redirect: "manual" });
+    if (response.status !== 404) {
+      const body = await response.text();
+      throw new Error(`${method} ${pathname} respondió ${response.status}, no 404\n${body.slice(0, 300)}\n${logs()}`);
+    }
   }
 
   const contacto = await fetch(`http://127.0.0.1:${port}/contacto`, { redirect: "manual" });
