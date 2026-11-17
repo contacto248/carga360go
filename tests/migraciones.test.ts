@@ -50,14 +50,16 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 27]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  for (const n of [24, 25, 26]) assert.equal(v.includes(n), false, `la migración ${n} está reservada`);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 27]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  for (const n of [25, 26]) assert.equal(v.includes(n), false, `la migración ${n} está reservada`);
   assert.equal(Math.max(...v), 27);
-  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_telematics_sources", "ops_gps_receipts"]) assert.ok(hasTable(db, t), t);
+  for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_telematics_sources", "ops_gps_receipts"]) assert.ok(hasTable(db, t), t);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_shipments`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_telematics_sources`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_zones`).get() as { n: number }).n, 0);
+  assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_rate_cards`).get() as { n: number }).n, 0);
   const usersSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql;
   assert.match(usersSql, /'transportista', 'mandante', 'admin'/);
   const userCols = (db.prepare(`PRAGMA table_info(users)`).all() as { name: string }[]).map((c) => c.name);
@@ -169,6 +171,8 @@ test("reversa 022 borra solo organizaciones y deja la 023 y la 027", () => {
       trucks: db.prepare(`SELECT * FROM trucks ORDER BY id`).all(),
       usersSql: (db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'users'`).get() as { sql: string }).sql,
     };
+    // La 024 referencia organizaciones: se revierte antes para que el DROP de la 022 siga siendo válido.
+    db.exec(fs.readFileSync(path.join(process.cwd(), "docs/migrations/024-ops-procurement-rollback.sql"), "utf8"));
     db.exec(fs.readFileSync(path.join(process.cwd(), "docs/migrations/022-ops-organizaciones-rollback.sql"), "utf8"));
     assert.equal(hasTable(db, "ops_organizations"), false);
     assert.equal(hasTable(db, "ops_org_members"), false);
@@ -259,6 +263,7 @@ test("023 sobre base vacía y sobre producción v14 no altera tablas previas; la
         }
       }
       const colsBefore = protectedCols(raw);
+      raw.exec(fs.readFileSync(path.join(__dirname, "../docs/migrations/024-ops-procurement-rollback.sql"), "utf8"));
       raw.exec(rollback);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_shipments'`).get()), false);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_events'`).get()), false);
@@ -298,6 +303,41 @@ test("023 sobre base vacía y sobre producción v14 no altera tablas previas; la
       closeDb();
     }
   } finally {
+    closeDb();
+    process.env.DATABASE_PATH = ORIGINAL_PATH;
+  }
+});
+
+test("reversa 024 borra solo procurement y deja la 023", () => {
+  const db = openCopy("produccion-v14.sqlite");
+  const file = process.env.DATABASE_PATH!;
+  try {
+    assert.ok(hasTable(db, "ops_zones"));
+    assert.ok(hasTable(db, "ops_shipments"));
+    const before = {
+      users: db.prepare(`SELECT * FROM users ORDER BY id`).all(),
+      loads: db.prepare(`SELECT * FROM loads ORDER BY id`).all(),
+      shipments: (db.prepare(`SELECT COUNT(*) AS n FROM ops_shipments`).get() as { n: number }).n,
+    };
+    db.exec(fs.readFileSync(path.join(process.cwd(), "docs/migrations/024-ops-procurement-rollback.sql"), "utf8"));
+    for (const table of ["ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions"]) {
+      assert.equal(hasTable(db, table), false, table);
+    }
+    assert.equal(versions(db).includes(24), false);
+    assert.equal(versions(db).includes(23), true);
+    assert.equal(versions(db).includes(27), true);
+    assert.equal(Math.max(...versions(db)), 27);
+    assert.ok(hasTable(db, "ops_organizations"));
+    assert.ok(hasTable(db, "ops_shipments"));
+    assert.ok(hasTable(db, "ops_telematics_sources"));
+    assert.ok(hasTable(db, "ops_gps_receipts"));
+    assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
+    assert.deepEqual(db.prepare(`SELECT * FROM loads ORDER BY id`).all(), before.loads);
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_shipments`).get() as { n: number }).n, before.shipments);
+  } finally {
+    closeDb();
+    process.env.DATABASE_PATH = file;
+    assertFinalSchema(getDb());
     closeDb();
     process.env.DATABASE_PATH = ORIGINAL_PATH;
   }
