@@ -6,18 +6,33 @@ import { getDb } from "../db";
 import { AppError } from "../errors";
 import type { PublicUser } from "../types";
 import type { EtaView, GeofenceHit } from "./eta-types";
+import { detencionMinDefault, sinSenalMinDefault } from "./alert-config";
 import { appendEvent, canReadShipment, type OpsShipment, type ShipmentStage } from "./shipments";
 
 export const ALERT_KINDS = ["atraso", "detencion", "sin_senal"] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
-const DEFAULT_MIN: Record<AlertKind, number> = { atraso: 30, detencion: 20, sin_senal: 45 };
+export const ALERT_SEVERITIES = ["baja", "media", "alta"] as const;
+export type AlertSeverity = (typeof ALERT_SEVERITIES)[number];
+
+/** No agrega kinds. La severidad solo clasifica los tres que ya existen. */
+const KIND_SEVERITY: Record<AlertKind, AlertSeverity> = {
+  atraso: "media",
+  detencion: "alta",
+  sin_senal: "alta",
+};
+
 const STOP_RADIUS_M = 200;
+
+function defaultMinutes(): Record<AlertKind, number> {
+  return { atraso: 30, detencion: detencionMinDefault(), sin_senal: sinSenalMinDefault() };
+}
 
 export type AlertView = {
   id: string;
   shipmentId: string;
   kind: AlertKind;
+  severity: AlertSeverity;
   status: "abierta" | "cerrada";
   evidence: Record<string, unknown>;
   openedAt: string;
@@ -101,9 +116,13 @@ function thresholds(shipmentId: string): Record<AlertKind, number> {
     kind: AlertKind;
     minutes: number;
   }[];
-  const out = { ...DEFAULT_MIN };
+  const out = defaultMinutes();
   for (const row of rows) if (ALERT_KINDS.includes(row.kind)) out[row.kind] = row.minutes;
   return out;
+}
+
+function asSeverity(value: string): AlertSeverity {
+  return (ALERT_SEVERITIES as readonly string[]).includes(value) ? (value as AlertSeverity) : "media";
 }
 
 function parseEvidence(json: string): Record<string, unknown> {
@@ -133,8 +152,8 @@ function setAlert(shipmentId: string, kind: AlertKind, open: boolean, evidence: 
   }
   const id = randomUUID();
   db.prepare(
-    `INSERT INTO ops_alerts (id, shipment_id, kind, status, evidence_json, opened_at, updated_at) VALUES (?, ?, ?, 'abierta', ?, ?, ?)`,
-  ).run(id, shipmentId, kind, payload, now, now);
+    `INSERT INTO ops_alerts (id, shipment_id, kind, status, severity, evidence_json, opened_at, updated_at) VALUES (?, ?, ?, 'abierta', ?, ?, ?, ?)`,
+  ).run(id, shipmentId, kind, KIND_SEVERITY[kind], payload, now, now);
   auditStrict(actor ?? null, "ops.alerta_abierta", { type: "envio", id: shipmentId }, { kind, alertaId: id });
   appendEvent({ shipmentId, kind: "alerta.abierta", payload: { kind, alertaId: id }, actor });
 }
@@ -154,7 +173,59 @@ function insideDestino(hits: GeofenceHit[] | undefined): boolean {
   return Boolean(hits?.find((hit) => hit.point === "destino" && hit.inside));
 }
 
-/** Abre o cierra alertas según la última posición, el ETA y los umbrales. Sin cron. */
+function latestGps(loadId: string): { id: string; recordedAt: string } | undefined {
+  return gpsPair(loadId)[0];
+}
+
+function reviewSilent(shipmentId: string, loadId: string, actor: Actor, now: Date) {
+  const latest = latestGps(loadId);
+  if (!latest) return;
+  const limits = thresholds(shipmentId);
+  const silentMin = (now.getTime() - Date.parse(latest.recordedAt)) / 60_000;
+  setAlert(
+    shipmentId,
+    "sin_senal",
+    silentMin >= limits.sin_senal,
+    { gpsPointId: latest.id, recordedAt: latest.recordedAt, minutos: Math.round(silentMin), umbralMin: limits.sin_senal },
+    actor,
+  );
+}
+
+/**
+ * Abre o cierra sin_senal en envíos que ya tienen un punto GPS.
+ * No se ejecuta solo. Lo invoca POST /api/ops/alertas/senal.
+ * No hay cron en el servidor: quien opere decide cuándo llamarlo.
+ * No recalcula detención ni atraso.
+ */
+export function evaluateSilentSignals(now = new Date()): { reviewed: number; opened: number; closed: number } {
+  const db = getDb();
+  const gpsReady = Boolean(db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'trip_gps_points'`).get());
+  if (!gpsReady) return { reviewed: 0, opened: 0, closed: 0 };
+  const rows = db
+    .prepare(
+      `SELECT s.id AS shipmentId, s.load_id AS loadId
+       FROM ops_shipments s
+       WHERE s.load_id IS NOT NULL
+         AND EXISTS (SELECT 1 FROM trip_gps_points p WHERE p.load_id = s.load_id)`,
+    )
+    .all() as { shipmentId: string; loadId: string }[];
+  let opened = 0;
+  let closed = 0;
+  for (const row of rows) {
+    const wasOpen = Boolean(
+      db.prepare(`SELECT 1 FROM ops_alerts WHERE shipment_id = ? AND kind = 'sin_senal' AND status = 'abierta'`).get(row.shipmentId),
+    );
+    reviewSilent(row.shipmentId, row.loadId, null, now);
+    const isOpen = Boolean(
+      db.prepare(`SELECT 1 FROM ops_alerts WHERE shipment_id = ? AND kind = 'sin_senal' AND status = 'abierta'`).get(row.shipmentId),
+    );
+    if (!wasOpen && isOpen) opened += 1;
+    if (wasOpen && !isOpen) closed += 1;
+  }
+  return { reviewed: rows.length, opened, closed };
+}
+
+/** Abre o cierra alertas según la última posición, el ETA y los umbrales. sin_senal también la revisa evaluateSilentSignals. */
 export function reviewAlerts(loadId: string, eta: EtaView | null, actor: Actor, now = new Date()): void {
   const shipment = shipmentByLoad(loadId);
   if (!shipment) return;
@@ -162,7 +233,6 @@ export function reviewAlerts(loadId: string, eta: EtaView | null, actor: Actor, 
   const points = gpsPair(loadId);
   const latest = points[0];
   const previous = points[1];
-  const nowMs = now.getTime();
 
   if (latest && previous) {
     const distanceM = Math.round(haversineM({ lat: latest.lat, lon: latest.lng }, { lat: previous.lat, lon: previous.lng }));
@@ -190,17 +260,7 @@ export function reviewAlerts(loadId: string, eta: EtaView | null, actor: Actor, 
     );
   }
 
-  if (latest) {
-    const silentMin = (nowMs - Date.parse(latest.recordedAt)) / 60_000;
-    const silent = silentMin >= limits.sin_senal;
-    setAlert(
-      shipment.id,
-      "sin_senal",
-      silent,
-      { gpsPointId: latest.id, recordedAt: latest.recordedAt, minutos: Math.round(silentMin), umbralMin: limits.sin_senal },
-      actor,
-    );
-  }
+  if (latest) reviewSilent(shipment.id, loadId, actor, now);
 }
 
 export function listAlerts(user: PublicUser, shipmentId: string, now = new Date()): { alerts: AlertView[]; thresholds: Record<AlertKind, number> } {
@@ -208,13 +268,14 @@ export function listAlerts(user: PublicUser, shipmentId: string, now = new Date(
   if (shipment.load_id) reviewAlerts(shipment.load_id, null, user, now);
   const rows = getDb()
     .prepare(
-      `SELECT id, shipment_id, kind, status, evidence_json, opened_at, updated_at
+      `SELECT id, shipment_id, kind, severity, status, evidence_json, opened_at, updated_at
        FROM ops_alerts WHERE shipment_id = ? ORDER BY opened_at ASC`,
     )
     .all(shipment.id) as {
     id: string;
     shipment_id: string;
     kind: AlertKind;
+    severity: string;
     status: "abierta" | "cerrada";
     evidence_json: string;
     opened_at: string;
@@ -226,6 +287,7 @@ export function listAlerts(user: PublicUser, shipmentId: string, now = new Date(
       id: row.id,
       shipmentId: row.shipment_id,
       kind: row.kind,
+      severity: asSeverity(row.severity),
       status: row.status,
       evidence: parseEvidence(row.evidence_json),
       openedAt: row.opened_at,

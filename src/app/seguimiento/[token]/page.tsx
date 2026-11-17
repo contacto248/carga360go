@@ -11,8 +11,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const ALERT_LABEL = { atraso: "Atraso", detencion: "Detención", sin_senal: "Sin señal" } as const;
-
 /** El 404 HTTP con el flag apagado lo pone el middleware, antes de esta página. */
 export default async function TrackingPage({ params }: { params: Promise<{ token: string }> }) {
   if (!isEnabled("OPS_FEATURE_ENABLED")) notFound();
@@ -43,15 +41,6 @@ export default async function TrackingPage({ params }: { params: Promise<{ token
         )}
         <p>{view.etaAt ? `Llegada estimada: ${view.etaAt}` : "Sin hora estimada."}</p>
         <p className="meta">La estimación usa perfil de auto (OSRM), no un perfil de camión.</p>
-        {view.alerts.length ? (
-          <ul>
-            {view.alerts.map((alert) => (
-              <li key={alert.kind}>{ALERT_LABEL[alert.kind]}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="meta">Sin alertas abiertas.</p>
-        )}
       </section>
     </div>
   );
