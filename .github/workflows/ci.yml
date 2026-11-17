@@ -82,6 +82,9 @@ jobs:
           done
           exit 1
 
+      - name: humo 404 ops
+        run: node scripts/smoke-ops-404.mjs
+
       - name: npm audit (prod)
         # Informativo: highs conocidos (p.ej. postcss/sharp) no bloquean el gate.
         continue-on-error: true

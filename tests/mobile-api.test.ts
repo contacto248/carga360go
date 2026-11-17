@@ -299,7 +299,24 @@ test("bloqueo de transportistas aplicado con token, contacto oculto para anónim
 });
 
 test("salud, catálogo e importación no soportada", async () => {
-  assert.deepEqual(await (await api.health(req("GET", "/api/health"))).json(), { ok: true, database: true, documents: "private", auth: "bearer" });
+  const previousSha = process.env.GIT_SHA;
+  delete process.env.GIT_SHA;
+  try {
+    const off = (await (await api.health(req("GET", "/api/health"))).json()) as Record<string, unknown>;
+    assert.deepEqual(off, { ok: true, database: true, documents: "private", auth: "bearer", commit: "unknown" });
+    assert.deepEqual(Object.keys(off).sort(), ["auth", "commit", "database", "documents", "ok"]);
+    process.env.GIT_SHA = "ABCDEF1234567890abcd";
+    assert.equal(((await (await api.health(req("GET", "/api/health"))).json()) as { commit: string }).commit, "abcdef1");
+    process.env.GIT_SHA = "  abcdef0  ";
+    assert.equal(((await (await api.health(req("GET", "/api/health"))).json()) as { commit: string }).commit, "abcdef0");
+    process.env.GIT_SHA = "no-es-sha";
+    assert.equal(((await (await api.health(req("GET", "/api/health"))).json()) as { commit: string }).commit, "unknown");
+    process.env.GIT_SHA = "abc123";
+    assert.equal(((await (await api.health(req("GET", "/api/health"))).json()) as { commit: string }).commit, "unknown");
+  } finally {
+    if (previousSha === undefined) delete process.env.GIT_SHA;
+    else process.env.GIT_SHA = previousSha;
+  }
   const catalog = (await (await api.catalog(req("GET", "/api/catalog"))).json()) as {
     company: { name: string; rut: string; privacyUrl: string };
     regions: unknown[];

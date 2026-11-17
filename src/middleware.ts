@@ -1,4 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { isEnabled } from "@/lib/ops/flags";
+import { opsPageHidden, opsPageRule } from "@/lib/ops/page-gate";
+import { userFromHeaders } from "@/lib/request-auth";
 
 /**
  * CORS para la API (solo lo necesita Expo web; las apps nativas no envían Origin).
@@ -12,11 +15,34 @@ const CORS = {
   "access-control-max-age": "600",
 };
 
+const OPS_NOT_FOUND = `<!DOCTYPE html><html lang="es-CL"><head><meta charset="utf-8"><title>Página no encontrada</title><meta name="robots" content="noindex"></head><body><h1>No encontramos esa página</h1></body></html>`;
+
+/** Node: con el flag encendido hay que leer la sesión en SQLite. El edge no puede. */
+export const runtime = "nodejs";
+
+function opsNotFound(): NextResponse {
+  return new NextResponse(OPS_NOT_FOUND, {
+    status: 404,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "x-robots-tag": "noindex",
+    },
+  });
+}
+
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname.startsWith("/api") && request.method === "OPTIONS") {
     return new NextResponse(null, { status: 204, headers: CORS });
+  }
+
+  // loading.tsx ya abrió el HTML en 200 si la página llega a renderizar. El corte es esta respuesta.
+  const rule = opsPageRule(pathname);
+  if (rule) {
+    const user = isEnabled(rule.flag) ? userFromHeaders(request.headers) : null;
+    if (opsPageHidden(pathname, user)) return opsNotFound();
   }
 
   const requestHeaders = new Headers(request.headers);

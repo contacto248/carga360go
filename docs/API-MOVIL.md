@@ -216,7 +216,7 @@ Cada documento queda `pendiente` hasta que el administrador lo revisa. Si un tra
 
 ## 7. Otros
 
-- `GET /api/health` → `{"ok":true,"database":true,"documents":"private","auth":"bearer"}`
+- `GET /api/health` → `{"ok":true,"database":true,"documents":"private","auth":"bearer","commit":"<sha corto o unknown>"}`. `commit` son los primeros 7 caracteres hex de `GIT_SHA` (variable de build). Si no está o no es un SHA, vale `unknown`. No incluye otras variables de entorno.
 - `GET /api/catalog` → `{ company: {name, rut, privacyUrl, termsUrl}, regions[16]: {id, numeral, name, zone}, cities[]: {name, regionId, region, zone}, equipment[], documentTypes[], requiredCarrierDocs[6] }`. Úsalo para los selectores de región y ciudad, de equipo y de documento.
 - `POST /api/import` → 501. No se importan publicaciones de la demo local.
 - Recuperar contraseña: abre `https://www.carga360go.cl/recuperar` en el navegador. También existe `POST /api/auth/recuperar {"email"}`.

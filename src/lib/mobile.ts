@@ -6,6 +6,7 @@
  * Los handlers son funciones puras Request -> Response para poder probarlos sin Next.
  */
 import { accreditationOf } from "./accreditation";
+import { deployedCommit } from "./build-info";
 import { assertSameOrigin } from "./api";
 import { audit } from "./audit";
 import { notifyDocumentUploaded, notifyNewRegistration } from "./admin-notify";
@@ -479,7 +480,7 @@ export const deleteDocument = mobile((request, id) => {
 
 export const health = mobile(() => {
   getDb().prepare(`SELECT 1 AS ok`).get();
-  return json({ ok: true, database: true, documents: "private", auth: "bearer" });
+  return json({ ok: true, database: true, documents: "private", auth: "bearer", commit: deployedCommit() });
 });
 
 export const catalog = mobile(() =>
