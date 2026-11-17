@@ -162,7 +162,7 @@ test("solo el texto true enciende el flag y la página nueva responde 404", asyn
       const response = await middleware(new NextRequest("http://127.0.0.1:4317/admin/documentos-vencimiento"));
       assert.equal(response.status, 404, String(value));
       assert.match(await response.text(), /No encontramos esa página/);
-      const api = await postAvisos();
+      const api = await postAvisos(new Request("http://127.0.0.1:4317/api/admin/documentos-vencimiento/avisos", { method: "POST" }));
       assert.equal(api.status, 404, String(value));
     }
     delete process.env.DOCS_VENCIMIENTO_ENABLED;
@@ -276,6 +276,44 @@ test("apagado no bloquea y la lista por faena vacía no inventa requisitos", asy
   }
 
   assert.throws(() => documento({ sujeto: "vehiculo", sujetoId: vencido.truckId, tipo: "licencia", venceEl: addDays(todayChile(), 10), verificacion: "pendiente" }));
+});
+
+test("el job de avisos exige el secreto en la cabecera y el flag apagado responde 404", async () => {
+  const secret = "secreto-de-job-documentos-24";
+  const previous = { flag: process.env.DOCS_VENCIMIENTO_ENABLED, job: process.env.OPS_ALERTAS_JOB_SECRET };
+  function call(authorization?: string) {
+    const headers = new Headers({ host: "127.0.0.1:4317" });
+    if (authorization) headers.set("authorization", authorization);
+    return postAvisos(new Request("http://127.0.0.1:4317/api/admin/documentos-vencimiento/avisos", { method: "POST", headers }));
+  }
+  try {
+    process.env.OPS_ALERTAS_JOB_SECRET = secret;
+    delete process.env.DOCS_VENCIMIENTO_ENABLED;
+    assert.equal((await call(`Bearer ${secret}`)).status, 404);
+    process.env.DOCS_VENCIMIENTO_ENABLED = "TRUE";
+    assert.equal((await call(`Bearer ${secret}`)).status, 404);
+    process.env.DOCS_VENCIMIENTO_ENABLED = "true";
+    delete process.env.OPS_ALERTAS_JOB_SECRET;
+    assert.equal((await call(`Bearer ${secret}`)).status, 503);
+    process.env.OPS_ALERTAS_JOB_SECRET = secret;
+    assert.equal((await call("Bearer otro-secreto-largo-de-prueba-xx")).status, 401);
+    const outbox = process.env.MAIL_OUTBOX ?? "";
+    const before = fs.existsSync(outbox) ? fs.readdirSync(outbox).length : 0;
+    const ok = await call(`Bearer ${secret}`);
+    assert.equal(ok.status, 200);
+    const body = (await ok.json()) as { reviewed: number };
+    assert.equal(typeof body.reviewed, "number");
+    const after = fs.existsSync(outbox) ? fs.readdirSync(outbox).length : 0;
+    assert.equal(after, before);
+    const route = fs.readFileSync(path.join(process.cwd(), "src/app/api/admin/documentos-vencimiento/avisos/route.ts"), "utf8");
+    assert.match(route, /assertAlertJob/);
+    assert.doesNotMatch(route, /sendEmail|sendWhatsapp|getCurrentUser/);
+  } finally {
+    if (previous.flag === undefined) delete process.env.DOCS_VENCIMIENTO_ENABLED;
+    else process.env.DOCS_VENCIMIENTO_ENABLED = previous.flag;
+    if (previous.job === undefined) delete process.env.OPS_ALERTAS_JOB_SECRET;
+    else process.env.OPS_ALERTAS_JOB_SECRET = previous.job;
+  }
 });
 
 test("los avisos de 30, 15 y 7 días son un kind de ops y no salen por correo", async () => {
