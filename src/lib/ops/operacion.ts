@@ -8,6 +8,14 @@ import { assertEnabled } from "./flags";
 
 const MAX_PESO_KG = 80_000;
 const MAX_CORRELATIVO = 9999;
+const ZONA_OPERACION = "America/Santiago";
+
+/** YY y MM en America/Santiago (UTC-3). */
+const relojOperacion = new Intl.DateTimeFormat("en-US", {
+  timeZone: ZONA_OPERACION,
+  year: "2-digit",
+  month: "2-digit",
+});
 
 const createSchema = z
   .object({
@@ -61,21 +69,24 @@ type OperacionRow = {
 const SELECT_OPERACION = `SELECT id, cliente, origen, destino, tipo_carga, peso_kg, estado, version, created_by, created_at, updated_at
   FROM ops_operations`;
 
-/** YYMM en UTC. El cliente no elige el periodo. */
+/** YYMM en America/Santiago. El cliente no elige el periodo. */
 export function periodoOperacion(date: Date): string {
   if (Number.isNaN(date.getTime())) throw new AppError("Fecha de operación no válida.");
-  const year = String(date.getUTCFullYear()).slice(-2);
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const parts = relojOperacion.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value ?? "";
+  const month = parts.find((part) => part.type === "month")?.value ?? "";
+  if (!/^\d{2}$/.test(year) || !/^\d{2}$/.test(month)) throw new AppError("Fecha de operación no válida.");
   return `${year}${month}`;
 }
 
 /** Identificador público 360-YYMM-NNNN. NNNN es el correlativo del mes, de 0001 a 9999. */
 export function codigoOperacion(periodo: string, correlativo: number): string {
   if (!/^\d{4}$/.test(periodo)) throw new AppError("Periodo de operación no válido.");
-  if (!Number.isInteger(correlativo) || correlativo < 1 || correlativo > MAX_CORRELATIVO) {
+  const serial = String(correlativo).padStart(4, "0");
+  if (!Number.isInteger(correlativo) || correlativo < 1 || correlativo > MAX_CORRELATIVO || !/^\d{4}$/.test(serial)) {
     throw new AppError("No hay correlativo disponible para este mes.", 409);
   }
-  return `360-${periodo}-${String(correlativo).padStart(4, "0")}`;
+  return `360-${periodo}-${serial}`;
 }
 
 function parseBody(body: unknown): OperacionInput {
@@ -153,9 +164,11 @@ export function createOperacion(
       .prepare(
         `INSERT INTO ops_operation_counters (periodo, ultimo) VALUES (?, 1)
          ON CONFLICT(periodo) DO UPDATE SET ultimo = ultimo + 1
+         WHERE ultimo < ?
          RETURNING ultimo`,
       )
-      .get(periodo) as { ultimo: number };
+      .get(periodo, MAX_CORRELATIVO) as { ultimo: number } | undefined;
+    if (!counter) throw new AppError("No hay correlativo disponible para este mes.", 409);
     const id = codigoOperacion(periodo, counter.ultimo);
     db.prepare(
       `INSERT INTO ops_operations (

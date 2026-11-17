@@ -84,10 +84,11 @@ function audits(id: string) {
   }[];
 }
 
-test("el identificador es 360-YYMM-NNNN en UTC y no lo elige el cliente", () => {
-  assert.equal(periodoOperacion(new Date("2026-11-01T02:00:00.000Z")), "2611");
+test("el identificador es 360-YYMM-NNNN en America/Santiago y no lo elige el cliente", () => {
+  assert.equal(periodoOperacion(new Date("2026-11-15T15:00:00.000Z")), "2611");
   assert.equal(codigoOperacion("2611", 1), "360-2611-0001");
   assert.equal(codigoOperacion("2611", 42), "360-2611-0042");
+  assert.equal(codigoOperacion("2611", 9999), "360-2611-9999");
   assert.throws(() => codigoOperacion("2611", 10000), (error: unknown) => error instanceof AppError && error.status === 409);
   assert.throws(() => codigoOperacion("261", 1), (error: unknown) => error instanceof AppError && error.status === 400);
 
@@ -96,7 +97,7 @@ test("el identificador es 360-YYMM-NNNN en UTC y no lo elige el cliente", () => 
     const enero = new Date("1999-01-15T08:00:00.000Z");
     const first = createOperacion(owner, body(), null, enero);
     const second = createOperacion(owner, body(), null, new Date("1999-01-31T23:00:00.000Z"));
-    const febrero = createOperacion(owner, body(), null, new Date("1999-02-01T00:00:00.000Z"));
+    const febrero = createOperacion(owner, body(), null, new Date("1999-02-01T03:00:00.000Z"));
     assert.equal(first.replayed, false);
     assert.equal(first.operacion.id, "360-9901-0001");
     assert.equal(second.operacion.id, "360-9901-0002");
@@ -108,6 +109,23 @@ test("el identificador es 360-YYMM-NNNN en UTC y no lo elige el cliente", () => 
       () => createOperacion(owner, body({ id: "360-9901-0099", codigo: "360-9901-0099", estado: "ASSIGNED" }), null, enero),
       (error: unknown) => error instanceof AppError && error.status === 400,
     );
+  });
+});
+
+test("entre las 21:00 y las 24:00 de Chile el YYMM sigue en el mes local", () => {
+  // 30-nov 21:00 en Chile (UTC-3) corresponde a 01-dic 00:00Z; el periodo queda en noviembre.
+  assert.equal(periodoOperacion(new Date("2026-12-01T00:00:00.000Z")), "2611");
+  assert.equal(periodoOperacion(new Date("2026-12-01T02:59:59.999Z")), "2611");
+  assert.equal(periodoOperacion(new Date("2026-12-01T03:00:00.000Z")), "2612");
+
+  const owner = admin("borde");
+  withFlags({ OPS_FEATURE_ENABLED: "true", OPS_OPERACION_ENABLED: "true" }, () => {
+    const noche = createOperacion(owner, body(), null, new Date("2034-12-01T00:00:00.000Z"));
+    const cierre = createOperacion(owner, body(), null, new Date("2034-12-01T02:59:59.999Z"));
+    const diciembre = createOperacion(owner, body(), null, new Date("2034-12-01T03:00:00.000Z"));
+    assert.equal(noche.operacion.id, "360-3411-0001");
+    assert.equal(cierre.operacion.id, "360-3411-0002");
+    assert.equal(diciembre.operacion.id, "360-3412-0001");
   });
 });
 
@@ -168,6 +186,7 @@ test("con el correlativo agotado no deja una fila a medias", () => {
   const counter = getDb().prepare(`SELECT ultimo FROM ops_operation_counters WHERE periodo = '9912'`).get() as { ultimo: number };
   assert.equal(counter.ultimo, 9999);
   assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM ops_operations WHERE id LIKE '360-9912-%'`).get() as { n: number }).n, 0);
+  assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM ops_operations WHERE length(id) > 13`).get() as { n: number }).n, 0);
 });
 
 test("el flag apagado responde 404 HTTP en la página y en la API", async () => {
