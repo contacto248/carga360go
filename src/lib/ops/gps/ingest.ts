@@ -5,6 +5,7 @@ import { AppError } from "../../errors";
 import { cityCoords } from "../../geo";
 import type { PublicUser } from "../../types";
 import { assertEnabled } from "../flags";
+import { onConnectorPoint } from "../eta";
 import { driverGps, simulatedGps, type GpsProvider } from "./connector";
 
 export type OpsGpsPoint = {
@@ -55,7 +56,7 @@ function routeOf(loadId: string): { origin: string; destination: string } {
 }
 
 /** Recorrido simulado entre las ciudades de la carga. Solo administración. Sin red ni claves. */
-export function ingestSimulatedTrack(user: PublicUser, loadId: string, stepsValue: unknown): { provider: "simulado"; points: OpsGpsPoint[] } {
+export async function ingestSimulatedTrack(user: PublicUser, loadId: string, stepsValue: unknown): Promise<{ provider: "simulado"; points: OpsGpsPoint[] }> {
   assertEnabled("OPS_FEATURE_ENABLED");
   if (user.role !== "admin") throw new AppError("Solo administración puede cargar un recorrido simulado.", 403);
   const steps = stepsOf(stepsValue);
@@ -74,12 +75,13 @@ export function ingestSimulatedTrack(user: PublicUser, loadId: string, stepsValu
     const point = saveTripGpsPoint(user, loadId, fix.lat, fix.lng, fix.recordedAt);
     linkPoint("simulado", loadId, point.id);
     points.push({ lat: point.lat, lng: point.lng, recordedAt: point.recordedAt, provider: "simulado" });
+    await onConnectorPoint(loadId, user);
   }
   return { provider: "simulado", points };
 }
 
 /** Un punto del conductor (app o web). Ignora cualquier hora enviada por el cliente. */
-export function ingestDriverFix(user: PublicUser, loadId: string, lat: unknown, lng: unknown): { provider: "conductor"; point: OpsGpsPoint } {
+export async function ingestDriverFix(user: PublicUser, loadId: string, lat: unknown, lng: unknown): Promise<{ provider: "conductor"; point: OpsGpsPoint }> {
   assertEnabled("OPS_FEATURE_ENABLED");
   const [fix] = driverGps.collect({
     lat: typeof lat === "number" ? lat : Number.NaN,
@@ -88,6 +90,7 @@ export function ingestDriverFix(user: PublicUser, loadId: string, lat: unknown, 
   });
   const saved = saveTripGpsPoint(user, loadId, fix.lat, fix.lng);
   linkPoint("conductor", loadId, saved.id);
+  await onConnectorPoint(loadId, user);
   return { provider: "conductor", point: { lat: saved.lat, lng: saved.lng, recordedAt: saved.recordedAt, provider: "conductor" } };
 }
 
