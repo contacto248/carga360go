@@ -9,6 +9,7 @@ import { todayChile, rutDv } from "../src/lib/format";
 import { createLoad } from "../src/lib/listings";
 import { ensureShipmentForLoad } from "../src/lib/ops/shipments";
 import { issueTrackingLink, readTracking } from "../src/lib/ops/tracking";
+import { ENLACE_YA_EMITIDO, textoReemision } from "../src/lib/ops/tracking-message";
 import type { PublicUser } from "../src/lib/types";
 
 if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
@@ -122,6 +123,7 @@ test("TWR-12: no hay token en claro en la base ni en la auditoría, y un token d
   assert.equal(repeat.created, false);
   assert.equal("token" in repeat, false);
   assert.equal(JSON.stringify(repeat).includes(token), false);
+  assert.equal(textoReemision(repeat, true), ENLACE_YA_EMITIDO);
   assert.equal(
     (db.prepare(`SELECT COUNT(*) AS n FROM audit_log WHERE action = 'ops.seguimiento_emitido'`).get() as { n: number }).n,
     1,
@@ -140,6 +142,12 @@ test("TWR-12: no hay token en claro en la base ni en la auditoría, y un token d
   ).run(shipmentId, stamp, stamp);
   db.prepare(`INSERT INTO ops_tracking_links (token, shipment_id, created_at) VALUES (?, ?, ?)`).run(legacy, shipmentId, stamp);
   assert.deepEqual(db.prepare(`SELECT token FROM ops_tracking_links WHERE shipment_id = ?`).get(shipmentId), { token: legacy });
+  const auditsAntes = (db.prepare(`SELECT COUNT(*) AS n FROM audit_log`).get() as { n: number }).n;
+  db.prepare(
+    `INSERT INTO audit_log (id, actor_id, actor_email, action, target_type, target_id, detail, ip, created_at)
+     VALUES ('audit-legacy-token', NULL, NULL, 'ops.seguimiento_emitido', 'envio', ?, ?, NULL, ?),
+            ('audit-legacy-emitido', NULL, NULL, 'ops.seguimiento_emitido', 'envio', ?, ?, NULL, ?)`,
+  ).run(shipmentId, JSON.stringify({ token: legacy }), stamp, shipment.id, JSON.stringify({ token }), stamp);
   closeDb();
   const migrated = getDb();
   const converted = migrated.prepare(`SELECT token, token_hash FROM ops_tracking_links WHERE shipment_id = ?`).get(shipmentId) as {
@@ -158,7 +166,16 @@ test("TWR-12: no hay token en claro en la base ni en la auditoría, y un token d
   assert.equal(readTracking(legacy).stage, "ejecucion");
   assert.throws(() => readTracking(other), notFound);
   assert.throws(() => readTracking(legacyOther), notFound);
-  const auditAfter = JSON.stringify(migrated.prepare(`SELECT detail FROM audit_log`).all());
+  const auditRows = migrated.prepare(`SELECT id, action, detail FROM audit_log`).all() as { id: string; action: string; detail: string | null }[];
+  assert.equal(auditRows.length, auditsAntes + 2);
+  const auditAfter = JSON.stringify(auditRows);
   assert.equal(auditAfter.includes(token), false);
   assert.equal(auditAfter.includes(legacy), false);
+  const rewritten = auditRows.find((row) => row.id === "audit-legacy-token");
+  const rewrittenIssued = auditRows.find((row) => row.id === "audit-legacy-emitido");
+  assert.ok(rewritten);
+  assert.ok(rewrittenIssued);
+  assert.deepEqual(JSON.parse(rewritten.detail ?? "{}"), { prefijo: legacy.slice(0, 6) });
+  assert.deepEqual(JSON.parse(rewrittenIssued.detail ?? "{}"), { prefijo: token.slice(0, 6) });
+  assert.equal(rewritten.action, "ops.seguimiento_emitido");
 });

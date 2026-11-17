@@ -7,6 +7,7 @@ import { AppError } from "../errors";
 import type { PublicUser } from "../types";
 import { latestPublicEta } from "./eta";
 import { canReadShipment, type OpsShipment, type ShipmentStage } from "./shipments";
+import { ENLACE_YA_EMITIDO } from "./tracking-message";
 
 export type TrackingView = {
   token: string;
@@ -96,7 +97,7 @@ function viewFor(shipmentId: string, token: string): TrackingView {
 
 const DUMMY_TOKEN_HASH = "0".repeat(64);
 
-export type IssuedTrackingLink = { token: string; path: string; created: true } | { created: false };
+export type IssuedTrackingLink = { token: string; path: string; created: true } | { created: false; mensaje: string };
 
 /** Compara el hash guardado con el calculado. Siempre lee los dos buffers del mismo largo. */
 function sameTokenHash(stored: string | undefined, computed: string): boolean {
@@ -115,7 +116,7 @@ export function issueTrackingLink(user: PublicUser, shipmentId: string): IssuedT
   const shipment = requireShipment(user, shipmentId);
   const db = getDb();
   const existing = db.prepare(`SELECT 1 AS ok FROM ops_tracking_links WHERE shipment_id = ?`).get(shipment.id);
-  if (existing) return { created: false };
+  if (existing) return { created: false, mensaje: ENLACE_YA_EMITIDO };
   const token = randomBytes(24).toString("base64url");
   const hash = tokenHash(token);
   const now = new Date().toISOString();

@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "@/components/control/control.module.css";
 import { formatClp, formatDateCL } from "@/lib/format";
 import type { OpsPanelData, OpsPanelSection } from "@/lib/ops/panel";
+import { EnlaceSeguimiento } from "./enlace-seguimiento";
 
 const SECTIONS: { id: OpsPanelSection; label: string; icon: string }[] = [
   { id: "contratos", label: "Contratos y SLA", icon: "☰" },
@@ -487,6 +488,7 @@ export function OpsBoard({ data, section }: { data: OpsPanelData; section: OpsPa
                       <th>Etapa</th>
                       <th>Retiro</th>
                       <th>Entrega</th>
+                      <th>Enlace</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -505,6 +507,9 @@ export function OpsBoard({ data, section }: { data: OpsPanelData; section: OpsPa
                         </td>
                         <td>{when(shipment.plannedPickupAt)}</td>
                         <td>{when(shipment.plannedDeliveryAt)}</td>
+                        <td>
+                          <EnlaceSeguimiento shipmentId={shipment.id} />
+                        </td>
                       </tr>
                     ))}
                   </tbody>

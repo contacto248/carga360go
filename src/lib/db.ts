@@ -798,6 +798,7 @@ END;
  * Migración 033: hash SHA-256 del token del enlace público de seguimiento.
  * La 032 es el uso del orquestador. Esta no la modifica.
  * Aditiva: una columna en ops_tracking_links y el reemplazo del token en claro por su hash.
+ * También reescribe audit_log.detail de ops.seguimiento_emitido: no hay columna metadata.
  * sha256(texto) es el mismo SHA-256 hexadecimal que tokenHash. Se registra antes de ejecutar el SQL.
  * No altera users, loads, offers, trip_events ni las migraciones 022–032.
  * Copia en docs/migrations/033-tracking-token-hash.sql.
@@ -819,6 +820,14 @@ SET token = token_hash
 WHERE token != token_hash;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_ops_tracking_links_token_hash ON ops_tracking_links(token_hash);
+
+UPDATE audit_log
+SET detail = json_remove(
+  json_set(detail, '$.prefijo', substr(json_extract(detail, '$.token'), 1, 6)),
+  '$.token'
+)
+WHERE action = 'ops.seguimiento_emitido'
+  AND json_extract(detail, '$.token') IS NOT NULL;
 `;
 
 /** Misma función que tokenHash en auth.ts. auth.ts importa esta base, así que el hash vive aquí para la migración. */
