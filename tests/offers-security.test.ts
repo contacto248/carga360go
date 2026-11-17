@@ -12,6 +12,7 @@ import { AppError } from "../src/lib/errors";
 import { todayChile } from "../src/lib/format";
 import { createLoad, getLoad, listLoads, updateLoad } from "../src/lib/listings";
 import { acceptOffer, canOffer, closeLoad, listOffersForLoad, offersVisibleTo, submitOffer, withdrawOffer } from "../src/lib/offers";
+import { cookieSecure } from "../src/lib/auth";
 import { assertHuman, assertStrongPassword, cleanClp, normalizePatente } from "../src/lib/security";
 import { getSettings, saveSettings } from "../src/lib/settings";
 import type { PublicUser } from "../src/lib/types";
@@ -117,7 +118,40 @@ test("seguridad: contraseña, patente, montos, honeypot y CSRF", () => {
     headers: { "sec-fetch-site": "same-origin", origin: "https://www.carga360go.cl", host: "www.carga360go.cl" },
   });
   assert.doesNotThrow(() => assertSameOrigin(same));
+  // Cookie de sesión sin Origin ni Sec-Fetch-Site: rechazar (usar Bearer en clientes no-browser).
+  const blind = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { cookie: "c360_session=token-de-sesion", host: "www.carga360go.cl" },
+  });
+  assert.throws(() => assertSameOrigin(blind), /Origen/);
+  const blindOk = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { cookie: "c360_session=token-de-sesion", "sec-fetch-site": "same-origin", host: "www.carga360go.cl" },
+  });
+  assert.doesNotThrow(() => assertSameOrigin(blindOk));
+  // Bearer (app móvil / server-to-server) sigue permitido aunque no traiga Origin ni Sec-Fetch-Site.
+  const bearer = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { authorization: "Bearer abcdefghijklmnopqrstuvwxyz012345", host: "www.carga360go.cl" },
+  });
+  assert.doesNotThrow(() => assertSameOrigin(bearer));
+  // Sin cookie de sesión ni señales (webhooks, cron): no aplica esta regla.
+  const sinCookie = new Request("https://www.carga360go.cl/api/cargas", { method: "POST", headers: { host: "www.carga360go.cl" } });
+  assert.doesNotThrow(() => assertSameOrigin(sinCookie));
+  // Origin de otro host con cookie: 403.
+  const otroHost = new Request("https://www.carga360go.cl/api/cargas", {
+    method: "POST",
+    headers: { cookie: "c360_session=token-de-sesion", origin: "https://evil.example", host: "www.carga360go.cl" },
+  });
+  assert.throws(() => assertSameOrigin(otroHost), /Origen/);
   assert.throws(() => resetPassword("token-falso", "123"), AppError);
+
+  // En tests COOKIE_SECURE=false; en producción Secure queda activo salvo override.
+  assert.equal(cookieSecure(), false);
+  const prev = process.env.COOKIE_SECURE;
+  process.env.COOKIE_SECURE = "true";
+  assert.equal(cookieSecure(), true);
+  process.env.COOKIE_SECURE = prev;
 });
 
 test("documentos: solo PDF/JPG/PNG reales", () => {

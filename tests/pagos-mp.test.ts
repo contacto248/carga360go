@@ -66,6 +66,9 @@ const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 
 function req(method: string, url: string, opts: { token?: string; body?: unknown; form?: FormData; headers?: Record<string, string> } = {}) {
   const headers = new Headers(opts.headers);
+  // Señales de mismo origen (como el navegador): mutaciones con cookie de sesión las exige assertSameOrigin.
+  if (!headers.has("sec-fetch-site")) headers.set("sec-fetch-site", "same-origin");
+  if (!headers.has("host")) headers.set("host", "127.0.0.1:4317");
   if (opts.token) headers.set("cookie", `c360_session=${opts.token}`);
   let body: BodyInit | undefined;
   if (opts.form) body = opts.form;
