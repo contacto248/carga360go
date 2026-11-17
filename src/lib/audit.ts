@@ -77,6 +77,12 @@ export const AUDIT_LABELS: Record<string, string> = {
   "ops.asignacion_propuesta": "Propuesta de asignación",
   "ops.asignacion_confirmada": "Asignación confirmada por una persona",
   "ops.asignacion_reintento": "Reintento de un trabajo de asignación",
+  "ops.geocerca_alta": "Geocerca de origen o destino registrada",
+  "ops.geocerca_actualizada": "Geocerca de origen o destino actualizada",
+  "ops.eta_calculado": "ETA recalculado con la última posición",
+  "ops.alerta_abierta": "Alerta de torre abierta",
+  "ops.alerta_umbral": "Umbral de alerta actualizado",
+  "ops.seguimiento_emitido": "Enlace de seguimiento emitido",
 };
 
 function writeAudit(

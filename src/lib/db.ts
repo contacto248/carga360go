@@ -633,6 +633,79 @@ BEGIN
 END;
 `;
 
+/**
+ * Migración 029 (OPS-302, OPS-303 y OPS-304): geocercas, ETA, alertas y enlace de seguimiento.
+ * La 028 es la traza de asignación. Esta no la modifica.
+ * Solo tablas nuevas. No altera trip_gps_points ni las migraciones 022–028.
+ * Copia en docs/migrations/029-ops-torre.sql.
+ * Reversa: docs/migrations/029-ops-torre-rollback.sql.
+ */
+export const MIGRATION_29_SQL = `
+CREATE TABLE IF NOT EXISTS ops_geofences (
+  id TEXT PRIMARY KEY,
+  shipment_id TEXT NOT NULL REFERENCES ops_shipments(id) ON DELETE CASCADE,
+  point TEXT NOT NULL CHECK (point IN ('origen', 'destino')),
+  lat REAL NOT NULL,
+  lng REAL NOT NULL,
+  radius_m REAL NOT NULL CHECK (radius_m > 0),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (shipment_id, point)
+);
+CREATE INDEX IF NOT EXISTS idx_ops_geofences_shipment ON ops_geofences(shipment_id);
+
+CREATE TABLE IF NOT EXISTS ops_eta_snapshots (
+  id TEXT PRIMARY KEY,
+  shipment_id TEXT NOT NULL REFERENCES ops_shipments(id) ON DELETE CASCADE,
+  gps_point_id TEXT,
+  from_lat REAL NOT NULL,
+  from_lng REAL NOT NULL,
+  to_lat REAL NOT NULL,
+  to_lng REAL NOT NULL,
+  recorded_at TEXT NOT NULL,
+  distance_m REAL NOT NULL,
+  duration_s REAL NOT NULL,
+  duration_truck_s REAL NOT NULL,
+  factor REAL NOT NULL,
+  eta_at TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  profile TEXT NOT NULL,
+  truck_aware INTEGER NOT NULL CHECK (truck_aware IN (0, 1)),
+  evaluacion_json TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ops_eta_shipment ON ops_eta_snapshots(shipment_id, created_at);
+
+CREATE TABLE IF NOT EXISTS ops_alert_rules (
+  id TEXT PRIMARY KEY,
+  shipment_id TEXT NOT NULL REFERENCES ops_shipments(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('atraso', 'detencion', 'sin_senal')),
+  threshold_min INTEGER NOT NULL CHECK (threshold_min > 0),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (shipment_id, kind)
+);
+CREATE INDEX IF NOT EXISTS idx_ops_alert_rules_shipment ON ops_alert_rules(shipment_id);
+
+CREATE TABLE IF NOT EXISTS ops_alerts (
+  id TEXT PRIMARY KEY,
+  shipment_id TEXT NOT NULL REFERENCES ops_shipments(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('atraso', 'detencion', 'sin_senal')),
+  status TEXT NOT NULL CHECK (status IN ('abierta', 'cerrada')),
+  evidence_json TEXT NOT NULL,
+  opened_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ops_alerts_shipment ON ops_alerts(shipment_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ops_alerts_open ON ops_alerts(shipment_id, kind) WHERE status = 'abierta';
+
+CREATE TABLE IF NOT EXISTS ops_tracking_links (
+  token TEXT PRIMARY KEY,
+  shipment_id TEXT NOT NULL UNIQUE REFERENCES ops_shipments(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL
+);
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1143,6 +1216,17 @@ function migrate(db: Database.Database) {
       // Copia en docs/migrations/028-ops-asignacion-traza.sql. Reversa: 028-ops-asignacion-traza-rollback.sql.
       db.exec(MIGRATION_28_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (28, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // OPS-302/303/304. La 028 (traza) queda intacta. Se comprueba el número 29, no el máximo.
+  if (!hasMigration(db, 29)) {
+    const apply = db.transaction(() => {
+      // Geocercas, ETA, alertas y token de seguimiento. Solo tablas nuevas.
+      // No toca trip_gps_points ni 022–028.
+      // Copia en docs/migrations/029-ops-torre.sql. Reversa: 029-ops-torre-rollback.sql.
+      db.exec(MIGRATION_29_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (29, ?)`).run(new Date().toISOString());
     });
     apply();
   }

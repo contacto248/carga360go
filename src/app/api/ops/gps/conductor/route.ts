@@ -19,6 +19,6 @@ export const POST = opsGuard(async (request) => {
   const body = await readJson(request);
   const loadId = typeof body.loadId === "string" ? body.loadId : "";
   if (!loadId) throw new AppError("Falta la carga.");
-  const result = ingestDriverFix(user, loadId, body.lat, body.lng);
+  const result = await ingestDriverFix(user, loadId, body.lat, body.lng);
   return NextResponse.json(result, { status: 201, headers: { "cache-control": "no-store" } });
 });

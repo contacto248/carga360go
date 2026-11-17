@@ -2,6 +2,7 @@ import type { PublicUser } from "@/lib/types";
 import { isEnabled, type OpsFlag } from "./flags";
 
 const LOCATION_PATH = /^\/viajes\/[^/]+\/ubicacion\/?$/;
+const TRACKING_PATH = /^\/seguimiento\/[^/]+\/?$/;
 
 export type OpsPageRule = { flag: OpsFlag };
 
@@ -22,6 +23,7 @@ export function opsPageRule(pathname: string): OpsPageRule | null {
     return { flag: "OPS_FEATURE_ENABLED" };
   }
   if (LOCATION_PATH.test(path)) return { flag: "OPS_FEATURE_ENABLED" };
+  if (TRACKING_PATH.test(path)) return { flag: "OPS_FEATURE_ENABLED" };
   return null;
 }
 
@@ -30,5 +32,7 @@ export function opsPageHidden(pathname: string, user: PublicUser | null): boolea
   const rule = opsPageRule(pathname);
   if (!rule) return false;
   if (!isEnabled(rule.flag)) return true;
+  // El enlace del cliente se abre con el token. No pide sesión de administración.
+  if (TRACKING_PATH.test(barePath(pathname))) return false;
   return user?.role !== "admin";
 }
