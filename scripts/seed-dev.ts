@@ -1,7 +1,8 @@
+import { randomUUID } from "crypto";
 import { getDb } from "../src/lib/db";
 import { hashPassword, loginUser, registerUser, type RegisterInput } from "../src/lib/auth";
 import { AppError } from "../src/lib/errors";
-import { todayChile } from "../src/lib/format";
+import { rutBody, todayChile } from "../src/lib/format";
 import { createLoad, createTruck, type LoadInput, type TruckInput } from "../src/lib/listings";
 import type { PublicUser } from "../src/lib/types";
 
@@ -254,6 +255,40 @@ try {
   const message = error instanceof AppError || error instanceof Error ? error.message : "No se pudo sembrar";
   console.error(message);
   process.exit(1);
+}
+
+const demoZones: [string, string][] = [
+  ["Calama", "Antofagasta"],
+  ["Antofagasta", "Antofagasta"],
+  ["Mejillones", "Antofagasta"],
+  ["Copiapó", "Atacama"],
+  ["Santiago", "Metropolitana"],
+];
+const db = getDb();
+const demoRut = rutBody("15.555.555-6");
+let demoOrg = db.prepare(`SELECT id FROM ops_organizations WHERE rut_norm = ?`).get(demoRut) as { id: string } | undefined;
+const seededAt = new Date().toISOString();
+if (!demoOrg) {
+  const orgId = randomUUID();
+  db.prepare(
+    `INSERT INTO ops_organizations (id, kind, razon_social, rut_norm, created_by, created_at, updated_at) VALUES (?, 'mandante', ?, ?, ?, ?, ?)`,
+  ).run(orgId, mandante.razonSocial, demoRut, mandante.id, seededAt, seededAt);
+  db.prepare(
+    `INSERT INTO ops_org_members (id, org_id, user_id, area, ops_role, status, created_at) VALUES (?, ?, ?, NULL, 'org_admin', 'activo', ?)`,
+  ).run(randomUUID(), orgId, mandante.id, seededAt);
+  demoOrg = { id: orgId };
+}
+for (const [name, region] of demoZones) {
+  const exists = db.prepare(`SELECT 1 FROM ops_zones WHERE org_id = ? AND name = ?`).get(demoOrg.id, name);
+  if (exists) continue;
+  db.prepare(`INSERT INTO ops_zones (id, org_id, name, comunas_json, region, created_at) VALUES (?, ?, ?, ?, ?, ?)`).run(
+    randomUUID(),
+    demoOrg.id,
+    name,
+    JSON.stringify([name]),
+    region,
+    seededAt,
+  );
 }
 
 console.log("Seed de desarrollo listo. Los avisos llevan la marca DEMO y no deben usarse en producción.");
