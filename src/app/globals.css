@@ -891,3 +891,14 @@ main.agente-360-main{min-height:100dvh;display:flex;flex-direction:column;margin
 .ds-kit .steps-rail p{color:var(--ink)}
 @media(min-width:820px){.module-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:819px){.page-actions .btn{width:100%;justify-content:center}}
+.ds-page{display:grid;gap:16px;padding-bottom:40px}
+.ds-page .page-title{padding-bottom:0}
+.ds-page .badge-f{display:inline-block;font-weight:800;font-size:.8rem;line-height:1.3;padding:4px 10px;border-radius:99px}
+.ds-page .cta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.ds-page .card{padding:16px}
+.ds-page .card p{margin:.4rem 0 0}
+.ds-page .ds-transparency{margin:0;color:var(--ink);font-size:.95rem;line-height:1.5}
+.ds-page .ds-transparency a{color:var(--navy);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.ds-page :where(a,button,summary):focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.ds-page ul,.ds-page ol{margin:.4rem 0 0;padding-left:1.2rem;display:grid;gap:10px}
+@media(max-width:819px){.ds-page .cta .btn{width:100%}}
