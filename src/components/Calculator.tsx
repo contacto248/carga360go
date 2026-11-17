@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { formatClp } from "@/lib/format";
 import { roadKm } from "@/lib/geo";
 import { PRICE_DISCLAIMER, estimateByKm } from "@/lib/pricing";
+import { useFreightParams } from "@/lib/use-freight-params";
 import { EquipmentSelector } from "./EquipmentSelector";
 import { PlacePicker } from "./PlacePicker";
 
@@ -27,9 +28,19 @@ export function Calculator() {
   const [tolls, setTolls] = useState("");
   const [offer, setOffer] = useState("");
 
-  const autoKm = origin === destination ? 0 : roadKm(origin, destination) ?? 0;
+  const params = useFreightParams();
+  const autoKm = origin === destination ? 0 : roadKm(origin, destination, params.factorRuta) ?? 0;
   const km = kmOverride ? num(kmOverride) : autoKm;
-  const estimate = useMemo(() => estimateByKm(km, equipment), [km, equipment]);
+  const estimate = useMemo(
+    () =>
+      estimateByKm(km, equipment, {
+        rates: params.tarifas,
+        minLiviano: params.minimoLiviano,
+        minPesado: params.minimoPesado,
+        soloEstasTarifas: true,
+      }),
+    [km, equipment, params],
+  );
   const driven = roundTrip ? km * 2 : km;
   const liters = num(kmPerL) > 0 ? driven / num(kmPerL) : 0;
   const fuel = liters * num(diesel);

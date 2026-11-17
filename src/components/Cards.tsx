@@ -8,7 +8,8 @@ import { MATCH_DISCLAIMER, MATCH_NAME } from "@/lib/match-copy";
 import { formatClp, formatDateCL, waLink } from "@/lib/format";
 import { roadKm } from "@/lib/geo";
 import { TruckArt } from "./TruckArt";
-import { PRICE_DISCLAIMER, estimatePrice } from "@/lib/pricing";
+import { PRICE_DISCLAIMER, estimateByKm } from "@/lib/pricing";
+import { useFreightParams } from "@/lib/use-freight-params";
 import type { LoadListItem, TruckListItem } from "@/lib/types";
 
 function WhatsApp({ number, text, label = "WhatsApp" }: { number: string; text: string; label?: string }) {
@@ -50,13 +51,23 @@ function TrustBadges({ status, docsOk }: { status: string; docsOk?: boolean }) {
 }
 
 function Distance({ origin, destination }: { origin: string; destination: string }) {
-  const km = roadKm(origin, destination);
+  const params = useFreightParams();
+  const km = roadKm(origin, destination, params.factorRuta);
   if (!km) return null;
   return <span title="Distancia vial estimada">≈ {formatClp(km)} km</span>;
 }
 
 function PriceHint({ origin, destination, equipment }: { origin: string; destination: string; equipment: string }) {
-  const estimate = estimatePrice(origin, destination, equipment);
+  const params = useFreightParams();
+  const km = roadKm(origin, destination, params.factorRuta);
+  const estimate = km
+    ? estimateByKm(km, equipment, {
+        rates: params.tarifas,
+        minLiviano: params.minimoLiviano,
+        minPesado: params.minimoPesado,
+        soloEstasTarifas: true,
+      })
+    : null;
   if (!estimate) return null;
   return (
     <div className="price-hint" title={PRICE_DISCLAIMER}>

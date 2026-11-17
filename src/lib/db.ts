@@ -1,8 +1,10 @@
+import { randomUUID } from "crypto";
 import fs from "fs";
 import path from "path";
 import Database from "better-sqlite3";
 import { addDaysIso, FREE_DAYS, freeUntilFrom } from "./campaign";
 import { todayChile } from "./format";
+import { DEFAULT_RATES, MIN_TRIP_CLP, ROAD_FACTOR } from "./freight-defaults";
 
 export const schemaV1 = `
 CREATE TABLE users (
@@ -97,6 +99,130 @@ CREATE INDEX idx_trucks_equipment ON trucks(equipment);
 CREATE INDEX idx_documents_user ON documents(user_id);
 `;
 
+/** Migración 14: columnas nulas en users. La aplicación las agrega solo si faltan. */
+export const MIGRATION_14_USER_COLUMNS = [
+  "backup_contact",
+  "backup_contact_type",
+  "backup_contact_at",
+  "manual_readonly_until",
+  "manual_readonly_at",
+  "manual_readonly_by",
+  "manual_readonly_by_email",
+] as const;
+
+/**
+ * Migración 15, congelada: agente comercial y de voz.
+ * Solo crea tablas e índices. Incluye load_tracking_codes y agent_otp_challenges.
+ * CREATE TABLE IF NOT EXISTS: se puede ejecutar de nuevo sin duplicar.
+ */
+export const MIGRATION_15_SQL = `
+CREATE TABLE IF NOT EXISTS agent_conversations (
+  id TEXT PRIMARY KEY,
+  channel TEXT NOT NULL CHECK (channel IN ('web', 'whatsapp', 'telefono')),
+  session_key TEXT NOT NULL,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  ip_hash TEXT,
+  state TEXT NOT NULL DEFAULT '{}',
+  last_intent TEXT,
+  handoff_at TEXT,
+  message_count INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_conv_session ON agent_conversations(channel, session_key);
+CREATE INDEX IF NOT EXISTS idx_agent_conv_updated ON agent_conversations(updated_at);
+CREATE TABLE IF NOT EXISTS agent_messages (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('cliente', 'agente', 'sistema')),
+  body TEXT NOT NULL,
+  via TEXT CHECK (via IN ('texto', 'voz')),
+  engine TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_msg_conv ON agent_messages(conversation_id, created_at);
+CREATE TABLE IF NOT EXISTS agent_leads (
+  id TEXT PRIMARY KEY,
+  code TEXT NOT NULL UNIQUE,
+  conversation_id TEXT REFERENCES agent_conversations(id) ON DELETE SET NULL,
+  channel TEXT NOT NULL CHECK (channel IN ('web', 'whatsapp', 'telefono')),
+  kind TEXT NOT NULL CHECK (kind IN ('cotizacion', 'registro', 'derivacion')),
+  status TEXT NOT NULL DEFAULT 'nuevo' CHECK (status IN ('nuevo', 'en_gestion', 'cerrado', 'descartado')),
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  name TEXT,
+  contact TEXT,
+  contact_type TEXT CHECK (contact_type IS NULL OR contact_type IN ('email', 'telefono')),
+  backup_contact TEXT,
+  backup_contact_type TEXT CHECK (backup_contact_type IS NULL OR backup_contact_type IN ('email', 'telefono')),
+  role TEXT,
+  data TEXT NOT NULL DEFAULT '{}',
+  summary TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_leads_created ON agent_leads(created_at);
+CREATE INDEX IF NOT EXISTS idx_agent_leads_status ON agent_leads(status, kind);
+CREATE TABLE IF NOT EXISTS load_tracking_codes (
+  load_id TEXT PRIMARY KEY REFERENCES loads(id) ON DELETE CASCADE,
+  code TEXT NOT NULL UNIQUE,
+  created_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS agent_otp_challenges (
+  id TEXT PRIMARY KEY,
+  conversation_id TEXT NOT NULL REFERENCES agent_conversations(id) ON DELETE CASCADE,
+  load_id TEXT REFERENCES loads(id) ON DELETE CASCADE,
+  channel TEXT NOT NULL CHECK (channel IN ('email', 'whatsapp')),
+  code_hash TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_otp_conv ON agent_otp_challenges(conversation_id, created_at);
+`;
+
+export const MIGRATION_15_TABLES = [
+  "agent_conversations",
+  "agent_messages",
+  "agent_leads",
+  "load_tracking_codes",
+  "agent_otp_challenges",
+] as const;
+
+/**
+ * Migración 16: parámetros del cálculo vigente (tarifa por km, factor de ruta, mínimo por viaje)
+ * y auditoría de cada alta o cambio. No guarda comisiones ni otro modelo de cobro.
+ * Otra rama sin fusionar usó el número 16 para tablas cost_* (peajes y diésel). Esta 16 no las crea.
+ */
+export const MIGRATION_16_SQL = `
+CREATE TABLE IF NOT EXISTS freight_cost_settings (
+  key TEXT PRIMARY KEY CHECK (key IN ('road_factor', 'min_trip_liviano', 'min_trip_pesado')),
+  value_real REAL NOT NULL CHECK (value_real > 0),
+  updated_at TEXT NOT NULL,
+  updated_by TEXT
+);
+CREATE TABLE IF NOT EXISTS freight_km_rates (
+  equipment TEXT PRIMARY KEY,
+  rate_min INTEGER NOT NULL CHECK (rate_min > 0),
+  rate_max INTEGER NOT NULL CHECK (rate_max >= rate_min),
+  updated_at TEXT NOT NULL,
+  updated_by TEXT
+);
+CREATE TABLE IF NOT EXISTS freight_param_audit (
+  id TEXT PRIMARY KEY,
+  param_key TEXT NOT NULL,
+  old_value TEXT,
+  new_value TEXT NOT NULL,
+  actor_id TEXT,
+  actor_email TEXT,
+  created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_freight_param_audit_time ON freight_param_audit(created_at);
+CREATE INDEX IF NOT EXISTS idx_freight_param_audit_key ON freight_param_audit(param_key, created_at);
+`;
+
+export const MIGRATION_16_TABLES = ["freight_cost_settings", "freight_km_rates", "freight_param_audit"] as const;
+
 let database: Database.Database | null = null;
 
 export function databasePath(): string {
@@ -124,9 +250,49 @@ function schemaVersion(db: Database.Database): number {
   return row.v ?? 0;
 }
 
+function hasMigration(db: Database.Database, version: number): boolean {
+  return Boolean(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = ?`).get(version));
+}
+
 function hasColumn(db: Database.Database, table: string, column: string): boolean {
   const rows = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
   return rows.some((row) => row.name === column);
+}
+
+function hasTable(db: Database.Database, name: string): boolean {
+  return Boolean(db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?`).get(name));
+}
+
+/** Completa la semilla solo donde falta la fila. No pisa un valor ya guardado. */
+function ensureFreightSeed(db: Database.Database) {
+  if (!MIGRATION_16_TABLES.every((table) => hasTable(db, table))) return;
+  const now = new Date().toISOString();
+  const insertSetting = db.prepare(
+    `INSERT OR IGNORE INTO freight_cost_settings (key, value_real, updated_at, updated_by) VALUES (?, ?, ?, 'sistema')`,
+  );
+  const insertRate = db.prepare(
+    `INSERT OR IGNORE INTO freight_km_rates (equipment, rate_min, rate_max, updated_at, updated_by) VALUES (?, ?, ?, ?, 'sistema')`,
+  );
+  const insertAudit = db.prepare(
+    `INSERT INTO freight_param_audit (id, param_key, old_value, new_value, actor_id, actor_email, created_at)
+     VALUES (?, ?, NULL, ?, NULL, 'sistema', ?)`,
+  );
+  const seed = db.transaction(() => {
+    const settings: [string, number][] = [
+      ["road_factor", ROAD_FACTOR],
+      ["min_trip_liviano", MIN_TRIP_CLP.liviano],
+      ["min_trip_pesado", MIN_TRIP_CLP.pesado],
+    ];
+    for (const [key, value] of settings) {
+      if (insertSetting.run(key, value, now).changes === 1) insertAudit.run(randomUUID(), key, String(value), now);
+    }
+    for (const [equipment, rates] of Object.entries(DEFAULT_RATES)) {
+      if (insertRate.run(equipment, rates[0], rates[1], now).changes === 1) {
+        insertAudit.run(randomUUID(), `tarifa:${equipment}`, `${rates[0]},${rates[1]}`, now);
+      }
+    }
+  });
+  seed();
 }
 
 function migrate(db: Database.Database) {
@@ -470,6 +636,33 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
+  if (schemaVersion(db) < 14 || MIGRATION_14_USER_COLUMNS.some((column) => !hasColumn(db, "users", column))) {
+    const apply = db.transaction(() => {
+      // Contacto de respaldo y verificación manual de solo lectura. Solo columnas nulas.
+      // Si otra instalación ya marcó la versión 14, se completan las columnas y no se duplica el registro.
+      for (const column of MIGRATION_14_USER_COLUMNS) {
+        if (!hasColumn(db, "users", column)) db.exec(`ALTER TABLE users ADD COLUMN ${column} TEXT`);
+      }
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_users_manual_readonly ON users(manual_readonly_until)`);
+      db.prepare(`INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (14, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 15) || MIGRATION_15_TABLES.some((table) => !hasTable(db, table))) {
+    const apply = db.transaction(() => {
+      db.exec(MIGRATION_15_SQL);
+      db.prepare(`INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (15, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 16) || MIGRATION_16_TABLES.some((table) => !hasTable(db, table))) {
+    const apply = db.transaction(() => {
+      db.exec(MIGRATION_16_SQL);
+      db.prepare(`INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (16, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  ensureFreightSeed(db);
 }
 
 export function closeDb() {

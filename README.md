@@ -107,6 +107,12 @@ Al arrancar, la app aplica las migraciones que falten en `schema_migrations`. No
 | --- | --- |
 | 1 | Tablas iniciales: usuarios, sesiones, restablecimientos, cargas, camiones y documentos. |
 | 2 | `loads.solo_verificados`. En `documents`: `audience` (`camion` o `personal`), `detail` (clase de licencia) y `holder_name`. Los tipos de camión que ya existían quedan con audiencia `camion`. |
+| 3–13 | Verificación, alertas, WhatsApp, ofertas, privacidad, acreditación, periodo de cuenta, segundo factor, chat web, viaje y registro de uso de IA. |
+| 14 | Columnas nulas de contacto de respaldo y verificación manual de solo lectura. No se había ejecutado en producción: entra junto con la 15 y la 16. Si la versión 14 ya estaba marcada por otra instalación, solo completa las columnas que falten. |
+| 15 | Agente comercial y de voz: `agent_conversations`, `agent_messages`, `agent_leads`, `load_tracking_codes` y `agent_otp_challenges`. Solo tablas nuevas. Es idempotente. |
+| 16 | Parámetros del cálculo de `/api/estimacion`: tarifa por km por equipo, factor de ruta y mínimo por viaje, con auditoría de cada cambio (quién, cuándo, valor anterior y nuevo). La semilla son los valores que ya usaba el código. |
+
+Las copias legibles están en `docs/migrations/`. Al arrancar se aplican en orden y se pueden repetir: no duplican filas ni pisan un parámetro ya guardado.
 
 ## Despliegue en AlmaLinux 9
 

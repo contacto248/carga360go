@@ -46,6 +46,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   "camion.borrado": "Camión borrado",
   "usuario.datos_propios": "Usuario corrigió sus datos",
   "ajustes.editados": "Ajustes de la plataforma",
+  "parametro_flete.editado": "Parámetro del costo de flete",
 };
 
 function writeAudit(

@@ -30,8 +30,8 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
 
   const db = getDb();
   const version = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number };
-  // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
-  assert.equal(version.v, 13);
+  // Migración 16: parámetros de costo. 14 y 15 quedan en el mismo arranque.
+  assert.equal(version.v, 16);
   const tables = db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'web_chat_%' ORDER BY name`).all() as { name: string }[];
   assert.deepEqual(tables.map((t) => t.name), ["web_chat_conversations", "web_chat_messages"]);
   const loadCols = db.prepare(`PRAGMA table_info(loads)`).all() as { name: string }[];
