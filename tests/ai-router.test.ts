@@ -563,6 +563,112 @@ test("un prompt de más de 20000 caracteres responde 400 y no llama al proveedor
   }
 });
 
+function postProvider(token: string, provider: "openai" | "xai"): Promise<Response> {
+  return POST(
+    new Request("http://127.0.0.1/api/ai/v1/orchestrate", {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({ prompt: "diagnostico", provider }),
+    }),
+  );
+}
+
+test("OpenAI 403 o UpstreamError guarda el error_code real sin secretos", async () => {
+  resetRateLimits();
+  const openaiKey = marker("oa");
+  const xaiKey = marker("xa");
+  const { token } = makeAdmin(person("mandante", "router-upstream").user);
+  const logs: string[] = [];
+  const previousError = console.error;
+  console.error = (...args: unknown[]) => {
+    logs.push(args.map((item) => (typeof item === "string" ? item : "")).join(" "));
+  };
+  const previous = globalThis.fetch;
+  const stored = (traceId: string, provider: string) =>
+    getDb().prepare(`SELECT error_code FROM ai_router_usage WHERE trace_id = ? AND provider = ?`).get(traceId, provider) as {
+      error_code: string | null;
+    };
+
+  try {
+    await withEnv({ AI_ROUTER_ENABLED: "true", OPENAI_API_KEY: openaiKey, XAI_API_KEY: undefined }, async () => {
+      globalThis.fetch = async () =>
+        jsonResponse(
+          {
+            error: {
+              message: `Country, region, or territory not supported ${openaiKey}`,
+              type: "request_forbidden",
+              code: "unsupported_country_region_territory",
+            },
+          },
+          403,
+        );
+      const forbidden = await postProvider(token, "openai");
+      const forbiddenBody = (await forbidden.json()) as { trace_id: string; errors: { provider: string; error: string }[] };
+      assert.equal(forbidden.status, 502);
+      assert.equal(forbiddenBody.errors[0].provider, "openai");
+      assert.equal(forbiddenBody.errors[0].error, "UpstreamError");
+      assert.equal(JSON.stringify(forbiddenBody).includes(openaiKey), false);
+      assert.equal(JSON.stringify(forbiddenBody).includes("unsupported_country_region_territory"), false);
+      assert.equal(stored(forbiddenBody.trace_id, "openai").error_code, "unsupported_country_region_territory");
+      assert.equal(logs.includes("[carga360go] ai-router openai status=403 error_code=unsupported_country_region_territory"), true);
+      assert.equal(logs.join("\n").includes(openaiKey), false);
+      assert.equal(logs.join("\n").includes("Country, region"), false);
+
+      logs.length = 0;
+      globalThis.fetch = async () => jsonResponse({ error: { code: "server_error", message: openaiKey } }, 500);
+      const upstream = await postProvider(token, "openai");
+      const upstreamBody = (await upstream.json()) as { trace_id: string };
+      assert.equal(stored(upstreamBody.trace_id, "openai").error_code, "server_error");
+      assert.equal(logs.includes("[carga360go] ai-router openai status=500 error_code=server_error"), true);
+      assert.equal(logs.join("\n").includes(openaiKey), false);
+
+      logs.length = 0;
+      globalThis.fetch = async () => jsonResponse({ error: { code: null, type: "request_forbidden", message: openaiKey } }, 403);
+      const typed = await postProvider(token, "openai");
+      const typedBody = (await typed.json()) as { trace_id: string };
+      assert.equal(stored(typedBody.trace_id, "openai").error_code, "request_forbidden");
+      assert.equal(logs.join("\n").includes(openaiKey), false);
+
+      logs.length = 0;
+      globalThis.fetch = async () => new Response(`<html>${openaiKey}</html>`, { status: 403 });
+      const html = await postProvider(token, "openai");
+      const htmlBody = (await html.json()) as { trace_id: string };
+      assert.equal(stored(htmlBody.trace_id, "openai").error_code, "http_403");
+      assert.equal(logs.join("\n").includes(openaiKey), false);
+      assert.equal(logs.join("\n").includes("<html>"), false);
+
+      logs.length = 0;
+      globalThis.fetch = async () => jsonResponse({ error: { code: openaiKey, message: `secret ${openaiKey}` } }, 403);
+      const leaked = await postProvider(token, "openai");
+      const leakedBody = (await leaked.json()) as { trace_id: string };
+      const leakedRow = stored(leakedBody.trace_id, "openai");
+      assert.equal(leakedRow.error_code, "http_403");
+      assert.equal(JSON.stringify(leakedRow).includes(openaiKey), false);
+      assert.equal(logs.join("\n").includes(openaiKey), false);
+
+      logs.length = 0;
+      globalThis.fetch = async () => jsonResponse({ error: { message: `la clave es ${openaiKey}` } }, 502);
+      const plain = await postProvider(token, "openai");
+      const plainBody = (await plain.json()) as { trace_id: string };
+      assert.equal(stored(plainBody.trace_id, "openai").error_code, "UpstreamError");
+      assert.equal(logs.join("\n").includes(openaiKey), false);
+    });
+
+    await withEnv({ AI_ROUTER_ENABLED: "true", OPENAI_API_KEY: undefined, XAI_API_KEY: xaiKey }, async () => {
+      logs.length = 0;
+      globalThis.fetch = async () => jsonResponse({ error: { code: "unsupported_country_region_territory", message: xaiKey } }, 403);
+      const other = await postProvider(token, "xai");
+      const otherBody = (await other.json()) as { trace_id: string };
+      assert.equal(stored(otherBody.trace_id, "xai").error_code, "UpstreamError");
+      assert.equal(logs.some((line) => line.includes("ai-router")), false);
+      assert.equal(JSON.stringify(otherBody).includes(xaiKey), false);
+    });
+  } finally {
+    console.error = previousError;
+    globalThis.fetch = previous;
+  }
+});
+
 test("la migración 032 es aditiva y su reversa no toca la 031", () => {
   const doc = fs.readFileSync(path.join(process.cwd(), "docs/migrations/032-ai-router-uso.sql"), "utf8");
   const rollback = fs.readFileSync(path.join(process.cwd(), "docs/migrations/032-ai-router-uso-rollback.sql"), "utf8");
