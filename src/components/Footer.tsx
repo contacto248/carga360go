@@ -18,8 +18,8 @@ export function Footer() {
             <img className="foot-logo" src="/brand/logo-wordmark.png" alt="Carga360go" width={177} height={40} />
             <p>Bolsa de carga y camiones para transporte de carga general y masiva en las 16 regiones de Chile, de Arica a Punta Arenas.</p>
             <p>
-              <strong>Automatización y trazabilidad:</strong> costo real del flete, seguimiento de cada operación y comprobante digital en
-              una sola web.
+              <strong>Automatización y trazabilidad:</strong> costo de referencia desglosado, historial de cada operación y
+              contacto protegido hasta adjudicar.
             </p>
           </div>
           <div>

@@ -12,15 +12,15 @@ import { liveStats, recentListings, timeAgo } from "@/lib/stats";
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
   description:
-    "Carga360go conecta cargas y camiones en Chile con trazabilidad y automatización. Publica tu carga, encuentra camión, sigue la operación y conserva el comprobante digital.",
+    "Carga360go conecta cargas, camiones y retornos en Chile desde una sola torre de control. Publica tu carga o tu camión, ve el calce y un costo de referencia desglosado.",
 };
 
-/** Pasos de operación (torre de control + cómo funciona). */
+/** Pasos de operación (torre de control + cómo funciona) — variantes seguras T-065. */
 const FLOW = [
   {
     n: "01",
     title: "Publicar carga",
-    text: "Origen, destino, fecha, peso y equipo. El sistema calcula el costo real referencial del flete.",
+    text: "Origen, destino, fecha, peso y equipo. El sistema calcula un costo de referencia desglosado del flete.",
   },
   {
     n: "02",
@@ -29,21 +29,21 @@ const FLOW = [
   },
   {
     n: "03",
-    title: "Seguimiento en vivo",
-    text: "Eventos registrados con fecha y hora: publicación, ofertas y adjudicación. Sin GPS ni telemetría en vivo.",
+    title: "Historial de eventos",
+    text: "Cada carga registra publicación, ofertas y adjudicación con fecha y hora. Sin GPS ni telemetría.",
   },
   {
     n: "04",
-    title: "Comprobante digital",
-    text: "El historial queda en la plataforma: trazabilidad de punta a punta, sin papeles sueltos.",
+    title: "Historial en tu panel",
+    text: "El estado de la publicación, las ofertas y la adjudicación quedan registrados. El contacto se abre solo al adjudicar.",
   },
 ];
 
-/** Cuatro beneficios (copy propio Carga360go, es-CL). */
+/** Cuatro beneficios (variantes seguras; sin comprobante digital ni voz como activos). */
 const BENEFITS = [
   {
     title: "Decide mejor y más rápido",
-    text: "Ruta, equipo, fechas y costo referencial a la vista: menos ida y vuelta por WhatsApp y más criterio para adjudicar.",
+    text: "Ruta, equipo, fechas y costo de referencia desglosado a la vista: menos ida y vuelta por WhatsApp y más criterio para adjudicar.",
   },
   {
     title: "Eficiencia operativa",
@@ -55,7 +55,7 @@ const BENEFITS = [
   },
   {
     title: "Libera recursos y reduce riesgo",
-    text: "Contacto protegido hasta adjudicar, cuentas revisadas por un administrador y comprobante digital de cada operación.",
+    text: "Contacto protegido hasta adjudicar, cuentas revisadas por un administrador e historial de cada operación en tu panel.",
   },
 ];
 
@@ -82,35 +82,35 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* 1. Hero: marca + una idea + torre + un CTA principal */}
+      {/* 1. Hero: marca + titular seguro T-065 + torre + un CTA principal */}
       <section className="hero hero2 hero-v2 hero-v3 hero-fold">
         <div className="wrap hero-grid">
           <div className="hero-copy">
             <p className="brand-hero" aria-label="Marca">
               Carga360go
             </p>
-            <h1>Trazabilidad y automatización para mover carga en Chile</h1>
+            <h1>Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas.</h1>
             <p className="hero-lead">
-              Torre de control para publicar, calzar y seguir cargas y camiones — sin fragmentar la operación entre
-              planillas y chats.
+              En Carga360go publicas tu carga o tu camión, ves el calce —también en retornos— y un costo de referencia
+              desglosado: ruta, peajes según ejes, diésel y costos de operación. Ves el historial de la publicación, las
+              ofertas y la adjudicación en tu panel.
             </p>
-            <p className="hero-cost-line" aria-label="Costo real del flete">
-              Costo real automático: ruta · peajes · trazabilidad
+            <p className="hero-cost-line" aria-label="Costo de referencia desglosado del flete">
+              Costo de referencia desglosado: ruta · peajes · diésel · operación
             </p>
             <div className="cta">
               <Link className="btn" href="/cargas/nueva">
-                Publicar carga
+                Tengo carga
               </Link>
             </div>
             <p className="hero-secondary-links">
-              <Link href="/cargas">Soy transportista: encuentra cargas</Link>
+              <Link href="/camiones/nuevo">Tengo camión o retorno</Link>
               <span aria-hidden="true"> · </span>
-              <Link href="/camiones">Soy empresa: encuentra camiones</Link>
-              <span aria-hidden="true"> · </span>
-              <Link href="/herramientas/calculadora">Calcular un flete referencial</Link>
+              <Link href="/herramientas/calculadora">Abrir el cotizador</Link>
             </p>
             <p className="hero-legal">
-              Carga360go conecta a las partes, con trazabilidad de cada operación. {BRAND.company} · RUT {BRAND.rut}.
+              Carga360go conecta a mandantes y transportistas. No es transportista y no garantiza el viaje. Solo se
+              muestran avisos reales y vigentes. {BRAND.company} · RUT {BRAND.rut}.
             </p>
           </div>
           <HomeTowerBoard steps={FLOW} compact />
@@ -137,7 +137,7 @@ export default async function HomePage() {
       <section className="block" aria-labelledby="pasos-titulo">
         <div className="wrap">
           <h2 id="pasos-titulo">Cómo funciona</h2>
-          <p className="lead">Cuatro pasos, de la publicación al comprobante digital.</p>
+          <p className="lead">Cuatro pasos, de la publicación a la adjudicación.</p>
           <ol className="steps-rail">
             {FLOW.map((step) => (
               <li key={step.n}>
@@ -213,7 +213,7 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {/* A quién sirve */}
+      {/* A quién sirve — variantes seguras mandantes / transportistas */}
       <section className="block" aria-labelledby="audiencias-titulo">
         <div className="wrap">
           <h2 id="audiencias-titulo">A quién sirve</h2>
@@ -222,21 +222,21 @@ export default async function HomePage() {
             <article>
               <h3>Empresas y mandantes</h3>
               <p>
-                Publica la carga con origen, destino, fecha, peso y equipo. Recibe ofertas, revisa camiones compatibles y
-                adjudica: recién ahí ambas partes ven el contacto.
+                Publica tu carga y encuentra el camión que calza, con el costo del flete a la vista. Recibes ofertas de
+                transportistas con cuenta revisada y eliges. El contacto se entrega solo cuando adjudicas.
               </p>
               <Link className="btn sm" href="/cargas/nueva">
-                Publicar una carga
+                Publicar carga
               </Link>
             </article>
             <article>
               <h3>Transportistas</h3>
               <p>
-                Confirma correo y teléfono, sube documentos y, tras la revisión, publica camión o retorno. Oferta y, si te
-                eligen, coordinas en directo con el mandante.
+                Publica tu camión o tu retorno y te avisamos cuando aparezca una carga que calza. Cuando te adjudican, el
+                contacto se abre solo para ese flete. El calce es una recomendación: no se garantiza contratación.
               </p>
               <Link className="btn sm" href="/camiones/nuevo">
-                Publicar un camión o retorno
+                Publicar camión o retorno
               </Link>
             </article>
           </div>
@@ -244,7 +244,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Puntero a verticales / equipos / tecnología (contenido largo vive en /tecnologia) */}
+      {/* Puntero a verticales / equipos / tecnología */}
       <section className="block alt" aria-labelledby="mas-titulo">
         <div className="wrap">
           <h2 id="mas-titulo">Tecnología, verticales y equipos</h2>
@@ -261,7 +261,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* FAQ mínimo (detalle completo en /faq) */}
+      {/* FAQ mínimo */}
       <section className="block" id="faq" aria-labelledby="faq-titulo">
         <div className="wrap">
           <h2 id="faq-titulo">Preguntas frecuentes</h2>
@@ -275,6 +275,12 @@ export default async function HomePage() {
                       Que revisamos contacto y, en transportistas, documentos vigentes, con aprobación de un administrador.
                       No es una garantía de solvencia, seguridad ni cumplimiento. Ver{" "}
                       <Link href="/como-verificamos">Cómo verificamos</Link>.
+                    </>
+                  ) : item.q === "¿Cómo se calcula el costo del flete?" ? (
+                    <>
+                      Automáticamente, con la ruta, los peajes según los ejes del camión, el diésel y los costos de
+                      operación: un costo de referencia desglosado, cada ítem con su fuente. No es una cotización cerrada;
+                      el valor final lo acuerdan las partes.
                     </>
                   ) : (
                     item.a
@@ -295,9 +301,8 @@ export default async function HomePage() {
           <div className="cta-band">
             <h2>Publica tu primera carga o tu camión</h2>
             <p>
-              Registra tu empresa o tu cuenta de transportista y conoce el costo real de cada viaje, o escríbenos a{" "}
-              {BRAND.email} o al WhatsApp publicado en el sitio. operación continua con Agente Carga360go desde el botón
-              «Carga360».
+              Registra tu empresa o tu cuenta de transportista, o escríbenos a {BRAND.email} o al WhatsApp publicado en
+              el sitio. Escribe al Agente Carga360go desde el botón «Carga360».
             </p>
             <div className="cta">
               <Link className="btn" href="/registro">

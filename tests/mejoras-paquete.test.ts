@@ -44,17 +44,19 @@ function account(role: "transportista" | "mandante", name: string, city = "Santi
 
 test("la portada usa el copy del paquete y no promete acreditación 100% ni auditorías de calidad", () => {
   const home = read("src/app/page.tsx");
-  assert.match(home, /Trazabilidad y automatización para mover carga en Chile/);
+  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
   assert.match(home, /Carga360go/);
-  assert.match(home, /Soy transportista: encuentra cargas/);
-  assert.match(home, /Soy empresa: encuentra camiones/);
-  assert.match(home, /Calcular un flete referencial/);
-  assert.match(home, /Carga360go conecta a las partes/);
+  assert.match(home, /Tengo carga/);
+  assert.match(home, /Tengo camión o retorno/);
+  assert.match(home, /Abrir el cotizador/);
+  assert.match(home, /Carga360go conecta a mandantes y transportistas/);
   assert.match(home, /\/como-verificamos/);
   assert.match(home, /Carga360 Match/);
   assert.match(home, /Publicar carga/);
-  assert.match(home, /Seguimiento en vivo/);
-  assert.match(home, /Comprobante digital/);
+  assert.match(home, /Historial de eventos/);
+  assert.match(home, /Historial en tu panel/);
+  assert.doesNotMatch(home, /costo real/i);
+  assert.doesNotMatch(home, /Seguimiento en vivo|Comprobante digital/);
   assert.doesNotMatch(home, /100% acreditad/);
   assert.doesNotMatch(home, /calidad, seguridad y medio ambiente/);
   assert.doesNotMatch(home, /La bolsa de carga de Chile que/);

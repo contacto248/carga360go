@@ -31,8 +31,8 @@ export function Header({ user }: { user: PublicUser | null }) {
   return (
     <>
       <div className="demo-banner">
-        <strong>Costo real y automático del flete</strong>
-        <span className="hide-sm"> · ruta, peajes por ejes, diésel y costos operacionales · trazabilidad y seguridad en una sola web</span>
+        <strong>Costo de referencia desglosado del flete</strong>
+        <span className="hide-sm"> · ruta, peajes por ejes, diésel y costos de operación · trazabilidad en una sola web</span>
       </div>
       <header className="top">
         <div className="wrap">

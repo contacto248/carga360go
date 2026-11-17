@@ -13,11 +13,12 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   const home = read("src/app/page.tsx");
   assert.match(home, /brand-hero/);
   assert.match(home, /Carga360go/);
-  assert.match(home, /Trazabilidad y automatización/);
+  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
   assert.match(home, /Publicar carga/);
   assert.match(home, /Encontrar camión/);
-  assert.match(home, /Seguimiento en vivo/);
-  assert.match(home, /Eventos registrados con fecha y hora: publicación, ofertas y adjudicación/);
+  assert.match(home, /Historial de eventos/);
+  assert.doesNotMatch(home, /Seguimiento en vivo/);
+  assert.match(home, /registra publicación, ofertas y adjudicación con fecha y hora/);
   assert.match(home, /HomeTowerBoard/);
   assert.match(home, /compact/);
   const tower = read("src/components/HomeTowerBoard.tsx");
@@ -25,7 +26,9 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   assert.match(tower, /tower-board-compact/);
   assert.doesNotMatch(home, /tower-tag">en vivo/);
   assert.doesNotMatch(tower, /tower-tag">en vivo/);
-  assert.match(home, /Comprobante digital/);
+  assert.match(home, /Historial en tu panel/);
+  assert.doesNotMatch(home, /Comprobante digital/);
+  assert.doesNotMatch(home, /costo real/i);
   assert.match(home, /Empresas y mandantes/);
   assert.match(home, /Transportistas/);
   assert.match(home, /Agente Carga360go/);
@@ -39,7 +42,8 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
   assert.match(home, /id="faq"/);
-  assert.match(home, /operación continua/);
+  assert.match(home, /Escribe al Agente Carga360go/);
+  assert.doesNotMatch(home, /Hablar con el Agente|También puede hablarte/i);
   // Portada corta: verticales/equipos viven en /tecnologia (no en el fold).
   assert.doesNotMatch(home, /Equipos con ficha técnica/);
   assert.doesNotMatch(home, /Industrias que mueven carga/);
@@ -206,7 +210,8 @@ test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; un CT
   assert.match(css, /tower-board-compact/);
   assert.match(css, /mobile-cta/);
   const home = read("src/app/page.tsx");
-  assert.match(home, /Soy transportista: encuentra cargas/);
+  assert.match(home, /Tengo camión o retorno/);
+  assert.match(home, /Abrir el cotizador/);
   assert.match(home, /home-live-band/);
   assert.match(home, /hero-fold/);
   assert.match(home, /href="\/cargas\/nueva"/);
@@ -217,13 +222,13 @@ test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; un CT
 
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {
   const header = read("src/components/Header.tsx");
-  assert.match(header, /Costo real y automático del flete/);
+  assert.match(header, /Costo de referencia desglosado del flete/);
   // Solo el JSX visible del banner superior (no comentarios de código).
   const headerBanner = header.match(/demo-banner[\s\S]*?<\/div>/)?.[0] || "";
-  assert.match(headerBanner, /Costo real y automático del flete/);
+  assert.match(headerBanner, /Costo de referencia desglosado del flete/);
   assert.doesNotMatch(headerBanner, /\$\d|CLP\s*\d|comisi[oó]n|membres[ií]a|precio de lista/i);
   const banner = read("src/components/FreeBanner.tsx");
-  assert.match(banner, /Costo real y automático del flete/);
+  assert.match(banner, /Costo de referencia desglosado del flete/);
   const visible = banner.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   assert.doesNotMatch(visible, /\$\d|CLP\s*\d|comisi[oó]n|%\s*fee/i);
 });
@@ -235,7 +240,7 @@ test("portada visual: cookie compacta y un solo CTA primario naranja en el hero"
   assert.match(banner, /Aceptar/);
   const home = read("src/app/page.tsx");
   const hero = home.match(/hero-fold[\s\S]*?<\/section>/)?.[0] || "";
-  assert.match(hero, /className="btn"[^>]*>\s*Publicar carga/);
+  assert.match(hero, /className="btn"[^>]*>\s*Tengo carga/);
   assert.doesNotMatch(hero, /className="btn"[^>]*>\s*Soy transportista/);
   assert.match(hero, /hero-secondary-links/);
 });
