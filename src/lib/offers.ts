@@ -1,4 +1,5 @@
 import { assertAccredited, isAccredited } from "./accreditation";
+import { assertDocumentosParaCarga } from "./documentos-vencimiento";
 import { stripContacts } from "./contact-filter";
 import { randomUUID } from "crypto";
 import { audit } from "./audit";
@@ -341,6 +342,13 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
   if (user.role !== "admin") assertNotManualReadonly(user, "adjudicar cargas");
   if ((load.status ?? "abierta") !== "abierta") throw new AppError("Esta carga ya fue adjudicada o cerrada.", 409);
   if (offer.status !== "activa") throw new AppError("Esa oferta ya no está activa.", 409);
+  assertDocumentosParaCarga({
+    accion: "aceptar",
+    carrierId: offer.carrierId,
+    truckId: offer.truckId,
+    actor: user,
+    loadId: load.id,
+  });
   const db = getDb();
   const stamp = new Date().toISOString();
   const losers = listOffersForLoad(load.id).filter((item) => item.id !== offerId && item.status === "activa");

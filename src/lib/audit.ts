@@ -39,6 +39,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   "oferta.mejorada": "Oferta mejorada",
   "oferta.retirada": "Oferta retirada",
   "oferta.aceptada": "Oferta aceptada (carga adjudicada)",
+  "carga.documento_bloquea": "Asignación o aceptación bloqueada por documento vencido o sin verificar",
   "carga.publicada": "Carga publicada",
   "carga.cerrada": "Solicitud cerrada",
   "carga.plazo": "Plazo de ofertas fijado por el administrador",

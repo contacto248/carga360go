@@ -838,6 +838,59 @@ function registerSha256(db: Database.Database) {
   });
 }
 
+/**
+ * Migración 035: documentos de conductor y vehículo, y el kind aviso_vencimiento.
+ * 033 es del PR #66 y 034 del PR #68. Esta no las usa.
+ * Extiende el CHECK de ops_alerts de forma aditiva (atraso, detencion, sin_senal se conservan).
+ * Copia en docs/migrations/035-documentos-vencimiento.sql.
+ * Reversa: docs/migrations/035-documentos-vencimiento-rollback.sql.
+ */
+export const MIGRATION_35_SQL = `
+CREATE TABLE IF NOT EXISTS documentos_vencimiento (
+  id TEXT PRIMARY KEY,
+  sujeto TEXT NOT NULL CHECK (sujeto IN ('conductor', 'vehiculo')),
+  sujeto_id TEXT NOT NULL,
+  tipo TEXT NOT NULL,
+  numero TEXT,
+  vence_el TEXT NOT NULL CHECK (vence_el GLOB '????-??-??'),
+  verificacion TEXT NOT NULL CHECK (verificacion IN ('pendiente', 'verificado', 'rechazado')),
+  verificado_por TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  CHECK (
+    (sujeto = 'conductor' AND tipo IN ('licencia', 'curso_seguridad'))
+    OR (sujeto = 'vehiculo' AND tipo IN ('revision_tecnica', 'seguro', 'permiso_circulacion', 'soap'))
+  ),
+  CHECK (verificacion <> 'verificado' OR verificado_por IS NOT NULL)
+);
+CREATE INDEX IF NOT EXISTS idx_documentos_vencimiento_sujeto ON documentos_vencimiento(sujeto, sujeto_id);
+
+CREATE TABLE IF NOT EXISTS documentos_faena (
+  faena TEXT NOT NULL,
+  tipo TEXT NOT NULL CHECK (tipo IN ('licencia', 'curso_seguridad', 'revision_tecnica', 'seguro', 'permiso_circulacion', 'soap')),
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (faena, tipo)
+);
+
+DROP TABLE IF EXISTS ops_alerts_docs035;
+CREATE TABLE ops_alerts_docs035 (
+  id TEXT PRIMARY KEY,
+  shipment_id TEXT NOT NULL REFERENCES ops_shipments(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('atraso', 'detencion', 'sin_senal', 'aviso_vencimiento')),
+  status TEXT NOT NULL CHECK (status IN ('abierta', 'cerrada')),
+  evidence_json TEXT NOT NULL,
+  opened_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'media' CHECK (severity IN ('baja', 'media', 'alta'))
+);
+INSERT INTO ops_alerts_docs035 (id, shipment_id, kind, status, evidence_json, opened_at, updated_at, severity)
+SELECT id, shipment_id, kind, status, evidence_json, opened_at, updated_at, severity FROM ops_alerts;
+DROP TABLE ops_alerts;
+ALTER TABLE ops_alerts_docs035 RENAME TO ops_alerts;
+CREATE INDEX IF NOT EXISTS idx_ops_alerts_shipment ON ops_alerts(shipment_id, status);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ops_alerts_open ON ops_alerts(shipment_id, kind) WHERE status = 'abierta';
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1397,6 +1450,14 @@ function migrate(db: Database.Database) {
       registerSha256(db);
       if (!hasColumn(db, "ops_tracking_links", "token_hash")) db.exec(MIGRATION_33_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (33, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // Documentos de conductor y vehículo (035). 034 es del PR #68: no se aplica aquí. La 033 ya está arriba.
+  if (!hasMigration(db, 35)) {
+    const apply = db.transaction(() => {
+      db.exec(MIGRATION_35_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (35, ?)`).run(new Date().toISOString());
     });
     apply();
   }
