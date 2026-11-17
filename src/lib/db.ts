@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "./bassam/schema";
+import { MIGRATION_27_SQL } from "./ops/gps/schema";
 import { seedTolls } from "./costos/tolls-seed";
 import Database from "better-sqlite3";
 import { addDaysIso, FREE_DAYS, freeUntilFrom } from "./campaign";
@@ -831,6 +832,16 @@ function migrate(db: Database.Database) {
       // Copia en docs/migrations/023-ops-envios.sql. Reversa: 023-ops-envios-rollback.sql.
       db.exec(MIGRATION_23_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (23, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 27)) {
+    const apply = db.transaction(() => {
+      // OPS-301: fuente del conector (simulado o teléfono) y el recibo que apunta al punto ya guardado.
+      // Solo tablas nuevas. No altera trip_gps_points. 024–026 siguen libres. Sin filas de ejemplo.
+      // Copia en docs/migrations/027-gps-conector.sql. Reversa en docs/migrations/027-gps-conector-rollback.sql.
+      db.exec(MIGRATION_27_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (27, ?)`).run(new Date().toISOString());
     });
     apply();
   }
