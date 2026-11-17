@@ -55,6 +55,9 @@ setCostosFetch(async (url: string) => {
     if (mode.diesel === "fail") return new Response("error", { status: 503 });
     return new Response(CSV, { status: 200 });
   }
+  if (url.includes("enap.cl")) {
+    return new Response("<html>La variación estimada es de +41,9 $/lt en el precio del diésel. ENAP no fija el precio al consumidor.</html>", { status: 200 });
+  }
   if (url.includes("concesiones.mop.gob.cl")) {
     if (mode.pdf === "fail") return new Response("x", { status: 500 });
     return new Response(mode.pdf === "same" ? pdfBytes(url) : `${pdfBytes(url)}-nuevo`, { status: 200 });
@@ -201,6 +204,8 @@ test("diésel: último valor dentro de vigencia se usa con advertencia; vencido 
   const n = (getDb().prepare(`SELECT COUNT(*) AS n FROM cost_diesel_prices`).get() as { n: number }).n;
   const out = await refreshDiesel();
   assert.match(out.find((o) => o.id === "bencina_en_linea_zonal")!.result, /error/);
+  assert.match(out.find((o) => o.id === "enap_informe_semanal")!.result, /error/);
+  assert.match(out.find((o) => o.id === "enap_informe_semanal")!.result, /precio absoluto|último valor/i);
   assert.equal((getDb().prepare(`SELECT COUNT(*) AS n FROM cost_diesel_prices`).get() as { n: number }).n, n);
   assert.equal(out.find((o) => o.id === "cne_api_v4")!.result, "no conectado");
   await seedDiesel(new Date(NOW.getTime() - 3600_000));

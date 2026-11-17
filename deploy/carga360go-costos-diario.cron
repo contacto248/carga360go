@@ -1,0 +1,6 @@
+# Diésel: una pasada diaria, además del cron de cada 6 horas (deploy/carga360go-costos.cron).
+# Mismo script y el mismo COSTOS_CRON_SECRET, leído desde .env en el servidor. No pongas el secreto aquí.
+# Instalar: deploy/costos-cron-diario.md
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+10 15 * * * carga360go /opt/carga360go/deploy/costos-jobs.sh >> /var/lib/carga360go/costos-jobs.log 2>&1

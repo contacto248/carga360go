@@ -4,7 +4,7 @@ import { Calculator } from "@/components/Calculator";
 
 export const metadata: Metadata = {
   title: "Calculadora de flete y costo de viaje",
-  description: "Costo de referencia desglosado del flete entre ciudades de Chile: ruta real, peajes oficiales según ejes, diésel CNE, conductor y desgaste. Referencial y sujeto a revisión.",
+  description: "Costo de referencia desglosado del viaje entre ciudades de Chile: kilómetros y ruta, peajes, diésel y viático. Valor estimativo de referencia; el valor final lo acuerdan las partes.",
   alternates: { canonical: "/herramientas/calculadora" },
 };
 
@@ -13,7 +13,7 @@ export default function CalculadoraPage() {
     <div className="wrap" style={{ paddingBottom: 40 }}>
       <div className="page-title">
         <h1>Calculadora de flete</h1>
-        <p>Sin registro. Ruta real entre más de 100 ciudades, peajes según los ejes del camión, diésel publicado por la CNE, conductor con descansos legales y desgaste, cada uno con su fuente.</p>
+        <p>Sin registro. Origen y destino, kilómetros de la ruta, peajes de las plazas que cruza, diésel y viático. Es un costo de referencia desglosado.</p>
       </div>
       <Calculator />
       <div className="row" style={{ marginTop: 16 }}>

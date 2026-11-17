@@ -732,6 +732,15 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
+  if (!hasMigration(db, 20)) {
+    const apply = db.transaction(() => {
+      // Vuelve a sembrar peajes (INSERT OR IGNORE): agrega Ruta 68 y Angostura en bases que ya tenían la 16.
+      // No borra plazas ni tarifas anteriores. Copia en docs/migrations/020-peajes-ruta.sql.
+      seedTolls(db);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (20, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
 }
 
 export function closeDb() {

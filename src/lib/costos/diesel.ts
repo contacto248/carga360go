@@ -109,7 +109,45 @@ export const cneApiAdapter: DieselAdapter = {
   },
 };
 
-export const DIESEL_ADAPTERS: DieselAdapter[] = [bencinaZonalAdapter, cneApiAdapter];
+/**
+ * ENAP publica cada semana un informe de variación estimada, no el precio de surtidor.
+ * Solo se guarda un precio si el texto trae un valor absoluto (CLP/L). Una variación
+ * (+/− $/L) no se convierte en precio. Si no hay valor absoluto, la calculadora sigue
+ * con el último precio guardado.
+ */
+export const ENAP_WEEKLY_URL = "https://www.enap.cl/weekly-price-report";
+
+export function parseEnapDieselPrice(text: string): number | null {
+  const plain = text.replace(/<[^>]+>/g, " ");
+  const parts = plain.split(/(?<=[.!])\s+|\n/);
+  for (const part of parts) {
+    if (!/di[eé]sel/i.test(part)) continue;
+    if (/variaci[oó]n|sube|baja|alza|\+\s*\d|−\s*\d|-\s*\d/i.test(part)) continue;
+    const match = part.match(/\$\s*(\d{1,3}(?:\.\d{3})+|\d{3,4})(?:,(\d{1,2}))?/);
+    if (!match) continue;
+    const price = Number(match[1].replace(/\./g, "") + (match[2] ? `.${match[2]}` : ""));
+    if (price >= 800 && price <= 2500) return Math.round(price * 100) / 100;
+  }
+  return null;
+}
+
+export const enapAdapter: DieselAdapter = {
+  id: "enap_informe_semanal",
+  label: "ENAP, informe semanal de precios (respaldo si la CNE no responde)",
+  url: ENAP_WEEKLY_URL,
+  connected: () => process.env.COSTOS_ENAP_ENABLED !== "false",
+  requirement: "Sin credenciales. Solo se usa si Bencina en Línea no responde, y solo si el informe trae un precio absoluto de diésel.",
+  async fetch() {
+    const response = await fetchSource(ENAP_WEEKLY_URL, { headers: { Accept: "text/html,application/xhtml+xml" }, timeoutMs: 30_000 });
+    const price = parseEnapDieselPrice(await response.text());
+    if (price == null) {
+      throw new SourceError("ENAP no publicó un precio absoluto de diésel (el informe trae variación o no trae el dato). Se conserva el último valor guardado.");
+    }
+    return DIESEL_ZONES.map((zone) => ({ zone, price, min: null, max: null }));
+  },
+};
+
+export const DIESEL_ADAPTERS: DieselAdapter[] = [bencinaZonalAdapter, enapAdapter, cneApiAdapter];
 
 function setSource(id: string, ok: boolean, error: string | null) {
   const stamp = new Date().toISOString();
@@ -127,7 +165,12 @@ function setSource(id: string, ok: boolean, error: string | null) {
 export async function refreshDiesel(): Promise<{ id: string; result: string }[]> {
   const db = getDb();
   const out: { id: string; result: string }[] = [];
+  let zonalOk = false;
   for (const adapter of DIESEL_ADAPTERS) {
+    if (adapter.id === "enap_informe_semanal" && zonalOk) {
+      out.push({ id: adapter.id, result: "omitido: CNE respondió" });
+      continue;
+    }
     if (!adapter.connected()) {
       setSource(adapter.id, false, `NO CONECTADO: ${adapter.requirement}`);
       out.push({ id: adapter.id, result: "no conectado" });
@@ -143,6 +186,7 @@ export async function refreshDiesel(): Promise<{ id: string; result: string }[]>
         for (const r of rows) ins.run(randomUUID(), adapter.id, r.zone, r.price, r.min, r.max, stamp);
       })();
       setSource(adapter.id, true, null);
+      if (adapter.id === "bencina_en_linea_zonal") zonalOk = true;
       out.push({ id: adapter.id, result: `${rows.length} zonas` });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -184,6 +228,32 @@ export function resolveDiesel(zone: DieselZone, freshHours: number, validityDays
     return { ...base, price: row.price, status: "verificado", warning: `Último valor verificado del ${row.fetched_at.slice(0, 10)} (la fuente no se ha actualizado desde entonces).` };
   }
   return { ...base, price: null, status: "vencido", warning: `El último precio (${row.fetched_at.slice(0, 10)}) superó la vigencia de ${validityDays} días: combustible PENDIENTE.` };
+}
+
+/**
+ * Último precio guardado de la zona, aunque la fuente haya fallado o el plazo de vigencia
+ * del motor ya haya pasado. La calculadora lo muestra con su fecha. Sin filas: pendiente.
+ */
+export function lastDiesel(zone: DieselZone, now = new Date()): DieselResolution {
+  const row = getDb()
+    .prepare(`SELECT source_id, price, fetched_at FROM cost_diesel_prices WHERE zone = ? ORDER BY fetched_at DESC LIMIT 1`)
+    .get(zone) as { source_id: string; price: number; fetched_at: string } | undefined;
+  if (!row || !(row.price > 0)) {
+    return { zone, price: null, status: "pendiente", fetchedAt: null, sourceId: null, sourceLabel: "Sin datos", sourceUrl: null, warning: "No hay precio del diésel guardado." };
+  }
+  const adapter = DIESEL_ADAPTERS.find((item) => item.id === row.source_id);
+  const ageH = (now.getTime() - Date.parse(row.fetched_at)) / 3_600_000;
+  const date = row.fetched_at.slice(0, 10);
+  return {
+    zone,
+    price: row.price,
+    status: Number.isFinite(ageH) && ageH <= 48 ? "verificado" : "estimado",
+    fetchedAt: row.fetched_at,
+    sourceId: row.source_id,
+    sourceLabel: adapter?.label ?? row.source_id,
+    sourceUrl: adapter?.url ?? null,
+    warning: `Último valor guardado del ${date}.`,
+  };
 }
 
 export function dieselHistory(limit = 200) {

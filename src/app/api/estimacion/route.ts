@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { guard } from "@/lib/api";
 import { isEquipmentId, isKnownCity } from "@/lib/catalog";
 import { publicView, quote } from "@/lib/costos/engine";
+import { rutaCalculadoraDe } from "@/lib/costos/ruta-calculadora";
 import { isVehicleClassId } from "@/lib/costos/vehicles";
 import { allListings } from "@/lib/listings";
 import { matchLoadToTruck } from "@/lib/match";
@@ -41,5 +42,6 @@ export const GET = guard(async (request) => {
     weightT: weight > 0 ? weight : null,
   });
   const costo = publicView(result, getSettings().showSuggestedPrice);
-  return NextResponse.json({ km: costo.km, costo, compatibles });
+  const rutaCosto = rutaCalculadoraDe(result);
+  return NextResponse.json({ km: costo.km, costo, rutaCosto, compatibles });
 });

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Job del motor de costos: refresca el diésel (CNE – Bencina en Línea) y revisa los PDF oficiales de peajes (MOP).
-# Uso: costos-jobs.sh   (lo invoca cron como el usuario carga360go; requiere COSTOS_CRON_SECRET en .env)
+# Job del motor de costos: refresca el diésel (CNE – Bencina en Línea; si no responde, ENAP)
+# y revisa los PDF oficiales de peajes (MOP). Lo invocan el cron de cada 6 horas y el cron diario
+# (deploy/carga360go-costos.cron y deploy/carga360go-costos-diario.cron).
+# Uso: costos-jobs.sh   (cron como el usuario carga360go; requiere COSTOS_CRON_SECRET en .env)
 # El secreto se lee de .env y se entrega a curl por un archivo temporal de modo 600;
 # no va en la línea de comandos (no queda visible en ps ni en /proc/*/cmdline).
 set -euo pipefail
