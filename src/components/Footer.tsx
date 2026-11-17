@@ -48,7 +48,7 @@ export function Footer() {
               WhatsApp {BRAND.whatsappDisplay}
             </a>
             <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
-            <span>{BRAND.address}</span>
+            <span>Operamos solo en línea, en Chile.</span>
             <Link href="/contacto">Contacto</Link>
             <Link href="/como-verificamos">Cómo verificamos</Link>
             <Link href="/transporte-minero-chile">Transporte minero</Link>

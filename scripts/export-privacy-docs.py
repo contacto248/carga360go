@@ -31,7 +31,7 @@ for s in d["POLICY_SECTIONS"]:
                 c[0].paragraphs[0].runs[0].bold=True
                 c[0].width=Cm(5); c[1].width=Cm(11.5)
             doc.add_paragraph()
-foot=sec.footer.paragraphs[0]; foot.text="CARGA360 GO SpA · RUT 78.553.352-6 · Colón 352 of. 318, La Serena · contacto@carga360go.cl"; foot.alignment=WD_ALIGN_PARAGRAPH.CENTER; foot.runs[0].font.size=Pt(8)
+foot=sec.footer.paragraphs[0]; foot.text="CARGA360 GO SpA · RUT 78.553.352-6 · Chile · contacto@carga360go.cl"; foot.alignment=WD_ALIGN_PARAGRAPH.CENTER; foot.runs[0].font.size=Pt(8)
 out="public/carga360go-politica-privacidad.docx"; doc.save(out)
 subprocess.run(["soffice","--headless","--convert-to","pdf","--outdir","public",out],check=True,capture_output=True)
 print("ok")

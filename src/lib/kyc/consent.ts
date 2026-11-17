@@ -8,7 +8,7 @@
  * Plazos de conservación: propuesta pendiente de confirmación de Bastián
  * (CARGA360GO SpA) antes de producción. Ver KYC_RETENTION_* más abajo.
  */
-export const KYC_CONSENT_VERSION = "kyc-1.0-2026-11-11";
+export const KYC_CONSENT_VERSION = "kyc-1.1-2026-11-17";
 
 /**
  * PROPUESTA PENDIENTE DE CONFIRMACIÓN DE BASTIÁN (no está cerrada en el DPA).
@@ -27,7 +27,7 @@ export const KYC_RETENTION_PENDING_CONFIRMATION = true;
 export const KYC_CONSENT_TITLE = "Consentimiento para verificar tu identidad (datos biométricos)";
 
 export const KYC_CONSENT_PARAGRAPHS: string[] = [
-  "CARGA360GO SpA (RUT 78.553.352-6, Colón 352 of. 318, La Serena) necesita verificar la identidad de cada persona que usa Carga360go, sea mandante o transportista, para evitar suplantaciones y fraudes en la contratación de fletes.",
+  "CARGA360GO SpA (RUT 78.553.352-6), que opera solo en línea en Chile, necesita verificar la identidad de cada persona que usa Carga360go, sea mandante o transportista, para evitar suplantaciones y fraudes en la contratación de fletes.",
   "Para eso te pediremos una foto de tu cédula de identidad chilena (por ambos lados) y una selfie en video corta. Con ellas se comprueba que la cédula es auténtica y está vigente, que eres una persona real presente en ese momento (prueba de vida) y que tu rostro coincide con la foto de la cédula. La imagen de tu rostro y su comparación son datos biométricos, que la Ley 21.719 considera datos personales sensibles.",
   "La verificación la realiza nuestro proveedor Didit (Didit Identity Technologies S.L., Barcelona, España), por encargo de CARGA360GO SpA. Tus imágenes se procesan y almacenan en servidores de la Unión Europea (Irlanda), que cuenta con un nivel adecuado de protección de datos. Carga360go no guarda tus fotos ni tu selfie: solo recibe el resultado (aprobado, rechazado o en revisión), tu nombre y RUN leídos de la cédula y la fecha.",
   "Usamos estos datos solo para verificar tu identidad y acreditar tu cuenta. No los usamos para publicidad ni los vendemos. Las imágenes se conservan en el proveedor como máximo 30 días desde la decisión y luego se eliminan. El resultado se conserva en Carga360go mientras tu cuenta esté activa y hasta 12 meses después de su cierre, para atender reclamos o requerimientos legales.",
