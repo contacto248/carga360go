@@ -81,7 +81,7 @@ test("T-064 + avatar: zona dentro del panel FAB, un solo flotante Carga360", () 
   assert.match(agent, /micDenied/);
   assert.match(agent, /Sin permiso de micrófono/);
   assert.match(agent, /Micrófono activo/);
-  assert.match(agent, />Carga360</);
+  assert.match(agent, />AI\.CARGA360</);
   assert.match(agent, /Carga360go/);
   assert.doesNotMatch(agent, /help-wa|btn wa fab|help-stack/);
   assert.doesNotMatch(agent, /HeyGen|D-ID|DID_API|HEYGEN_API/);
