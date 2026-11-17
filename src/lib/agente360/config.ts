@@ -7,6 +7,10 @@
 
 const XAI_BASE = "https://api.x.ai/v1";
 export const XAI_MODEL = "grok-4.7";
+/** Tope del servidor. El cliente no manda. */
+export const AGENTE_MAX_TURNS = 6;
+export const AGENTE_MAX_CHARS = 400;
+export const AGENTE_MAX_COMPLETION_TOKENS = 200;
 
 export type XaiRuntime = {
   key: string;

@@ -90,8 +90,8 @@ export function Agente360goApp() {
     if (!message || busy) return;
     const history = turns
       .filter((turn) => turn.id !== "saludo")
-      .slice(-12)
-      .map((turn) => ({ role: turn.role, text: turn.text }));
+      .slice(-6)
+      .map((turn) => ({ role: turn.role, text: turn.text.slice(0, 400) }));
     const next = [...turns, { id: newId(), role: "user" as const, text: message }];
     setTurns(next);
     setText("");
@@ -160,7 +160,7 @@ export function Agente360goApp() {
         <textarea
           className={styles.input}
           value={text}
-          maxLength={2000}
+          maxLength={400}
           rows={2}
           placeholder="Carga, camión, retorno o torre de control"
           aria-label="Mensaje para el Agente 360go"

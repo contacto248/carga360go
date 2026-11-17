@@ -2,7 +2,7 @@
 
 Cliente instalable de Carga360go. La conversación queda en el dispositivo y se puede borrar desde la pantalla. No hace falta la clave para abrir la app.
 
-Dirección: `/agente-360go`.
+Dirección: `/agente-360go`. La consulta usa la misma sesión del sitio. Sin sesión, la API responde 401.
 
 ## iPhone 14 Pro
 

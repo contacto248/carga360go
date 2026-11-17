@@ -1,4 +1,4 @@
-import { xaiRuntime, type XaiRuntime } from "./config";
+import { AGENTE_MAX_CHARS, AGENTE_MAX_COMPLETION_TOKENS, AGENTE_MAX_TURNS, xaiRuntime, type XaiRuntime } from "./config";
 import { promptAgente } from "./prompt";
 import { AVISO_FALLO, AVISO_SIN_CLAVE, presentarRespuesta, quitarSecretos, secretosDeEntorno } from "./respuesta";
 
@@ -27,23 +27,25 @@ function contenido(data: unknown): string {
   return typeof message.content === "string" ? message.content : "";
 }
 
+export type GrokResult = { reply: string; failed: boolean };
+
 /** Llama a xAI solo si hay clave. Si falta o la llamada falla, devuelve un texto de pantalla y no lanza. */
-export async function consultarGrok(message: string, history: Turno[], deps: GrokDeps = {}): Promise<string> {
+export async function consultarGrok(message: string, history: Turno[], deps: GrokDeps = {}): Promise<GrokResult> {
   const env = deps.env ?? process.env;
   const runtime = deps.runtime ?? xaiRuntime(env);
   const secrets = secretosDeEntorno(env);
-  if (!runtime.key) return AVISO_SIN_CLAVE;
+  if (!runtime.key) return { reply: AVISO_SIN_CLAVE, failed: false };
 
   const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
     { role: "system", content: promptAgente(deps.operacion || "Sin lectura de publicaciones en este momento.", deps.enlaceWhatsapp ?? null) },
   ];
-  for (const turn of history.slice(-12)) {
-    const content = quitarSecretos(turn.content, secrets).slice(0, 1500);
+  for (const turn of history.slice(-AGENTE_MAX_TURNS)) {
+    const content = quitarSecretos(turn.content, secrets).trim().slice(0, AGENTE_MAX_CHARS);
     if (content) messages.push({ role: turn.role, content });
   }
   const last = messages[messages.length - 1];
-  const cleanMessage = quitarSecretos(message, secrets).trim().slice(0, 2000);
-  if (!cleanMessage) return AVISO_FALLO;
+  const cleanMessage = quitarSecretos(message, secrets).trim().slice(0, AGENTE_MAX_CHARS);
+  if (!cleanMessage) return { reply: AVISO_FALLO, failed: true };
   if (!last || last.role !== "user" || last.content !== cleanMessage) {
     messages.push({ role: "user", content: cleanMessage });
   }
@@ -57,7 +59,7 @@ export async function consultarGrok(message: string, history: Turno[], deps: Gro
         model: runtime.model,
         messages,
         temperature: 0.3,
-        max_completion_tokens: 600,
+        max_completion_tokens: AGENTE_MAX_COMPLETION_TOKENS,
         stream: false,
         reasoning_effort: "low",
         search_parameters: { mode: "off" },
@@ -66,12 +68,12 @@ export async function consultarGrok(message: string, history: Turno[], deps: Gro
     });
     if (!response.ok) {
       console.error(`[carga360go] agente 360go xAI (${response.status})`);
-      return AVISO_FALLO;
+      return { reply: AVISO_FALLO, failed: true };
     }
     const data: unknown = await response.json().catch(() => null);
-    return presentarRespuesta(contenido(data), secrets);
+    return { reply: presentarRespuesta(contenido(data), secrets), failed: false };
   } catch (error) {
     console.error(`[carga360go] agente 360go xAI ${isTimeout(error) ? "timeout" : "error"}`);
-    return AVISO_FALLO;
+    return { reply: AVISO_FALLO, failed: true };
   }
 }
