@@ -362,6 +362,13 @@ export function readShipment(shipmentId: string, user: PublicUser) {
   };
 }
 
+/** Listado del panel de administración. Quien no es admin de plataforma recibe 404. */
+export function listShipments(user: PublicUser): OpsShipment[] {
+  if (user.role !== "admin") throw new AppError("No encontrado.", 404);
+  const rows = getDb().prepare(`${SHIPMENT_SELECT} ORDER BY updated_at DESC, id LIMIT 200`).all() as ShipmentRow[];
+  return rows.map(mapShipment);
+}
+
 export function readShipmentVerification(shipmentId: string, user: PublicUser) {
   const shipment = assertReadable(user, shipmentId);
   return { shipmentId: shipment.id, ...verifyChain(shipment.id) };

@@ -948,8 +948,7 @@ export function listRules(user: PublicUser, orgId?: string | null): AllocationRu
   return rows.filter((row) => (!orgId || row.shipper_org_id === orgId) && can(user, row.shipper_org_id, "asignacion.ver")).map(mapRule);
 }
 
-export function listAllocationRuns(user: PublicUser, shipmentId?: string | null): AllocationRun[] {
-  assertAllocation();
+function runsVisibleTo(user: PublicUser, shipmentId?: string | null): AllocationRun[] {
   const db = getDb();
   const rows = (
     shipmentId
@@ -966,8 +965,18 @@ export function listAllocationRuns(user: PublicUser, shipmentId?: string | null)
     });
 }
 
-export function getAllocationRun(user: PublicUser, runId: string): AllocationRun {
+/** Lectura con permiso asignacion.ver. No enciende el motor ni exige OPS_ALLOCATION_ENABLED. */
+export function readAllocationRuns(user: PublicUser, shipmentId?: string | null): AllocationRun[] {
+  return runsVisibleTo(user, shipmentId);
+}
+
+export function listAllocationRuns(user: PublicUser, shipmentId?: string | null): AllocationRun[] {
   assertAllocation();
+  return runsVisibleTo(user, shipmentId);
+}
+
+/** Lectura de una propuesta. Sin permiso o sin fila: 404. No exige OPS_ALLOCATION_ENABLED. */
+export function readAllocationRun(user: PublicUser, runId: string): AllocationRun {
   const run = loadRunBundle(runId);
   if (!run) throw new AppError("No encontrado.", 404);
   if (user.role !== "admin") {
@@ -975,6 +984,11 @@ export function getAllocationRun(user: PublicUser, runId: string): AllocationRun
     if (!rule || !can(user, rule.shipper_org_id, "asignacion.ver")) throw new AppError("No encontrado.", 404);
   }
   return run;
+}
+
+export function getAllocationRun(user: PublicUser, runId: string): AllocationRun {
+  assertAllocation();
+  return readAllocationRun(user, runId);
 }
 
 export function proposeAllocation(user: PublicUser, body: unknown, ip: string | null = null): AllocationRun {

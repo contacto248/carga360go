@@ -1,0 +1,105 @@
+openapi: 3.1.0
+info:
+  title: Carga360go OPS API v1
+  version: 1.0.0
+  summary: Lectura de contratos, tarifas, envíos y asignaciones.
+paths:
+  /api/ops/v1/contratos:
+    get:
+      operationId: listarContratos
+      summary: Lista contratos y SLA visibles para la sesión.
+      parameters:
+        - name: orgId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Contratos visibles para quien tiene tarifas.ver.
+        "401":
+          description: Sin sesión.
+        "403":
+          description: La organización no está autorizada para esta sesión.
+        "404":
+          description: API apagada o la organización no existe para un admin.
+      security:
+        - sesion: []
+        - bearer: []
+  /api/ops/v1/tarifas:
+    get:
+      operationId: listarTarifas
+      summary: Lista tarifarios y líneas visibles para la sesión.
+      parameters:
+        - name: orgId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tarifarios visibles para quien tiene tarifas.ver.
+        "401":
+          description: Sin sesión.
+        "403":
+          description: La organización no está autorizada para esta sesión.
+        "404":
+          description: API apagada o la organización no existe para un admin.
+      security:
+        - sesion: []
+        - bearer: []
+  /api/ops/v1/envios/{id}:
+    get:
+      operationId: leerEnvio
+      summary: Lee un envío, su bitácora y la cadena de hashes.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Envío visible para admin o tráfico de una organización del viaje.
+        "401":
+          description: Sin sesión.
+        "403":
+          description: El rol no puede ver este envío.
+        "404":
+          description: API apagada o el envío no existe.
+      security:
+        - sesion: []
+        - bearer: []
+  /api/ops/v1/asignaciones/{runId}:
+    get:
+      operationId: leerAsignacion
+      summary: Lee una propuesta de asignación y su bitácora de decisiones.
+      parameters:
+        - name: runId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Propuesta visible para admin o asignacion.ver.
+        "401":
+          description: Sin sesión.
+        "404":
+          description: API apagada, la propuesta no existe o el rol no puede verla.
+      security:
+        - sesion: []
+        - bearer: []
+components:
+  securitySchemes:
+    sesion:
+      type: apiKey
+      in: cookie
+      name: c360_session
+    bearer:
+      type: http
+      scheme: bearer
