@@ -162,7 +162,6 @@ export function buildRegistrationPdf(data: RegistrationData): Buffer {
     ["WhatsApp / teléfono", data.whatsapp],
     ["Ciudad", data.city],
     ["Fecha de inscripción", data.registeredAt],
-    ["Periodo gratis", data.freeUntil ? `30 días, hasta el ${data.freeUntil}` : "—"],
   ]);
   section("Documentos aceptados", [
     ["Política de Privacidad", data.privacy],

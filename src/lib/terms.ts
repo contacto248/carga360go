@@ -46,18 +46,14 @@ export const TERMS_SECTIONS: PolicySection[] = [
   },
   {
     id: "membresia",
-    title: "3. Campaña de inscripción, periodo gratis y futura membresía",
+    title: "3. Inscripción y uso de la cuenta",
     blocks: [
       CAMPAIGN_TEXT,
       {
         list: [
-          "El periodo gratis es por cuenta: cada mandante, empresa con carga o transportista tiene 30 días corridos gratis contados desde la fecha de su inscripción. La fecha exacta de término aparece en el panel de cada cuenta («Tu periodo gratis termina el …»).",
-          "Las cuentas que ya estaban inscritas cuando comenzó esta campaña y cuyo plazo de 30 días ya había pasado reciben 30 días gratis desde la fecha de publicación de estos términos.",
-          "Terminado el periodo gratis se cobrará una membresía tanto a las empresas con carga (mandantes) como a los transportistas inscritos. Sus valores aún no están definidos; se publicarán antes de comenzar a cobrar.",
-          "La membresía incluirá beneficios dentro de la plataforma y beneficios a través de convenios con terceros, que informaremos junto con sus valores.",
+          "El sitio público no muestra ni aplica un periodo gratis de 30 días ni una membresía de pago.",
           `${CAMPAIGN_PROMISE} Hoy la plataforma no tiene un sistema de pago ni guarda datos de tarjetas.`,
-          "Si no aceptas la membresía cuando se te ofrezca, no se te cobrará nada y podrás pedir el cierre de tu cuenta.",
-          `Durante el periodo gratis ${BRAND.company} no cobra comisión por el flete ni por publicar, ofertar o adjudicar.`,
+          `Publicar, ofertar y adjudicar no tienen un cobro de ${BRAND.company}.`,
         ],
       },
     ],
@@ -117,7 +113,7 @@ export const TERMS_SECTIONS: PolicySection[] = [
     title: "11. Cambios a estos términos",
     blocks: [
       `Podemos actualizar estos términos por cambios legales o del servicio. Publicaremos la nueva versión en ${SITE}/terminos con su fecha y número de versión, te avisaremos y te pediremos aceptarla al ingresar. Guardamos qué versión aceptó cada usuario y cuándo.`,
-      "Historial: versión 1.0 (10 de noviembre de 2026): términos versionados con aceptación obligatoria, acreditación 100% y campaña de inscripción con 30 días gratis por cuenta.",
+      "Historial: versión 1.0 (10 de noviembre de 2026): términos versionados con aceptación obligatoria y acreditación 100%. Versión 1.2 (17 de noviembre de 2026): el sitio público no aplica un periodo gratis de 30 días ni cobra una membresía.",
     ],
   },
   {

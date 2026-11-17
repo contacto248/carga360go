@@ -319,11 +319,20 @@ test("vista pública: con la opción apagada (por defecto) no se muestran montos
   resetRateLimits();
   saveSettings({ showSuggestedPrice: false });
   const res = await getEstimacion(new Request("http://127.0.0.1:4317/api/estimacion?origen=Antofagasta&destino=Santiago&equipo=rampla_plana", { headers: headers() }), ctx());
-  const body = (await res.json()) as { km: number; costo: { costoTotal: number | null; components: { amount: number | null }[]; notice: string; showAmount: boolean } };
+  const body = (await res.json()) as {
+    km: number;
+    showBreakdown: boolean;
+    rutaCosto: unknown;
+    costo: { costoTotal: number | null; components: unknown[]; tolls: unknown[]; diesel: unknown; notice: string; showAmount: boolean };
+  };
   assert.ok(body.km > 1300);
+  assert.equal(body.showBreakdown, false);
+  assert.equal(body.rutaCosto, null);
   assert.equal(body.costo.showAmount, false);
   assert.equal(body.costo.costoTotal, null);
-  assert.ok(body.costo.components.every((c) => c.amount === null));
+  assert.equal(body.costo.components.length, 0);
+  assert.equal(body.costo.tolls.length, 0);
+  assert.equal(body.costo.diesel, null);
   assert.equal(body.costo.notice, "Precio referencial sujeto a revisión; el precio final lo acuerdan las partes.");
 });
 

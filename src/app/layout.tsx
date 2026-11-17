@@ -129,6 +129,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
       <body>
+        <CookieConsentBanner />
         {loadAnalyticsTags ? (
           <>
             <noscript>
@@ -175,7 +176,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           )}
         </main>
         <Footer />
-        <CookieConsentBanner />
       </body>
     </html>
   );

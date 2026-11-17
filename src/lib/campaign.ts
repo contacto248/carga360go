@@ -1,9 +1,8 @@
 import { formatDateCL, todayChile } from "./format";
 
 /**
- * Campaña de inscripción: cada cuenta (mandante o transportista) tiene FREE_DAYS días corridos gratis desde su inscripción
- * (columna users.free_until). Después se cobrará una membresía cuyo valor aún no está definido. No existe sistema de pago:
- * nada se cobra automáticamente y se avisará con anticipación antes de cualquier cobro.
+ * La columna users.free_until sigue guardando una fecha (inscripción + FREE_DAYS) por compatibilidad de la base.
+ * El sitio público no muestra ni cobra un periodo gratis ni una membresía. No hay precios en estos textos.
  */
 export const FREE_DAYS = 30;
 
@@ -26,8 +25,8 @@ export function freePeriodOf(freeUntil: string | null | undefined, today = today
   return { freeUntil, label: formatDateCL(freeUntil), active: today <= freeUntil, daysLeft: Math.max(0, daysLeft) };
 }
 
-/** Texto común de la campaña (sitio, políticas y términos). */
+/** Texto de uso de la cuenta en la política y en los términos. Sin precios. */
 export const CAMPAIGN_TEXT =
-  "Carga360go está en campaña de inscripción de mandantes, empresas con carga y transportistas. Cada cuenta tiene 30 días gratis desde su inscripción; luego se cobrará una membresía (valores por definir) con beneficios en la plataforma y convenios.";
+  "Crear una cuenta y usar Carga360go no exige una membresía ni un periodo de prueba de pago. Publicar, ofertar y adjudicar no tienen un cobro de la plataforma.";
 export const CAMPAIGN_PROMISE =
-  "Te avisaremos con anticipación antes de cualquier cobro y no se cobrará nada automáticamente sin tu aceptación.";
+  "No se cobra una membresía ni se pide un medio de pago para usar la plataforma.";

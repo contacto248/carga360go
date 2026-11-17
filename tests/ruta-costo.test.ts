@@ -12,7 +12,7 @@ import { encodePolyline } from "../src/lib/costos/geometry";
 import { chooseProvider, parseGoogleDirectionsBody, parseGoogleRoutesBody } from "../src/lib/costos/routing";
 import { DEFAULT_VIATICO_CLP, JORNADA_CAMION_KM, ROUTE_COST_NOTICE, computeRouteCost, routeCostLines, travelDays } from "../src/lib/costos/ruta-costo";
 import { detectTolls } from "../src/lib/costos/tolls";
-import { TOLL_PLAZAS, TOLL_SOURCES } from "../src/lib/costos/tolls-data";
+import { RUTA5_SUR_STGO_CONCEPCION_GAPS, TOLL_PLAZAS, TOLL_SOURCES } from "../src/lib/costos/tolls-data";
 import { VEHICLE_CLASSES } from "../src/lib/costos/vehicles";
 
 const NOW = new Date("2026-11-17T15:00:00.000Z");
@@ -116,6 +116,42 @@ test("peajes verificados: Ruta 68 y Angostura, con fuente y vigencia; Ruta 1 no 
   assert.match(two.find((toll) => toll.plazaId === "r68_lo_prado")?.sourceUrl ?? "", /RUTA-68\.pdf/);
   const sum = two.reduce((total, toll) => total + (toll.amountGross ?? 0), 0);
   assert.equal(sum, 4800);
+});
+
+test("Santiago–Concepción por Ruta 5 Sur: suma solo plazas con tarifa y coordenada; no inventa las que faltan", () => {
+  const itata = TOLL_SOURCES.find((source) => source.id === "mop_itata")!;
+  assert.equal(itata.url, "https://concesiones.mop.gob.cl/uploads/sites/4/2026/01/ITATA.pdf");
+  assert.equal(itata.sha256, "547698eb9656194771965e3dbeeddf37b3283bff5f3f43ccf0481d6e175b5438");
+  assert.equal(itata.validFrom, "2026-01-01");
+  assert.equal(itata.validTo, "2026-12-31");
+  const talca = TOLL_SOURCES.find((source) => source.id === "mop_talca_chillan")!;
+  assert.equal(talca.url, "https://concesiones.mop.gob.cl/uploads/sites/4/2026/01/TALCA-CHILLAN.pdf");
+  assert.equal(talca.validTo, "2026-12-31");
+
+  const agua = TOLL_PLAZAS.find((plaza) => plaza.id === "itata_agua_amarilla")!;
+  assert.equal(agua.rates.find((rate) => rate.category === "camion_2_ejes")?.amount, 9700);
+  assert.equal(agua.rates.find((rate) => rate.category === "camion_mas_2_ejes")?.amount, 19800);
+  const angostura = TOLL_PLAZAS.find((plaza) => plaza.id === "r5s_angostura")!;
+  const five = VEHICLE_CLASSES.tracto_semirremolque_5_ejes;
+  const at = (lon: number, lat: number) =>
+    detectTolls({ geometry: [[lon, lat - 0.02], [lon, lat], [lon, lat + 0.02]] }, five, 200, NOW);
+  const aguaHit = at(agua.lon, agua.lat).find((toll) => toll.plazaId === "itata_agua_amarilla");
+  const angosturaHit = at(angostura.lon, angostura.lat).find((toll) => toll.plazaId === "r5s_angostura");
+  assert.equal(aguaHit?.amountGross, 19800);
+  assert.match(aguaHit?.sourceUrl ?? "", /ITATA\.pdf/);
+  assert.equal(aguaHit?.validTo, "2026-12-31");
+  assert.equal(angosturaHit?.amountGross, 12200);
+  assert.equal((aguaHit?.amountGross ?? 0) + (angosturaHit?.amountGross ?? 0), 32000);
+
+  assert.ok(RUTA5_SUR_STGO_CONCEPCION_GAPS.length >= 6);
+  for (const gap of RUTA5_SUR_STGO_CONCEPCION_GAPS) {
+    assert.equal(
+      TOLL_PLAZAS.some((plaza) => gap.lat != null && Math.abs(plaza.lat - gap.lat) < 0.002 && gap.lon != null && Math.abs(plaza.lon - gap.lon) < 0.002),
+      false,
+      gap.ref,
+    );
+  }
+  assert.equal(TOLL_PLAZAS.some((plaza) => /rafael|nueva aldea|tocornal|gabriela|río maipo/i.test(plaza.name)), false);
 });
 
 test("Google Maps solo con clave; si no, OSRM", () => {

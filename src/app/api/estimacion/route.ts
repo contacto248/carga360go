@@ -13,9 +13,9 @@ import { todayChile } from "@/lib/format";
 
 /**
  * Vista previa del cotizador y del asistente de publicación: costo de referencia desglosado del flete calculado por el motor de costos
- * (ruta real, peajes, diésel, conductor y desgaste), referencial y sujeto a revisión. El monto solo se incluye si el
- * administrador activó "Mostrar precio referencial" (ajuste show_suggested_price, apagado por defecto); si no, se
- * devuelven la distancia, los tiempos y el desglose sin montos. No guarda cotizaciones (eso es POST /api/cotizaciones).
+ * (ruta real, peajes, diésel, conductor y desgaste), referencial y sujeto a revisión. El desglose solo se incluye si el
+ * administrador activó "Mostrar precio referencial" (ajuste show_suggested_price, apagado por defecto). Si está apagado,
+ * se devuelven la distancia y los tiempos, sin partidas ni montos. No guarda cotizaciones (eso es POST /api/cotizaciones).
  */
 export const GET = guard(async (request) => {
   const url = new URL(request.url);
@@ -41,7 +41,8 @@ export const GET = guard(async (request) => {
     vehicle: isVehicleClassId(vehicleParam) ? vehicleParam : undefined,
     weightT: weight > 0 ? weight : null,
   });
-  const costo = publicView(result, getSettings().showSuggestedPrice);
-  const rutaCosto = rutaCalculadoraDe(result);
-  return NextResponse.json({ km: costo.km, costo, rutaCosto, compatibles });
+  const showBreakdown = getSettings().showSuggestedPrice;
+  const costo = publicView(result, showBreakdown);
+  const rutaCosto = showBreakdown ? rutaCalculadoraDe(result) : null;
+  return NextResponse.json({ km: costo.km, costo, rutaCosto, showBreakdown, compatibles });
 });
