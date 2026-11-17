@@ -7,9 +7,13 @@ import { todayChile } from "../format";
  */
 export type CapacityStatus = "disponible" | "ocupado" | "sin_datos";
 
+export type CapacityReasonCode = "SIN_CAMION" | "FUERA_VENTANA" | "SIN_DOCUMENTOS" | "OCUPADO";
+
 export type CapacityResult = {
   status: CapacityStatus;
   reason: string;
+  /** Null solo cuando el transportista está disponible. */
+  reasonCode: CapacityReasonCode | null;
   truckId: string | null;
   tonnage: number | null;
   loadId: string | null;
@@ -17,9 +21,14 @@ export type CapacityResult = {
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-export function carrierCapacity(carrierUserId: string, at = new Date()): CapacityResult {
+/**
+ * Disponibilidad medida en la fecha de retiro.
+ * Un string YYYY-MM-DD es ese día. Un Date es el día de Chile de ese instante
+ * (lo usan las pruebas que ya pasaban una fecha). No sustituye el día de retiro por hoy.
+ */
+export function carrierCapacity(carrierUserId: string, pickupDate: string | Date = new Date()): CapacityResult {
   const db = getDb();
-  const day = todayChile(at);
+  const day = referenceDay(pickupDate);
   const busy = db
     .prepare(
       `SELECT l.id AS id FROM loads l
@@ -29,7 +38,7 @@ export function carrierCapacity(carrierUserId: string, at = new Date()): Capacit
     )
     .get(carrierUserId) as { id: string } | undefined;
   if (busy) {
-    return { status: "ocupado", reason: "Tiene un viaje en curso.", truckId: null, tonnage: null, loadId: busy.id };
+    return { status: "ocupado", reason: "Tiene un viaje en curso.", reasonCode: "OCUPADO", truckId: null, tonnage: null, loadId: busy.id };
   }
 
   const trucks = db
@@ -37,7 +46,7 @@ export function carrierCapacity(carrierUserId: string, at = new Date()): Capacit
     .all(carrierUserId) as { id: string; availableFrom: string; availableTo: string; tonnage: number }[];
   const usable = trucks.filter((truck) => Number.isFinite(truck.tonnage) && truck.tonnage > 0 && chileDay(truck.availableFrom) && chileDay(truck.availableTo));
   if (!usable.length) {
-    return { status: "sin_datos", reason: "Sin camión publicado con ventana y tonelaje.", truckId: null, tonnage: null, loadId: null };
+    return { status: "sin_datos", reason: "Sin camión publicado con ventana y tonelaje.", reasonCode: "SIN_CAMION", truckId: null, tonnage: null, loadId: null };
   }
   const open = usable.find((truck) => {
     const from = chileDay(truck.availableFrom);
@@ -45,18 +54,38 @@ export function carrierCapacity(carrierUserId: string, at = new Date()): Capacit
     return !!from && !!to && from <= day && day <= to;
   });
   if (!open) {
-    return { status: "sin_datos", reason: "El camión está fuera de la ventana consultada.", truckId: null, tonnage: null, loadId: null };
+    return {
+      status: "sin_datos",
+      reason: "El camión está fuera de la ventana consultada.",
+      reasonCode: "FUERA_VENTANA",
+      truckId: null,
+      tonnage: null,
+      loadId: null,
+    };
   }
   if (!hasCurrentDocs(carrierUserId, day)) {
-    return { status: "sin_datos", reason: "Sin documentos vigentes para confirmar disponibilidad.", truckId: null, tonnage: null, loadId: null };
+    return {
+      status: "sin_datos",
+      reason: "Sin documentos vigentes para confirmar disponibilidad.",
+      reasonCode: "SIN_DOCUMENTOS",
+      truckId: null,
+      tonnage: null,
+      loadId: null,
+    };
   }
   return {
     status: "disponible",
     reason: "Camión en ventana, sin viaje en curso y con documentos vigentes.",
+    reasonCode: null,
     truckId: open.id,
     tonnage: open.tonnage,
     loadId: null,
   };
+}
+
+function referenceDay(pickupDate: string | Date): string {
+  if (typeof pickupDate === "string" && DAY.test(pickupDate)) return pickupDate;
+  return todayChile(pickupDate instanceof Date ? pickupDate : new Date());
 }
 
 function hasCurrentDocs(carrierUserId: string, day: string): boolean {

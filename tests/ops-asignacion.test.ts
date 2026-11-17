@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
@@ -11,7 +11,8 @@ import { COOKIE_NAME, createSession, registerUser, upsertAdmin } from "../src/li
 import { REQUIRED_CARRIER_DOCS } from "../src/lib/carrier";
 import { getDb } from "../src/lib/db";
 import { rutDv, todayChile } from "../src/lib/format";
-import { createRule, confirmAllocation, processOpsJobs, proposeAllocation, retryDelayMs } from "../src/lib/ops/allocation";
+import { carrierCapacity } from "../src/lib/ops/capacity";
+import { createRule, confirmAllocation, processOpsJobs, proposeAllocation, retryDelayMs, TRACE_VERSION } from "../src/lib/ops/allocation";
 import { OPS_FLAGS } from "../src/lib/ops/flags";
 import { privacyVersion, termsVersion } from "../src/lib/privacy";
 import { ensureShipmentForLoad, verifyChain } from "../src/lib/ops/shipments";
@@ -496,4 +497,154 @@ test("la API exige el flag y el permiso, y confirma por el mismo flujo", async (
   const listed = await getRuns(call("GET", "http://127.0.0.1:4317/api/ops/asignacion", token), ctx);
   assert.equal(listed.status, 200);
   assert.equal((getDb().prepare(`SELECT status FROM loads WHERE id = ?`).get(data.loadId) as { status: string }).status, "adjudicada");
+});
+
+test("la capacidad mide la fecha de retiro y separa el código", () => {
+  const carrier = person("transportista", "cupo-retiro");
+  const owner = person("mandante", "cupo-retiro-manda");
+  assert.equal(carrierCapacity(carrier.id, "2026-12-15").reasonCode, "SIN_CAMION");
+  assert.equal(carrierCapacity(carrier.id, "2026-12-15").status, "sin_datos");
+  const truckId = randomUUID();
+  const stamp = new Date().toISOString();
+  getDb()
+    .prepare(
+      `INSERT INTO trucks (id, owner_id, origin, destination, available_from, available_to, equipment, tonnage, specs_json, is_demo, created_at, updated_at)
+       VALUES (?, ?, 'Calama', 'Antofagasta', '2026-12-01', '2026-12-31', 'sider', 28, '{}', 1, ?, ?)`,
+    )
+    .run(truckId, carrier.id, stamp, stamp);
+  assert.equal(carrierCapacity(carrier.id, "2026-11-17").reasonCode, "FUERA_VENTANA");
+  assert.equal(carrierCapacity(carrier.id, new Date("2026-11-17T15:00:00.000Z")).reasonCode, "FUERA_VENTANA");
+  getDb()
+    .prepare(`INSERT INTO documents (id, user_id, type, expiry, verification_status, created_at) VALUES (?, ?, 'licencia', '2026-12-10', 'verificado', ?)`)
+    .run(randomUUID(), carrier.id, stamp);
+  assert.equal(carrierCapacity(carrier.id, "2026-12-15").reasonCode, "SIN_DOCUMENTOS");
+  getDb().prepare(`UPDATE documents SET expiry = '2027-01-01' WHERE user_id = ?`).run(carrier.id);
+  const open = carrierCapacity(carrier.id, "2026-12-15");
+  assert.equal(open.status, "disponible");
+  assert.equal(open.reasonCode, null);
+  assert.equal(open.truckId, truckId);
+  busy(carrier.id, owner.id);
+  const occupied = carrierCapacity(carrier.id, "2026-12-15");
+  assert.equal(occupied.status, "ocupado");
+  assert.equal(occupied.reasonCode, "OCUPADO");
+});
+
+test("pesos versionados, desempate por id, tarifa por candidato y traza inmutable", async () => {
+  withOps(true);
+  const data = scene("traza");
+  const created = rule(data.admin, data.shipperOrgId, "por_tarifa", {
+    pesos: { costo: 1, desempeno: 0, capacidad: 0, disponibilidad: 0 },
+  });
+  assert.equal(created.pesosVersion, "pesos-v1");
+  const stored = getDb().prepare(`SELECT weights_json FROM ops_allocation_rules WHERE id = ?`).get(created.id) as { weights_json: string };
+  assert.match(stored.weights_json, /"version":"pesos-v1"/);
+  assert.match(stored.weights_json, /"costo":1/);
+
+  const extra = person("transportista", "traza-sintarifa");
+  accredit(extra.id);
+  const extraOrg = org("transportista", extra.id);
+  member(extraOrg, extra.id);
+  truck(extra.id, data.origin, data.destination);
+
+  const db = getDb();
+  db.prepare(`DELETE FROM trucks WHERE owner_id = ?`).run(data.low.id);
+  const older = "00000000-0000-4000-8000-0000000000aa";
+  const newer = "ffffffff-ffff-4fff-bfff-ffffffffffff";
+  db.prepare(
+    `INSERT INTO trucks (id, owner_id, origin, destination, available_from, available_to, equipment, tonnage, specs_json, is_demo, created_at, updated_at)
+     VALUES (?, ?, ?, ?, '2020-01-01', '2099-12-31', 'sider', 40, '{}', 0, '2026-11-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z')`,
+  ).run(older, data.low.id, data.origin, data.destination);
+  db.prepare(
+    `INSERT INTO trucks (id, owner_id, origin, destination, available_from, available_to, equipment, tonnage, specs_json, is_demo, created_at, updated_at)
+     VALUES (?, ?, ?, ?, '2020-01-01', '2099-12-31', 'sider', 40, '{}', 0, '2026-11-17T00:00:00.000Z', '2026-11-17T00:00:00.000Z')`,
+  ).run(newer, data.low.id, data.origin, data.destination);
+
+  const run = proposeAllocation(data.admin, { shipmentId: data.shipmentId, ruleId: created.id });
+  assert.equal(run.trace?.version, TRACE_VERSION);
+  const row = db.prepare(`SELECT trace_version, trace_json, trace_hash FROM ops_allocation_traces WHERE run_id = ?`).get(run.id) as {
+    trace_version: string;
+    trace_json: string;
+    trace_hash: string;
+  };
+  assert.equal(row.trace_version, "trace-v1");
+  assert.equal(row.trace_hash, createHash("sha256").update(row.trace_json, "utf8").digest("hex"));
+  assert.throws(() => db.prepare(`UPDATE ops_allocation_traces SET trace_hash = trace_hash WHERE run_id = ?`).run(run.id));
+  assert.throws(() => db.prepare(`DELETE FROM ops_allocation_traces WHERE run_id = ?`).run(run.id));
+  const body = JSON.parse(row.trace_json) as {
+    version: string;
+    matchVersion: string;
+    pesosVersion: string;
+    pesos: { costo: number };
+    candidates: { carrierUserId: string; truckId: string | null; status: string; reasonCode: string | null; rateCode: string; tieBreak: string | null }[];
+  };
+  assert.equal(body.version, "trace-v1");
+  assert.equal(body.matchVersion, "match-v1");
+  assert.equal(body.pesosVersion, "pesos-v1");
+  assert.equal(body.pesos.costo, 1);
+  const winner = body.candidates.find((candidate) => candidate.carrierUserId === data.low.id);
+  assert.equal(winner?.truckId, older);
+  assert.equal(winner?.tieBreak, "id_camion");
+  assert.equal(winner?.rateCode, "TARIFA_VIGENTE");
+  const missing = body.candidates.find((candidate) => candidate.carrierUserId === extra.id);
+  assert.equal(missing?.status, "descartado");
+  assert.equal(missing?.reasonCode, "SIN_TARIFA_VIGENTE");
+  assert.equal(missing?.rateCode, "SIN_TARIFA_VIGENTE");
+  for (const candidate of body.candidates) {
+    if (candidate.status === "descartado") assert.equal(typeof candidate.reasonCode, "string");
+  }
+  const before = row.trace_hash;
+  const chosen = run.candidates.find((candidate) => candidate.carrierUserId === data.low.id);
+  assert.ok(chosen);
+  await confirmAllocation(data.admin, run.id, chosen.id);
+  const after = db.prepare(`SELECT trace_hash, trace_json FROM ops_allocation_traces WHERE run_id = ?`).get(run.id) as { trace_hash: string; trace_json: string };
+  assert.equal(after.trace_hash, before);
+  assert.equal(after.trace_json, row.trace_json);
+});
+
+test("peligrosa, refrigerada y minera bloquean la confirmación", async () => {
+  withOps(true);
+  const cases: { tag: string; equipment: string; loadSpecs: Record<string, unknown>; truckSpecs: Record<string, unknown>; text: RegExp }[] = [
+    { tag: "peligro", equipment: "peligrosa", loadSpecs: { clase: 3 }, truckSpecs: { clases: "3" }, text: /autorización/ },
+    { tag: "frio", equipment: "refrigerado", loadSpecs: { tempReq: 0 }, truckSpecs: { tempMin: -20, tempMax: 15 }, text: /sanitaria/ },
+    { tag: "mina", equipment: "tolva", loadSpecs: { material: "Concentrados", volumenM3: 10 }, truckSpecs: { volumenM3: 30 }, text: /minera/ },
+  ];
+  for (const item of cases) {
+    const data = scene(item.tag);
+    const db = getDb();
+    db.prepare(`UPDATE loads SET equipment = ?, specs_json = ? WHERE id = ?`).run(item.equipment, JSON.stringify(item.loadSpecs), data.loadId);
+    db.prepare(`UPDATE trucks SET equipment = ?, specs_json = ? WHERE owner_id IN (?, ?)`).run(
+      item.equipment,
+      JSON.stringify(item.truckSpecs),
+      data.low.id,
+      data.high.id,
+    );
+    db.prepare(
+      `UPDATE ops_rate_card_lines SET equipment = ? WHERE rate_card_id IN (SELECT id FROM ops_rate_cards WHERE shipper_org_id = ?)`,
+    ).run(item.equipment, data.shipperOrgId);
+    const run = proposeAllocation(data.admin, { shipmentId: data.shipmentId, ruleId: rule(data.admin, data.shipperOrgId, "por_tarifa").id });
+    const chosen = run.candidates.find((candidate) => candidate.carrierUserId === data.low.id);
+    assert.equal(chosen?.status, "propuesto");
+    const traced = run.trace?.body.candidates.find((candidate) => candidate.carrierUserId === data.low.id);
+    assert.equal(traced?.blockingChecks.length, 1);
+    await assert.rejects(() => confirmAllocation(data.admin, run.id, chosen?.id), item.text);
+    assert.equal((db.prepare(`SELECT status FROM loads WHERE id = ?`).get(data.loadId) as { status: string }).status, "abierta");
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM offers WHERE load_id = ?`).get(data.loadId) as { n: number }).n, 0);
+  }
+
+  const ready = scene("peligro-ok");
+  const db = getDb();
+  db.prepare(`UPDATE loads SET equipment = 'peligrosa', specs_json = ? WHERE id = ?`).run(JSON.stringify({ clase: 3 }), ready.loadId);
+  db.prepare(`UPDATE trucks SET equipment = 'peligrosa', specs_json = ? WHERE owner_id IN (?, ?)`).run(
+    JSON.stringify({ clases: "3", autorizacion: true }),
+    ready.low.id,
+    ready.high.id,
+  );
+  db.prepare(
+    `UPDATE ops_rate_card_lines SET equipment = 'peligrosa' WHERE rate_card_id IN (SELECT id FROM ops_rate_cards WHERE shipper_org_id = ?)`,
+  ).run(ready.shipperOrgId);
+  const run = proposeAllocation(ready.admin, { shipmentId: ready.shipmentId, ruleId: rule(ready.admin, ready.shipperOrgId, "por_tarifa").id });
+  const chosen = run.candidates.find((candidate) => candidate.carrierUserId === ready.low.id);
+  assert.deepEqual(run.trace?.body.candidates.find((candidate) => candidate.carrierUserId === ready.low.id)?.blockingChecks, []);
+  const confirmed = await confirmAllocation(ready.admin, run.id, chosen?.id);
+  assert.equal(confirmed.status, "confirmada");
 });

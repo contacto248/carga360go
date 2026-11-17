@@ -607,6 +607,32 @@ CREATE INDEX IF NOT EXISTS idx_ops_jobs_due ON ops_jobs(status, run_after);
 CREATE INDEX IF NOT EXISTS idx_ops_jobs_ref ON ops_jobs(kind, ref_id);
 `;
 
+/** Migración 28: traza inmutable de la decisión. Solo una tabla nueva. No altera la 026 ni tablas previas. */
+export const MIGRATION_28_SQL = `
+CREATE TABLE IF NOT EXISTS ops_allocation_traces (
+  id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL UNIQUE,
+  trace_version TEXT NOT NULL CHECK (trace_version = 'trace-v1'),
+  trace_json TEXT NOT NULL,
+  trace_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_ops_allocation_traces_run ON ops_allocation_traces(run_id);
+
+CREATE TRIGGER IF NOT EXISTS ops_allocation_traces_no_update
+BEFORE UPDATE ON ops_allocation_traces
+BEGIN
+  SELECT RAISE(ABORT, 'traza inmutable');
+END;
+
+CREATE TRIGGER IF NOT EXISTS ops_allocation_traces_no_delete
+BEFORE DELETE ON ops_allocation_traces
+BEGIN
+  SELECT RAISE(ABORT, 'traza inmutable');
+END;
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1107,6 +1133,16 @@ function migrate(db: Database.Database) {
       // Copia en docs/migrations/027-gps-conector.sql. Reversa en docs/migrations/027-gps-conector-rollback.sql.
       db.exec(MIGRATION_27_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (27, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  if (!hasMigration(db, 28)) {
+    const apply = db.transaction(() => {
+      // Traza de la decisión de asignación (trace-v1). Solo una tabla nueva y disparadores que impiden UPDATE/DELETE.
+      // No altera 022–027 ni users, loads, offers o trucks. Sin filas de ejemplo.
+      // Copia en docs/migrations/028-ops-asignacion-traza.sql. Reversa: 028-ops-asignacion-traza-rollback.sql.
+      db.exec(MIGRATION_28_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (28, ?)`).run(new Date().toISOString());
     });
     apply();
   }
