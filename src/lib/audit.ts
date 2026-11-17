@@ -73,6 +73,10 @@ export const AUDIT_LABELS: Record<string, string> = {
   "ops.envio_creado": "Envío operativo creado",
   "ops.evento": "Evento de la bitácora del envío",
   "ops.desempeno_recalculado": "Puntaje de desempeño recalculado",
+  "ops.asignacion_regla": "Regla de asignación guardada",
+  "ops.asignacion_propuesta": "Propuesta de asignación",
+  "ops.asignacion_confirmada": "Asignación confirmada por una persona",
+  "ops.asignacion_reintento": "Reintento de un trabajo de asignación",
 };
 
 function writeAudit(
@@ -167,6 +171,7 @@ const TARGETS: Record<string, string> = {
   ops_organizacion: "Organización",
   envio: "Envío",
   ops_desempeno: "Desempeño",
+  ops_asignacion: "Asignación",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */

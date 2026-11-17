@@ -88,5 +88,8 @@ test("el ejemplo de entorno deja los flags en false y la web pública no gana en
     assert.equal(text.includes("/admin/ops"), false, file);
     assert.equal(text.includes("/api/ops"), false, file);
   }
-  assert.equal(fs.existsSync(path.join(process.cwd(), "src/app/admin/ops")), false);
+  const page = fs.readFileSync(path.join(process.cwd(), "src/app/admin/ops/asignacion/page.tsx"), "utf8");
+  assert.match(page, /notFound\(/);
+  assert.match(page, /OPS_FEATURE_ENABLED/);
+  assert.match(page, /OPS_ALLOCATION_ENABLED/);
 });

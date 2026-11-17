@@ -112,7 +112,7 @@ test("migración 27 solo crea tablas nuevas y la reversa no toca trip_gps_points
   assert.equal(versions.filter((version) => version === 27).length, 1);
   assert.ok(versions.includes(24));
   assert.ok(versions.includes(25));
-  assert.equal(versions.includes(26), false);
+  assert.ok(versions.includes(26));
   assert.doesNotMatch(MIGRATION_27_SQL, /trip_gps_points|ALTER\s+TABLE|INSERT\s+INTO|UPDATE\s|DELETE\s+FROM/i);
   const doc = fs.readFileSync(new URL("../docs/migrations/027-gps-conector.sql", import.meta.url), "utf8");
   for (const line of MIGRATION_27_SQL.split("\n").map((item) => item.trim()).filter(Boolean)) assert.ok(doc.includes(line), line);
