@@ -1,16 +1,41 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
-import { AdminConsole } from "@/components/AdminConsole";
-import { AdminNav } from "@/components/AdminNav";
-import { listUsers } from "@/lib/auth";
+import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
+import { ControlCenter } from "@/components/control/ControlCenter";
+import { ModuloBassam360 } from "@/components/control/ModuloBassam360";
+import { ModuloPanelBassam } from "@/components/control/ModuloPanelBassam";
+import { ModuloUsuarios } from "@/components/control/ModuloUsuarios";
 import { getCurrentUser } from "@/lib/current-user";
-import { listAllDocuments } from "@/lib/documents";
-import { todayChile } from "@/lib/format";
-import { adminMetrics } from "@/lib/metrics";
+import { controlSnapshot } from "@/lib/control/snapshot";
+import { seccionInterna, vistaControl, type SeccionInterna } from "@/lib/control/secciones";
+import type { Company } from "@/lib/control/types";
 
-export const metadata: Metadata = { title: "Administración", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Administración · Centro de control inteligente", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+function Modulo({ seccion }: { seccion: SeccionInterna }) {
+  switch (seccion) {
+    case "agente":
+      return (
+        <Suspense fallback={<p>Cargando la conversación…</p>}>
+          <AgenteAcreditacion modo="conversacion" />
+        </Suspense>
+      );
+    case "panel":
+      return <ModuloPanelBassam />;
+    case "bassam360":
+      return <ModuloBassam360 />;
+    case "usuarios":
+      return <ModuloUsuarios />;
+    default: {
+      const nunca: never = seccion;
+      return nunca;
+    }
+  }
+}
+
+export default async function AdminPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await getCurrentUser();
   if (!user) {
     return (
@@ -38,25 +63,14 @@ export default async function AdminPage() {
       </div>
     );
   }
+  const params = await searchParams;
+  const company: Company = params.empresa === "bassam" ? "bassam" : "carga360go";
+  const seccion = seccionInterna(params.seccion);
+  const vista = vistaControl(params.vista);
+  const data = controlSnapshot(user, company);
   return (
-    <div className="wrap" style={{ paddingBottom: 30 }}>
-      <div className="page-title">
-        <h1>Administración</h1>
-        <p>Filtra por estado, aprueba o rechaza con motivo y abre el archivo. Los documentos que vencen en 30 días o menos quedan marcados.</p>
-      </div>
-      <AdminNav current="/admin" />
-      <div className="card" style={{ margin: "12px 0" }}>
-        <h2>BASSAM 360 · Centro de control inteligente</h2>
-        <p>Espacios de BASSAM SPA y CARGA360GO: operaciones, tareas, responsables y conexiones.</p>
-        <Link className="btn" href="/admin/bassam">Abrir BASSAM 360 →</Link>{" "}
-        <Link className="btn sec" href="/admin/control">Centro de control →</Link>
-      </div>
-      <div className="notice" style={{ marginBottom: 12 }}>
-        Las cuentas nuevas (mandantes y transportistas) no publican ni ofertan hasta quedar 100% acreditadas.{" "}
-        <Link href="/admin/transportistas">Revisar acreditación pendiente →</Link>{" "}
-        · <Link href="/admin/whatsapp">Conversaciones de WhatsApp →</Link>{" "}· <Link href="/admin/chat">Chat de la web →</Link>
-      </div>
-      <AdminConsole users={listUsers()} documents={listAllDocuments()} metrics={adminMetrics()} today={todayChile()} />
-    </div>
+    <ControlCenter key={`${company}-${seccion ?? vista}`} initial={data} seccion={seccion} vista={vista}>
+      {seccion ? <Modulo seccion={seccion} /> : null}
+    </ControlCenter>
   );
 }

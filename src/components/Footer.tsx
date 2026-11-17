@@ -71,8 +71,8 @@ export function Footer() {
       </footer>
       <Suspense fallback={null}>
         <AgenteAcreditacion />
+        <VoiceAgentLauncher waNumber={waNumber} waText={waText} />
       </Suspense>
-      <VoiceAgentLauncher waNumber={waNumber} waText={waText} />
     </>
   );
 }

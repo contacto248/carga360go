@@ -70,9 +70,9 @@ test("el cascarón tiene nav lateral, barra compacta y el logo a la misma escala
   assert.match(header, /Camiones/);
   assert.match(header, /Publicar carga/);
   assert.match(header, /Mi cuenta/);
-  assert.match(header, /Agente BASSAM 360/);
-  assert.match(header, /agenteBassam \?/);
-  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin\/bassam"[\s\S]*Panel BASSAM/);
+  assert.match(header, /Administración/);
+  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin"/);
+  assert.doesNotMatch(header, /Panel BASSAM|Agente BASSAM 360|href="\/admin\/bassam/);
   assert.doesNotMatch(header, /Publicar camión|Buscar camión|Regiones/);
   assert.equal(header.includes("/admin/ops"), false);
   assert.equal(header.includes("/sistema"), false);

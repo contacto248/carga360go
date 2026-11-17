@@ -20,11 +20,6 @@ function activo(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function abrirAgente(event: { preventDefault(): void }) {
-  event.preventDefault();
-  window.dispatchEvent(new Event("c360-abrir-agente"));
-}
-
 function Marca() {
   return (
     <Link href="/" className="logo" aria-label="Carga360go">
@@ -43,8 +38,6 @@ function Marca() {
 export function Header({ user }: { user: PublicUser | null }) {
   const pathname = usePathname() || "/";
   const router = useRouter();
-  // Decisión Gerencia 16-11: el Agente BASSAM 360 solo se abre desde /admin/* y /mi-cuenta.
-  const agenteBassam = Boolean(pathname && (pathname.startsWith("/admin") || pathname.startsWith("/mi-cuenta")));
 
   async function salir() {
     await fetch("/api/auth/salir", { method: "POST" });
@@ -63,23 +56,10 @@ export function Header({ user }: { user: PublicUser | null }) {
             </Link>
           );
         })}
-        {agenteBassam ? (
-          <a href="#agente-bassam" onClick={abrirAgente}>
-            Agente BASSAM 360
-          </a>
-        ) : null}
         {user?.role === "admin" ? (
-          <>
-            <Link href="/admin/bassam" className={activo(pathname, "/admin/bassam") ? "on" : undefined} aria-current={activo(pathname, "/admin/bassam") ? "page" : undefined}>
-              Panel BASSAM
-            </Link>
-            <Link href="/admin/bassam360" className={activo(pathname, "/admin/bassam360") ? "on" : undefined} aria-current={activo(pathname, "/admin/bassam360") ? "page" : undefined}>
-              BASSAM 360
-            </Link>
-            <Link href="/admin" className={activo(pathname, "/admin") ? "on" : undefined} aria-current={activo(pathname, "/admin") ? "page" : undefined}>
-              Administración
-            </Link>
-          </>
+          <Link href="/admin" className={activo(pathname, "/admin") ? "on" : undefined} aria-current={activo(pathname, "/admin") ? "page" : undefined}>
+            Administración
+          </Link>
         ) : null}
       </>
     );

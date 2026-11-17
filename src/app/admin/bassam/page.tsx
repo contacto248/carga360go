@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DocumentReview } from "@/components/DocumentReview";
+import { redirect } from "next/navigation";
 import styles from "@/components/bassam-panel.module.css";
-import { conteosControl, panelAcreditacion } from "@/lib/bassam/acreditacion";
 import { getCurrentUser } from "@/lib/current-user";
 
 export const metadata: Metadata = { title: "BASSAM 360", robots: { index: false, follow: false } };
@@ -24,15 +23,5 @@ export default async function BassamPage() {
       </div>
     );
   }
-  const panel = panelAcreditacion();
-  return (
-    <div className="wrap" style={{ paddingBottom: 30 }}>
-      <section className={styles.shell}>
-        <p className={styles.brand}>CARGA360GO · BASSAM 360</p>
-        <h1>Acreditación - Visión General</h1>
-        <p className={styles.lede}>Cargas, camiones, documentos y el agente. Solo lo que está en la base.</p>
-        <DocumentReview panel={panel} conteos={conteosControl()} />
-      </section>
-    </div>
-  );
+  redirect("/admin?seccion=panel");
 }

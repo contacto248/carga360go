@@ -360,8 +360,9 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(header, /Publicar carga/);
   assert.match(header, /Camiones/);
   assert.match(header, /Mi cuenta/);
-  assert.match(header, /Agente BASSAM 360/);
-  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin\/bassam"[\s\S]*Panel BASSAM/);
+  assert.match(header, /Administración/);
+  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin"/);
+  assert.doesNotMatch(header, /Panel BASSAM|Agente BASSAM 360|href="\/admin\/bassam/);
   assert.doesNotMatch(header, /Publicar camión|Buscar camión|Regiones/);
   assert.doesNotMatch(footer, /HelpLauncher|FleteButton|ChatWidget/);
   assert.match(footer, /VoiceAgentLauncher/);
@@ -369,7 +370,7 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   // el Agente BASSAM 360 solo aparece en /admin/* y /mi-cuenta.
   const agenteSrc = fs.readFileSync(new URL("../src/components/AgenteAcreditacion.tsx", import.meta.url), "utf8");
   assert.match(agenteSrc, /agenteVisible\(pathname\)/);
-  assert.match(header, /agenteBassam \?/);
+  assert.match(agenteSrc, /selectorRolVisible/);
   assert.equal((footer.match(/<AgenteAcreditacion \/>/g) || []).length, 1);
   const panelCuenta = fs.readFileSync(new URL("../src/components/AccreditationPanel.tsx", import.meta.url), "utf8");
   assert.match(panelCuenta, /documentos: \{ href: "\/mi-cuenta"/);
@@ -426,11 +427,12 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(panel, /Pedir renovación/);
   assert.match(panel, /Pedir corrección/);
   const bassam360 = fs.readFileSync(new URL("../src/app/admin/bassam360/page.tsx", import.meta.url), "utf8");
+  const modulo360 = fs.readFileSync(new URL("../src/components/control/ModuloBassam360.tsx", import.meta.url), "utf8");
   assert.match(bassam360, /user\.role !== "admin"/);
-  assert.match(bassam360, /El asistente no aprueba solo/);
-  assert.match(bassam360, /correccion/);
-  assert.match(bassam360, /GPS: --/);
-  assert.match(bassam360, /Agentes: --/);
-  assert.match(bassam360, /WhatsApp: --/);
-  assert.doesNotMatch(bassam360, /2 ACTIVOS|Activo|conectado|WA_ACCESS_TOKEN|from "fs"|api\/centro-control\/stats/);
+  assert.match(modulo360, /El asistente no aprueba solo/);
+  assert.match(modulo360, /correccion/);
+  assert.match(modulo360, /GPS: --/);
+  assert.match(modulo360, /Agentes: --/);
+  assert.match(modulo360, /WhatsApp: --/);
+  assert.doesNotMatch(bassam360 + modulo360, /2 ACTIVOS|Activo|conectado|WA_ACCESS_TOKEN|from "fs"|api\/centro-control\/stats/);
 });
