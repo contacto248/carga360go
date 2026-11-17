@@ -1,0 +1,15 @@
+{
+  "skill": "carga360go-agents",
+  "test_cases": [
+    {"input": "Ayuda con el desarrollo de carga360go.cl usando Cursor y Grok Bots", "should_trigger": true},
+    {"input": "Coordina los agentes para avanzar la página CARGA360GO", "should_trigger": true},
+    {"input": "Destrabar el build de Carga 360 Go", "should_trigger": true},
+    {"input": "Cómo usar Cursor con Grok para un proyecto web", "should_trigger": true},
+    {"input": "Extrae las cargas actuales del panel de carga360go y genera un reporte", "should_trigger": true},
+    {"input": "Navega con Playwright el sitio carga360go y mantén la sesión", "should_trigger": true},
+    {"input": "Automatización web nivel ingeniero con storage state y POM para CARGA360GO", "should_trigger": true},
+    {"input": "Qué es un skill en Grok", "should_trigger": false},
+    {"input": "Crea un documento Word sobre marketing", "should_trigger": false},
+    {"input": "Resume las noticias de hoy", "should_trigger": false}
+  ]
+}

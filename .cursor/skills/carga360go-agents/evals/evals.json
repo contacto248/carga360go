@@ -1,0 +1,30 @@
+{
+  "skill": "carga360go-agents",
+  "test_cases": [
+    {
+      "name": "unblock_development",
+      "input": "Ayúdame a destrabar el desarrollo de la página Carga360go.cl y coordinar con los bots",
+      "assertions": ["References project priorities", "Suggests coordination between Cursor, Grok, and Grok Bots", "Proposes concrete next steps for building"]
+    },
+    {
+      "name": "advance_page_build",
+      "input": "Empiecen a construir en la página carga360go.cl en lugar de quedarse en drafts",
+      "assertions": ["Emphasizes visible progress over drafts", "Outlines multi-agent workflow", "Mentions Cursor for implementation"]
+    },
+    {
+      "name": "set_up_bot_routine",
+      "input": "Crea una rutina con Grok Bot para resumen diario del avance de CARGA360GO",
+      "assertions": ["Guides on using Grok Bots for recurring tasks", "Connects to project goals", "Suggests relevant monitoring or summary content"]
+    },
+    {
+      "name": "browser_monitoring",
+      "input": "Ingresa al panel de carga360go, extrae las cargas disponibles y genera un reporte en CSV",
+      "assertions": ["References authentication and session handling", "Mentions headless browser or Playwright", "Covers data extraction and report generation"]
+    },
+    {
+      "name": "advanced_web_automation",
+      "input": "Necesito una automatización robusta con Playwright para extraer cargas del panel de CARGA360GO, manejar sesión con storage state y generar reporte confiable",
+      "assertions": ["References advanced-web-automation.md or engineer-level patterns", "Mentions storage state, POM or stable locators", "Covers retries, structured extraction or API-first preference"]
+    }
+  ]
+}

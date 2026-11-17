@@ -44,3 +44,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright local (el e2e no corre en CI; nunca subir sesión)
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/auth.json
+/storage-state.json
+*.storage-state.json
