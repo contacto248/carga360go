@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: carga360
+      POSTGRES_USER: carga360
+      POSTGRES_PASSWORD: change-me-now
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/001_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U carga360 -d carga360"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://carga360:change-me-now@db:5432/carga360
+      JWT_SECRET: CHANGE_THIS_TO_A_LONG_RANDOM_SECRET_BEFORE_PRODUCTION
+      MFA_ENCRYPTION_KEY: CHANGE_THIS_TO_FERNET_KEY
+      ACCESS_TOKEN_MINUTES: "15"
+      REFRESH_TOKEN_DAYS: "30"
+      COOKIE_SECURE: "false"
+    ports: ["8000:8000"]
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  pgdata:
