@@ -19,6 +19,9 @@ export function opsPageRule(pathname: string): OpsPageRule | null {
   if (path === "/admin/ops/asignacion" || path.startsWith("/admin/ops/asignacion/")) {
     return { flag: "OPS_ALLOCATION_ENABLED" };
   }
+  if (path === "/admin/ops/operacion" || path.startsWith("/admin/ops/operacion/")) {
+    return { flag: "OPS_OPERACION_ENABLED" };
+  }
   if (path === "/admin/ops" || path.startsWith("/admin/ops/")) {
     return { flag: "OPS_FEATURE_ENABLED" };
   }

@@ -706,6 +706,42 @@ CREATE TABLE IF NOT EXISTS ops_tracking_links (
 );
 `;
 
+/**
+ * Migración 030: alta de operación con identificador 360-YYMM-NNNN, clave de idempotencia y correlativo mensual.
+ * La 029 es la torre. Esta no la modifica.
+ * Solo tablas nuevas. No altera users, loads, offers, trip_events ni las migraciones 022–029.
+ * Copia en docs/migrations/030-ops-operacion.sql.
+ * Reversa: docs/migrations/030-ops-operacion-rollback.sql.
+ */
+export const MIGRATION_30_SQL = `
+CREATE TABLE IF NOT EXISTS ops_operations (
+  id TEXT PRIMARY KEY,
+  cliente TEXT NOT NULL,
+  origen TEXT NOT NULL,
+  destino TEXT NOT NULL,
+  tipo_carga TEXT NOT NULL,
+  peso_kg REAL NOT NULL CHECK (peso_kg > 0),
+  estado TEXT NOT NULL CHECK (estado = 'planificada'),
+  version INTEGER NOT NULL CHECK (version >= 1),
+  created_by TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_ops_operations_created ON ops_operations(created_at);
+
+CREATE TABLE IF NOT EXISTS ops_operation_keys (
+  idempotency_key TEXT PRIMARY KEY,
+  operation_id TEXT NOT NULL REFERENCES ops_operations(id),
+  request_hash TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ops_operation_counters (
+  periodo TEXT PRIMARY KEY,
+  ultimo INTEGER NOT NULL CHECK (ultimo >= 1)
+);
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1227,6 +1263,17 @@ function migrate(db: Database.Database) {
       // Copia en docs/migrations/029-ops-torre.sql. Reversa: 029-ops-torre-rollback.sql.
       db.exec(MIGRATION_29_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (29, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // Alta de operación (030). La 029 (torre) queda intacta. Se comprueba el número 30, no el máximo.
+  if (!hasMigration(db, 30)) {
+    const apply = db.transaction(() => {
+      // Identificador, idempotencia y correlativo. Solo tablas nuevas, sin filas de ejemplo.
+      // No toca 022–029 ni users, loads, offers o trip_events.
+      // Copia en docs/migrations/030-ops-operacion.sql. Reversa: 030-ops-operacion-rollback.sql.
+      db.exec(MIGRATION_30_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (30, ?)`).run(new Date().toISOString());
     });
     apply();
   }

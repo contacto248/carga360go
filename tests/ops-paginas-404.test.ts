@@ -30,6 +30,8 @@ test("las páginas OPS se esconden con el flag apagado o sin admin", () => {
     assert.equal(opsPageRule("/api/viajes/prueba/ubicacion"), null);
     assert.deepEqual(opsPageRule("/admin/ops/asignacion"), { flag: "OPS_ALLOCATION_ENABLED" });
     assert.deepEqual(opsPageRule("/admin/ops/asignacion/"), { flag: "OPS_ALLOCATION_ENABLED" });
+    assert.deepEqual(opsPageRule("/admin/ops/operacion"), { flag: "OPS_OPERACION_ENABLED" });
+    assert.deepEqual(opsPageRule("/admin/ops/operacion/"), { flag: "OPS_OPERACION_ENABLED" });
     assert.deepEqual(opsPageRule("/admin/ops/futura"), { flag: "OPS_FEATURE_ENABLED" });
     assert.deepEqual(opsPageRule("/viajes/prueba/ubicacion"), { flag: "OPS_FEATURE_ENABLED" });
     assert.deepEqual(opsPageRule("/viajes/prueba/ubicacion/"), { flag: "OPS_FEATURE_ENABLED" });
@@ -38,7 +40,7 @@ test("las páginas OPS se esconden con el flag apagado o sin admin", () => {
     assert.equal(opsPageHidden("/seguimiento/abc", null), true);
     assert.equal(opsPageHidden("/seguimiento/abc", admin), true);
 
-    for (const path of ["/admin/ops/asignacion", "/admin/ops/futura", "/viajes/prueba/ubicacion"]) {
+    for (const path of ["/admin/ops/asignacion", "/admin/ops/operacion", "/admin/ops/futura", "/viajes/prueba/ubicacion"]) {
       assert.equal(opsPageHidden(path, null), true, path);
       assert.equal(opsPageHidden(path, admin), true, path);
       assert.equal(opsPageHidden(path, carrier), true, path);
@@ -47,8 +49,10 @@ test("las páginas OPS se esconden con el flag apagado o sin admin", () => {
     assert.equal(opsPageHidden("/cargas", admin), false);
   });
 
-  withFlags({ OPS_FEATURE_ENABLED: "true", OPS_ALLOCATION_ENABLED: "true" }, () => {
+  withFlags({ OPS_FEATURE_ENABLED: "true", OPS_ALLOCATION_ENABLED: "true", OPS_OPERACION_ENABLED: "true" }, () => {
     assert.equal(opsPageHidden("/admin/ops/asignacion", admin), false);
+    assert.equal(opsPageHidden("/admin/ops/operacion", admin), false);
+    assert.equal(opsPageHidden("/admin/ops/operacion", carrier), true);
     assert.equal(opsPageHidden("/admin/ops/asignacion", carrier), true);
     assert.equal(opsPageHidden("/admin/ops/asignacion", null), true);
     assert.equal(opsPageHidden("/viajes/carga-1/ubicacion", admin), false);
@@ -59,8 +63,9 @@ test("las páginas OPS se esconden con el flag apagado o sin admin", () => {
     assert.equal(opsPageHidden("/admin/ops/futura", admin), false);
   });
 
-  withFlags({ OPS_FEATURE_ENABLED: "true", OPS_ALLOCATION_ENABLED: undefined }, () => {
+  withFlags({ OPS_FEATURE_ENABLED: "true", OPS_ALLOCATION_ENABLED: undefined, OPS_OPERACION_ENABLED: undefined }, () => {
     assert.equal(opsPageHidden("/admin/ops/asignacion", admin), true);
+    assert.equal(opsPageHidden("/admin/ops/operacion", admin), true);
     assert.equal(opsPageHidden("/admin/ops/futura", admin), false);
     assert.equal(opsPageHidden("/viajes/carga-1/ubicacion", admin), false);
   });

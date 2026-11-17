@@ -48,7 +48,7 @@ function stop(child) {
 
 const port = await freePort();
 const env = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
-for (const name of ["OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED"]) {
+for (const name of ["OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED", "OPS_OPERACION_ENABLED"]) {
   delete env[name];
 }
 
@@ -93,7 +93,7 @@ try {
   }
   if (!ready) throw new Error(`next start no respondió\n${logs()}`);
 
-  const pages = ["/admin/ops/asignacion", "/admin/ops/futura", "/viajes/prueba/ubicacion"];
+  const pages = ["/admin/ops/asignacion", "/admin/ops/operacion", "/admin/ops/futura", "/viajes/prueba/ubicacion"];
   for (const pathname of pages) {
     const response = await fetch(`http://127.0.0.1:${port}${pathname}`, { redirect: "manual" });
     const html = await response.text();
@@ -102,6 +102,7 @@ try {
     if (html.includes("Asignación | Carga360go") || html.includes("<title>Asignación")) {
       throw new Error(`${pathname} renderizó la página de asignación`);
     }
+    if (html.includes("Alta de operación")) throw new Error(`${pathname} renderizó el alta de operación`);
     if (html.includes("Cargando")) throw new Error(`${pathname} mostró el loading (streaming 200)`);
   }
 

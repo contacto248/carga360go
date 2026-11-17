@@ -15,6 +15,7 @@ export const OPS_FLAGS = [
   "OPS_ALLOCATION_ENABLED",
   "OPS_ALLOCATION_AUTO",
   "OPS_API_V1_ENABLED",
+  "OPS_OPERACION_ENABLED",
 ] as const;
 
 export type OpsFlag = (typeof OPS_FLAGS)[number];
@@ -26,6 +27,7 @@ const OPS_CHILD_FLAGS = [
   "OPS_ALLOCATION_ENABLED",
   "OPS_ALLOCATION_AUTO",
   "OPS_API_V1_ENABLED",
+  "OPS_OPERACION_ENABLED",
 ] as const satisfies readonly OpsFlag[];
 
 export function opsChildFlags(): readonly OpsFlag[] {
