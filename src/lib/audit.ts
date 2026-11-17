@@ -83,6 +83,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   "ops.alerta_abierta": "Alerta de torre abierta",
   "ops.alerta_umbral": "Umbral de alerta actualizado",
   "ops.seguimiento_emitido": "Enlace de seguimiento emitido",
+  "ops.operacion_creada": "Operación creada",
 };
 
 function writeAudit(
@@ -178,6 +179,7 @@ const TARGETS: Record<string, string> = {
   envio: "Envío",
   ops_desempeno: "Desempeño",
   ops_asignacion: "Asignación",
+  operacion: "Operación",
 };
 
 /** Etiqueta en español para cualquier acción, incluso si no está en la lista (ej. "carga.x_y" → "Carga: x y"). */

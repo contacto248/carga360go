@@ -33,8 +33,8 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
   // Migración 14: contacto de respaldo y verificación manual (solo lectura 30 días) en users.
   // Migración 16: motor de costos (tablas cost_*). Se comprueba por número exacto para convivir con la 15 de otra rama.
-  // 22 organizaciones, 23 envíos, 27 GPS, 28 traza y 29 torre (ETA, alertas, seguimiento).
-  assert.equal(version.v, 29);
+  // 22 organizaciones, 23 envíos, 27 GPS, 28 traza, 29 torre y 30 alta de operación.
+  assert.equal(version.v, 30);
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 22`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 23`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 24`).get());
@@ -42,6 +42,8 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 27`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 28`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 29`).get());
+  assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 30`).get());
+  assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_operations'`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_geofences'`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_allocation_traces'`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_shipments'`).get());
