@@ -33,10 +33,11 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
   // Migración 14: contacto de respaldo y verificación manual (solo lectura 30 días) en users.
   // Migración 16: motor de costos (tablas cost_*). Se comprueba por número exacto para convivir con la 15 de otra rama.
-  // 22 organizaciones (OPS-101) y 23 envíos (OPS-102).
-  assert.equal(version.v, 23);
+  // 22 organizaciones (OPS-101), 23 envíos (OPS-102) y 27 GPS (OPS-301).
+  assert.equal(version.v, 27);
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 22`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 23`).get());
+  assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 27`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ops_shipments'`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 14`).get());
   assert.ok(db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_organizations'`).get());

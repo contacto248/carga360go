@@ -15,6 +15,7 @@ import { getLoad, listOwn } from "@/lib/listings";
 import { awardedContact, canOffer, effectiveAllowImprove, offersOpen, offersVisibleTo } from "@/lib/offers";
 import { getSettings } from "@/lib/settings";
 import { tripView } from "@/lib/viaje";
+import { driverLocationHref } from "@/lib/ops/gps/flag";
 import { trackingCodeFor, trackingCodeVisibleTo } from "@/lib/agent/tracking";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -63,6 +64,7 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
     mode === "carrier" && user
       ? listOwn(user.id).trucks.map((truck) => ({ id: truck.id, label: `${equipmentById(truck.equipment).label} ${truck.tonnage} t · ${truck.origin} → ${truck.destination}` }))
       : [];
+  const gpsHref = viaje ? driverLocationHref(load.id) : null;
   return (
     <div className="wrap" style={{ paddingBottom: 30 }}>
       <div className="page-title">
@@ -97,6 +99,11 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
           awardedContact={awardedContact(load.id, user)}
         />
       )}
+      {gpsHref ? (
+        <p className="meta">
+          <Link href={gpsHref}>Informar ubicación del viaje</Link>
+        </p>
+      ) : null}
       {viaje ? <TripBoard loadId={load.id} initial={viaje} /> : null}
     </div>
   );

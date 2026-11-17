@@ -15,3 +15,4 @@ process.env.WEB_CHAT_ENABLED = "false";
 process.env.WA_BOT_ENABLED = "false";
 process.env.KYC_FEATURE_ENABLED = "false";
 process.env.PAYMENTS_FEATURE_ENABLED = "false";
+delete process.env.OPS_FEATURE_ENABLED;

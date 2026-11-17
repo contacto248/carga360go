@@ -245,3 +245,16 @@ Cada documento queda `pendiente` hasta que el administrador lo revisa. Si un tra
 9. Al hacer `logout`, llama a `POST /api/auth/logout` antes de `clearSession()`. Hoy el botón solo borra la sesión local.
 10. Oculta "Copiar mis publicaciones locales al servidor", que responde 501.
 11. Ajusta los textos legales y la marca según la sección 8.
+
+## 10. Ubicación del conductor (OPS-301, apagado por defecto)
+
+Con `OPS_FEATURE_ENABLED` distinto de `true`, estas rutas responden **404** y no hay que mostrarlas. No hay un flag aparte para el GPS.
+
+Con el maestro en `true`, la app del conductor (Bearer, sin cookie) puede informar un punto del viaje **autorizado** del que es parte. La hora la pone el servidor. El punto queda en la tabla que ya existe (`trip_gps_points`). No hay proveedor GPS ni clave.
+
+- `POST /api/ops/gps/conductor` → 201 `{"provider":"conductor","point":{"lat":-23.65,"lng":-70.4,"recordedAt":"…","provider":"conductor"}}`
+  Cuerpo: `{"loadId":"<uuid>","lat":-23.65,"lng":-70.4}`. Se ignoran `recordedAt` y cualquier otro campo.
+- `GET /api/ops/gps/viajes/<loadId>` → 200 `{"points":[…]}` para las partes del viaje.
+- `POST /api/ops/gps/simulado` es solo de administración (recorrido de prueba). La app del conductor no lo usa.
+
+En la web, con el flag encendido, la ficha de la carga adjudicada muestra «Informar ubicación del viaje». Con el flag apagado ese enlace no está.

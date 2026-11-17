@@ -161,8 +161,29 @@ function coordinate(value: unknown, name: string): number {
   return Math.round(value * 1e6) / 1e6;
 }
 
-/** Guarda lat, lng y la hora del servidor. Solo el viaje autorizado y sus partes. */
-export function recordGps(user: PublicUser, loadId: string, latValue: unknown, lngValue: unknown): GpsPointView & { clasificacion: typeof GPS_CLASIFICACION } {
+function assertRecordedAt(value: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) {
+    throw new AppError("La hora del punto no es válida.");
+  }
+  const parsed = Date.parse(value);
+  if (!Number.isFinite(parsed) || parsed > Date.now() + 60_000) {
+    throw new AppError("La hora del punto no puede ser futura.");
+  }
+  return value;
+}
+
+/**
+ * Inserta en trip_gps_points (lat, lng, hora). La hora la fija el servidor.
+ * `recordedAt` solo lo usa el conector OPS para un recorrido generado en el servidor:
+ * la ruta pública no lo reenvía desde el cliente.
+ */
+export function saveTripGpsPoint(
+  user: PublicUser,
+  loadId: string,
+  latValue: unknown,
+  lngValue: unknown,
+  recordedAt?: string,
+): GpsPointView & { id: string; clasificacion: typeof GPS_CLASIFICACION } {
   if (!user) throw new AppError("Debes iniciar sesión.", 401);
   ensureBassamOps();
   const load = loadOf(loadId);
@@ -175,13 +196,20 @@ export function recordGps(user: PublicUser, loadId: string, latValue: unknown, l
   if (lat < -56 || lat > -17 || lng < -109.5 || lng > -66) {
     throw new AppError("La coordenada queda fuera del área de operación.");
   }
-  const recordedAt = new Date().toISOString();
+  const stamp = recordedAt ? assertRecordedAt(recordedAt) : new Date().toISOString();
+  const id = randomUUID();
   const db = getDb();
   db.transaction(() => {
-    db.prepare(`INSERT INTO trip_gps_points (id, load_id, lat, lng, recorded_at) VALUES (?, ?, ?, ?, ?)`).run(randomUUID(), loadId, lat, lng, recordedAt);
-    auditStrict(user, "bassam.gps", { type: "viaje", id: loadId }, { lat, lng, recordedAt });
+    db.prepare(`INSERT INTO trip_gps_points (id, load_id, lat, lng, recorded_at) VALUES (?, ?, ?, ?, ?)`).run(id, loadId, lat, lng, stamp);
+    auditStrict(user, "bassam.gps", { type: "viaje", id: loadId }, { lat, lng, recordedAt: stamp });
   })();
-  return { lat, lng, recordedAt, clasificacion: GPS_CLASIFICACION };
+  return { id, lat, lng, recordedAt: stamp, clasificacion: GPS_CLASIFICACION };
+}
+
+/** Guarda lat, lng y la hora del servidor. Solo el viaje autorizado y sus partes. */
+export function recordGps(user: PublicUser, loadId: string, latValue: unknown, lngValue: unknown): GpsPointView & { clasificacion: typeof GPS_CLASIFICACION } {
+  const saved = saveTripGpsPoint(user, loadId, latValue, lngValue);
+  return { lat: saved.lat, lng: saved.lng, recordedAt: saved.recordedAt, clasificacion: saved.clasificacion };
 }
 
 export function listGps(user: PublicUser, loadId: string): { points: GpsPointView[]; clasificacion: typeof GPS_CLASIFICACION; texto?: "sin datos" } {
