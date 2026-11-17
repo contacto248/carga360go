@@ -1,0 +1,1317 @@
+{
+  "_marca": "EJEMPLO",
+  "_nota": "Datos ficticios para pruebas locales o de QA. Formato real 360-YYMM-NNNN (src/lib/ops/operacion.ts:83); las operaciones 360-2611-99NN (correlativos 9901 a 9916) no existen. No cargar en producción.",
+  "zona_horaria_datos": "UTC (ISO 8601); 13:00Z = 10:00 hora de Chile (UTC-3)",
+  "operaciones": [
+    {
+      "operacion": "360-2611-9901",
+      "shipment_id": "00000000-0000-4000-8000-000000009901",
+      "ops_shipments.operation_id": "360-2611-9901",
+      "marca": "EJEMPLO",
+      "incidencia": "desvio_geocerca"
+    },
+    {
+      "operacion": "360-2611-9902",
+      "shipment_id": "00000000-0000-4000-8000-000000009902",
+      "ops_shipments.operation_id": "360-2611-9902",
+      "marca": "EJEMPLO",
+      "incidencia": "espera_destino"
+    },
+    {
+      "operacion": "360-2611-9903",
+      "shipment_id": "00000000-0000-4000-8000-000000009903",
+      "ops_shipments.operation_id": "360-2611-9903",
+      "marca": "EJEMPLO",
+      "incidencia": "siniestro"
+    },
+    {
+      "operacion": "360-2611-9904",
+      "shipment_id": "00000000-0000-4000-8000-000000009904",
+      "ops_shipments.operation_id": "360-2611-9904",
+      "marca": "EJEMPLO",
+      "incidencia": "rechazo_entrega"
+    },
+    {
+      "operacion": "360-2611-9905",
+      "shipment_id": "00000000-0000-4000-8000-000000009905",
+      "ops_shipments.operation_id": "360-2611-9905",
+      "marca": "EJEMPLO",
+      "incidencia": "entrega_con_reparos"
+    },
+    {
+      "operacion": "360-2611-9906",
+      "shipment_id": "00000000-0000-4000-8000-000000009906",
+      "ops_shipments.operation_id": "360-2611-9906",
+      "marca": "EJEMPLO",
+      "incidencia": "documento_vencido"
+    },
+    {
+      "operacion": "360-2611-9907",
+      "shipment_id": "00000000-0000-4000-8000-000000009907",
+      "ops_shipments.operation_id": "360-2611-9907",
+      "marca": "EJEMPLO",
+      "incidencia": "documento_faltante"
+    },
+    {
+      "operacion": "360-2611-9908",
+      "shipment_id": "00000000-0000-4000-8000-000000009908",
+      "ops_shipments.operation_id": "360-2611-9908",
+      "marca": "EJEMPLO",
+      "incidencia": "sin_asignar"
+    },
+    {
+      "operacion": "360-2611-9909",
+      "shipment_id": "00000000-0000-4000-8000-000000009909",
+      "ops_shipments.operation_id": "360-2611-9909",
+      "marca": "EJEMPLO",
+      "incidencia": "retiro_no_iniciado"
+    },
+    {
+      "operacion": "360-2611-9910",
+      "shipment_id": "00000000-0000-4000-8000-000000009910",
+      "ops_shipments.operation_id": "360-2611-9910",
+      "marca": "EJEMPLO",
+      "incidencia": "cambio_no_verificado"
+    },
+    {
+      "operacion": "360-2611-9911",
+      "shipment_id": "00000000-0000-4000-8000-000000009911",
+      "ops_shipments.operation_id": "360-2611-9911",
+      "marca": "EJEMPLO",
+      "incidencia": "sin_contacto"
+    },
+    {
+      "operacion": "360-2611-9912",
+      "shipment_id": "00000000-0000-4000-8000-000000009912",
+      "ops_shipments.operation_id": "360-2611-9912",
+      "marca": "EJEMPLO",
+      "incidencia": "evidencia_faltante"
+    },
+    {
+      "operacion": "360-2611-9913",
+      "shipment_id": "00000000-0000-4000-8000-000000009913",
+      "ops_shipments.operation_id": "360-2611-9913",
+      "marca": "EJEMPLO",
+      "incidencia": "cierre_pendiente"
+    },
+    {
+      "operacion": "360-2611-9914",
+      "shipment_id": "00000000-0000-4000-8000-000000009914",
+      "ops_shipments.operation_id": "360-2611-9914",
+      "marca": "EJEMPLO",
+      "incidencia": "diferencia_costo"
+    },
+    {
+      "operacion": "360-2611-9915",
+      "shipment_id": "00000000-0000-4000-8000-000000009915",
+      "ops_shipments.operation_id": "360-2611-9915",
+      "marca": "EJEMPLO",
+      "incidencia": "temperatura_fuera_rango"
+    },
+    {
+      "operacion": "360-2611-9916",
+      "shipment_id": "00000000-0000-4000-8000-000000009916",
+      "ops_shipments.operation_id": "360-2611-9916",
+      "marca": "EJEMPLO",
+      "incidencia": "incidente_seguridad"
+    }
+  ],
+  "casos": [
+    {
+      "id": "CPI-01-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9901",
+      "shipment_id": "00000000-0000-4000-8000-000000009901",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "geocerca_destino": {
+          "lat": -23.6509,
+          "lng": -70.3975,
+          "radius_m": 500
+        },
+        "distancias_destino_m": [
+          41200,
+          42050,
+          43100
+        ],
+        "puntos_recorded_at": [
+          "2026-11-18T13:00:00Z",
+          "2026-11-18T13:05:00Z",
+          "2026-11-18T13:10:00Z"
+        ]
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "desvio_geocerca",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "15 min → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-01-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9901",
+      "shipment_id": "00000000-0000-4000-8000-000000009901",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "distancias_destino_m": [
+          43100,
+          42050,
+          41200
+        ]
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-01-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9901",
+      "shipment_id": "00000000-0000-4000-8000-000000009901",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "geocerca_destino": {
+          "radius_m": 500
+        },
+        "distancia_ultima_m": 500.0,
+        "inside_previo": true
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-02-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9902",
+      "shipment_id": "00000000-0000-4000-8000-000000009902",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "puntos_dentro_destino": [
+          "2026-11-18T13:00:00Z",
+          "2026-11-18T14:10:00Z"
+        ],
+        "pod_evidence": null
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "espera_destino",
+        "severity": "media",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones (I: Ejecutivo comercial)",
+        "escalamiento": "60 min → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-02-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9902",
+      "shipment_id": "00000000-0000-4000-8000-000000009902",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "puntos_dentro_destino": [
+          "2026-11-18T13:00:00Z",
+          "2026-11-18T14:10:00Z"
+        ],
+        "pod_evidence": {
+          "existe": true
+        }
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-02-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9902",
+      "shipment_id": "00000000-0000-4000-8000-000000009902",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "puntos_dentro_destino": [
+          "2026-11-18T13:00:00Z",
+          "2026-11-18T14:00:00Z"
+        ]
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "espera_destino",
+        "severity": "media",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones (I: Ejecutivo comercial)",
+        "escalamiento": "60 min → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-03-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9903",
+      "shipment_id": "00000000-0000-4000-8000-000000009903",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "reporte": {
+          "reportado_por": "Coordinador de operaciones (EJEMPLO)",
+          "hora": "2026-11-18T15:20:00Z",
+          "descripcion": "Colisión menor en ruta, sin lesionados (EJEMPLO)"
+        }
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "siniestro",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Jefatura de operaciones + Coordinador; Nivel 3 → JEFE BASTIAN",
+        "escalamiento": "Inmediato → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": true
+      }
+    },
+    {
+      "id": "CPI-03-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9903",
+      "shipment_id": "00000000-0000-4000-8000-000000009903",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "alertas_abiertas": [
+          "detencion",
+          "sin_senal"
+        ],
+        "reporte": null
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-03-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9903",
+      "shipment_id": "00000000-0000-4000-8000-000000009903",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "reporte": {
+          "descripcion": "Robo de carga; conductor RUT 11.111.111-1, fono +56 9 0000 0000 (EJEMPLO)"
+        }
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "siniestro",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Jefatura de operaciones + Coordinador; Nivel 3 → JEFE BASTIAN",
+        "escalamiento": "Inmediato → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": true
+      }
+    },
+    {
+      "id": "CPI-04-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9904",
+      "shipment_id": "00000000-0000-4000-8000-000000009904",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "reporte": {
+          "tipo": "rechazo_total",
+          "motivo": "Receptor rechaza por falta de orden de compra (EJEMPLO)"
+        }
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "rechazo_entrega",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones + Ejecutivo comercial",
+        "escalamiento": "30 min → Jefatura; si hay cobro → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-04-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9904",
+      "shipment_id": "00000000-0000-4000-8000-000000009904",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "pod_evidence": {
+          "observaciones": "conforme"
+        }
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-04-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9904",
+      "shipment_id": "00000000-0000-4000-8000-000000009904",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "pod_evidence": {
+          "observaciones": "con reparos: recibe 8 de 10 bultos (EJEMPLO)"
+        }
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-05-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9905",
+      "shipment_id": "00000000-0000-4000-8000-000000009905",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "pod_evidence": {
+          "observaciones": "con reparos: 2 bultos con daño visible (EJEMPLO)"
+        }
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "entrega_con_reparos",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones + Jefatura de operaciones",
+        "escalamiento": "2 h → Jefatura; reclamo con monto → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-05-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9905",
+      "shipment_id": "00000000-0000-4000-8000-000000009905",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "pod_evidence": {
+          "observaciones": "conforme"
+        }
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-05-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9905",
+      "shipment_id": "00000000-0000-4000-8000-000000009905",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "pod_evidence": {
+          "observaciones": "con reparos"
+        },
+        "reclamo_monto_clp": "EJEMPLO (monto ficticio)"
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "entrega_con_reparos",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones + Jefatura de operaciones",
+        "escalamiento": "2 h → Jefatura; reclamo con monto → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": true
+      }
+    },
+    {
+      "id": "CPI-06-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9906",
+      "shipment_id": "00000000-0000-4000-8000-000000009906",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "documento": {
+          "tipo": "soap",
+          "vencimiento": "2026-11-15",
+          "estado_admin": "aprobado"
+        },
+        "planned_pickup_at": "2026-11-18T13:00:00Z"
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "documento_vencido",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "2 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-06-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9906",
+      "shipment_id": "00000000-0000-4000-8000-000000009906",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "documento": {
+          "tipo": "soap",
+          "vencimiento": "2026-12-31",
+          "estado_admin": "aprobado"
+        },
+        "planned_pickup_at": "2026-11-18T13:00:00Z"
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-06-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9906",
+      "shipment_id": "00000000-0000-4000-8000-000000009906",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "documento": {
+          "tipo": "soap",
+          "vencimiento": "2026-11-18",
+          "estado_admin": "aprobado"
+        },
+        "planned_pickup_at": "2026-11-18T13:00:00Z"
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-07-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9907",
+      "shipment_id": "00000000-0000-4000-8000-000000009907",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "documentos": [
+          {
+            "tipo": "soap",
+            "estado_admin": "aprobado"
+          },
+          {
+            "tipo": "revision_tecnica",
+            "estado_admin": "aprobado"
+          }
+        ],
+        "falta": "licencia"
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "documento_faltante",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "2 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-07-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9907",
+      "shipment_id": "00000000-0000-4000-8000-000000009907",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "documentos": "todos los de la lista 2.1, estado_admin='aprobado' (EJEMPLO)"
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-07-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9907",
+      "shipment_id": "00000000-0000-4000-8000-000000009907",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "documento": {
+          "tipo": "licencia",
+          "estado_admin": "pendiente_ok"
+        }
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "documento_faltante",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "2 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-08-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9908",
+      "shipment_id": "00000000-0000-4000-8000-000000009908",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "ahora": "2026-11-18T03:00:00Z",
+        "planned_pickup_at": "2026-11-18T13:00:00Z",
+        "assigned_offer_id": null
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "sin_asignar",
+        "severity": "media",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones + Ejecutivo comercial",
+        "escalamiento": "1 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-08-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9908",
+      "shipment_id": "00000000-0000-4000-8000-000000009908",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "ahora": "2026-11-17T07:00:00Z",
+        "planned_pickup_at": "2026-11-18T13:00:00Z",
+        "assigned_offer_id": null
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-08-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9908",
+      "shipment_id": "00000000-0000-4000-8000-000000009908",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "ahora": "2026-11-17T13:00:00Z",
+        "planned_pickup_at": "2026-11-18T13:00:00Z",
+        "assigned_offer_id": null
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "sin_asignar",
+        "severity": "media",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones + Ejecutivo comercial",
+        "escalamiento": "1 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-09-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9909",
+      "shipment_id": "00000000-0000-4000-8000-000000009909",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "planned_pickup_at": "2026-11-18T13:00:00Z",
+        "ahora": "2026-11-18T13:45:00Z",
+        "puntos_dentro_origen": []
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "retiro_no_iniciado",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "30 min → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-09-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9909",
+      "shipment_id": "00000000-0000-4000-8000-000000009909",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "planned_pickup_at": "2026-11-18T13:00:00Z",
+        "ahora": "2026-11-18T13:45:00Z",
+        "puntos_dentro_origen": [
+          "2026-11-18T13:10:00Z"
+        ]
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-09-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9909",
+      "shipment_id": "00000000-0000-4000-8000-000000009909",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "planned_pickup_at": "2026-11-18T13:00:00Z",
+        "ahora": "2026-11-18T13:30:00Z",
+        "puntos_dentro_origen": []
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "retiro_no_iniciado",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "30 min → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-10-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9910",
+      "shipment_id": "00000000-0000-4000-8000-000000009910",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "patente_asignada": "EJ-AA-11",
+        "patente_informada": "EJ-ZZ-99",
+        "checklist_2_2_repetido": false
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "cambio_no_verificado",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "1 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-10-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9910",
+      "shipment_id": "00000000-0000-4000-8000-000000009910",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "patente_asignada": "EJ-AA-11",
+        "patente_informada": "EJ-AA-11"
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-10-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9910",
+      "shipment_id": "00000000-0000-4000-8000-000000009910",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "patente_asignada": "EJ-AA-11",
+        "patente_informada": "EJ-ZZ-99",
+        "checklist_2_2_repetido": true,
+        "validado_antes_de_retiro": true
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-11-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9911",
+      "shipment_id": "00000000-0000-4000-8000-000000009911",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "intentos_sin_respuesta": 3
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "sin_contacto",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador → Jefatura de operaciones",
+        "escalamiento": "Plazo de P-05 `{por definir}` → Jefatura; inmediato si `sin_senal` está abierta",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-11-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9911",
+      "shipment_id": "00000000-0000-4000-8000-000000009911",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "intentos_sin_respuesta": 1,
+        "respuesta": true
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-11-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9911",
+      "shipment_id": "00000000-0000-4000-8000-000000009911",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "intentos_sin_respuesta": 3,
+        "alertas_abiertas": [
+          "sin_senal"
+        ]
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "sin_contacto",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador → Jefatura de operaciones",
+        "escalamiento": "Plazo de P-05 `{por definir}` → Jefatura; inmediato si `sin_senal` está abierta",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-12-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9912",
+      "shipment_id": "00000000-0000-4000-8000-000000009912",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "stage": "pod",
+        "desde": "2026-11-18T13:00:00Z",
+        "ahora": "2026-11-18T16:00:00Z",
+        "pod_evidence": null
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "evidencia_faltante",
+        "severity": "media",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "24 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-12-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9912",
+      "shipment_id": "00000000-0000-4000-8000-000000009912",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "pod_evidence": {
+          "fotos": 2,
+          "receptor": "EJEMPLO",
+          "rut_receptor": "presente (EJEMPLO)",
+          "firma": true,
+          "fecha_hora": "2026-11-18T13:20:00Z"
+        }
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-12-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9912",
+      "shipment_id": "00000000-0000-4000-8000-000000009912",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "pod_evidence": {
+          "fotos": 2,
+          "receptor": "EJEMPLO",
+          "rut_receptor": null,
+          "firma": true
+        }
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "evidencia_faltante",
+        "severity": "media",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones",
+        "escalamiento": "24 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-13-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9913",
+      "shipment_id": "00000000-0000-4000-8000-000000009913",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "stage": "pod",
+        "updated_at": "2026-11-15T13:00:00Z",
+        "ahora": "2026-11-18T13:00:00Z"
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "cierre_pendiente",
+        "severity": "baja",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones + Administración y control de costos",
+        "escalamiento": "48 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-13-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9913",
+      "shipment_id": "00000000-0000-4000-8000-000000009913",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "stage": "pod",
+        "updated_at": "2026-11-17T13:00:00Z",
+        "ahora": "2026-11-18T13:00:00Z"
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-13-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9913",
+      "shipment_id": "00000000-0000-4000-8000-000000009913",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "stage": "pod",
+        "updated_at": "2026-11-16T13:00:00Z",
+        "ahora": "2026-11-18T13:00:00Z"
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "cierre_pendiente",
+        "severity": "baja",
+        "status": "abierta",
+        "avisa_a": "Coordinador de operaciones + Administración y control de costos",
+        "escalamiento": "48 h → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-14-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9914",
+      "shipment_id": "00000000-0000-4000-8000-000000009914",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "costo_estimado": "100 (unidades ficticias)",
+        "costo_real": "115 (unidades ficticias)",
+        "umbral_pct": 10
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "diferencia_costo",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Administración y control de costos; Nivel 3 → JEFE BASTIAN",
+        "escalamiento": "Inmediato → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": true
+      }
+    },
+    {
+      "id": "CPI-14-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9914",
+      "shipment_id": "00000000-0000-4000-8000-000000009914",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "costo_estimado": "100",
+        "costo_real": "105",
+        "umbral_pct": 10
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-14-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9914",
+      "shipment_id": "00000000-0000-4000-8000-000000009914",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "costo_estimado": "100",
+        "costo_real": "110",
+        "umbral_pct": 10
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-15-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9915",
+      "shipment_id": "00000000-0000-4000-8000-000000009915",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "rango_c": [
+          2,
+          8
+        ],
+        "lecturas": [
+          {
+            "t": "2026-11-18T13:00:00Z",
+            "c": 9.1
+          },
+          {
+            "t": "2026-11-18T13:20:00Z",
+            "c": 9.4
+          }
+        ]
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "temperatura_fuera_rango",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador + Jefatura de operaciones",
+        "escalamiento": "15 min → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-15-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9915",
+      "shipment_id": "00000000-0000-4000-8000-000000009915",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "rango_c": [
+          2,
+          8
+        ],
+        "lecturas": [
+          {
+            "t": "2026-11-18T13:00:00Z",
+            "c": 5.0
+          }
+        ]
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-15-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9915",
+      "shipment_id": "00000000-0000-4000-8000-000000009915",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "rango_c": [
+          2,
+          8
+        ],
+        "lecturas": [
+          {
+            "t": "2026-11-18T13:00:00Z",
+            "c": 8.5
+          },
+          {
+            "t": "2026-11-18T13:15:00Z",
+            "c": 8.6
+          }
+        ],
+        "control_no_refrigerada_c": 25
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "temperatura_fuera_rango",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Coordinador + Jefatura de operaciones",
+        "escalamiento": "15 min → Jefatura de operaciones",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": false
+      }
+    },
+    {
+      "id": "CPI-16-P",
+      "tipo": "Positivo",
+      "operacion": "360-2611-9916",
+      "shipment_id": "00000000-0000-4000-8000-000000009916",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "evidence_json": {
+          "nota": "llamar al +56 9 0000 0000 (EJEMPLO)"
+        }
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "incidente_seguridad",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Solo JEFE BASTIAN",
+        "escalamiento": "Inmediato → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": true
+      }
+    },
+    {
+      "id": "CPI-16-N",
+      "tipo": "Negativo",
+      "operacion": "360-2611-9916",
+      "shipment_id": "00000000-0000-4000-8000-000000009916",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "evidence_json": {
+          "gpsPointId": "EJEMPLO",
+          "minutos": 50,
+          "umbralMin": 45
+        }
+      },
+      "esperado": {
+        "alerta": false,
+        "kind": null,
+        "severity": null,
+        "status": null,
+        "avisa_a": null,
+        "escalamiento": null,
+        "requiere_aprobacion_humana": null,
+        "escalar_a_jefe_bastian": null
+      }
+    },
+    {
+      "id": "CPI-16-B",
+      "tipo": "Borde",
+      "operacion": "360-2611-9916",
+      "shipment_id": "00000000-0000-4000-8000-000000009916",
+      "datos": {
+        "_marca": "EJEMPLO",
+        "respuesta_publica_claves": [
+          "destination",
+          "etaAt",
+          "origin",
+          "position",
+          "stage",
+          "token",
+          "truckAware",
+          "alerts"
+        ]
+      },
+      "esperado": {
+        "alerta": true,
+        "kind": "incidente_seguridad",
+        "severity": "alta",
+        "status": "abierta",
+        "avisa_a": "Solo JEFE BASTIAN",
+        "escalamiento": "Inmediato → JEFE BASTIAN",
+        "requiere_aprobacion_humana": true,
+        "escalar_a_jefe_bastian": true
+      }
+    },
+    {
+      "id": "CPI-T01",
+      "tipo": "Transversal",
+      "titulo": "Las incidencias nuevas no se ven en el enlace público",
+      "_marca": "EJEMPLO"
+    },
+    {
+      "id": "CPI-T02",
+      "tipo": "Transversal",
+      "titulo": "Flag apagado",
+      "_marca": "EJEMPLO"
+    },
+    {
+      "id": "CPI-T03",
+      "tipo": "Transversal",
+      "titulo": "Una sola alerta abierta por envío y tipo",
+      "_marca": "EJEMPLO"
+    },
+    {
+      "id": "CPI-T04",
+      "tipo": "Transversal",
+      "titulo": "Severidad fuera de la escala",
+      "_marca": "EJEMPLO"
+    },
+    {
+      "id": "CPI-T05",
+      "tipo": "Transversal",
+      "titulo": "El bot no contacta a nadie",
+      "_marca": "EJEMPLO"
+    },
+    {
+      "id": "CPI-T06",
+      "tipo": "Transversal",
+      "titulo": "`OPS_ALERTA_ATRASO_MIN` (nueva)",
+      "_marca": "EJEMPLO"
+    },
+    {
+      "id": "CPI-T07",
+      "tipo": "Transversal",
+      "titulo": "Vínculo operación → envío → alerta",
+      "_marca": "EJEMPLO"
+    },
+    {
+      "id": "CPI-T08",
+      "tipo": "Transversal",
+      "titulo": "Bloqueo externo del secreto",
+      "_marca": "EJEMPLO"
+    }
+  ]
+}

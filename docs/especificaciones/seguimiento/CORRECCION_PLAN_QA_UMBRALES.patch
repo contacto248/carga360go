@@ -1,0 +1,105 @@
+--- QA_PLAN_OPS.md
++++ QA_PLAN_OPS.md
+@@ -222,13 +222,13 @@
+ | RC-M1-T2 | Tarifario de CT-M1-T2 | ORG-M1 – ORG-T2 | Misma vigencia | `vigente`, v1 | Monto distinto al de RC-M1-T1 en la misma ruta (T2 mayor, para el modo por tarifa) |
+ | SLA-M1-T1 | SLA de CT-M1-T1-v1 | — | — | Métricas en porcentaje | `retiro_a_tiempo` 95 %, `entrega_a_tiempo` 92 %, tolerancia 15 min; `tiempo_aceptacion` en minutos; `pod_en_plazo` 90 % |
+ 
+-Umbrales de torre (configurables; valores de prueba, no operativos definitivos):
++Umbrales de torre (oficiales, iguales a los del código; decisión de JEFE BASTIAN del 17-11-2026; se configuran por variable de entorno y, por envío, con `PUT /api/ops/envios/{id}/alertas`):
+ 
+ | Alerta | Umbral de prueba | Evidencia mínima |
+ |---|---|---|
+-| Atraso | ETA o llegada proyectada supera `planned_delivery_at` + 15 min (o la tolerancia del SLA) | Instantánea de ETA, hora planificada, posición |
+-| Detención | Misma posición (desplazamiento menor a 30 m) durante 30 min o más, en tránsito | Serie de posiciones y duración |
+-| Sin señal | Sin posición nueva durante 20 min o más, con viaje en curso | Hora de última posición y reloj del sistema |
++| Atraso | ETA supera `planned_delivery_at` + 30 min (estrictamente mayor). Variable propuesta `OPS_ALERTA_ATRASO_MIN` (migración ops_operation_alerts); hoy fijo en 30 | Instantánea de ETA, hora planificada, posición |
++| Detención | Dos últimas posiciones a 200 m o menos entre sí, durante 20 min o más, fuera de la geocerca de destino (`OPS_ALERTA_DETENCION_MIN`, por defecto 20) | Posición, distancia, minutos, umbral y radio |
++| Sin señal | Sin posición nueva durante 45 min o más (`OPS_ALERTA_SIN_SENAL_MIN`, por defecto 45). La evalúa `POST /api/ops/alertas/senal` | Hora de última posición y reloj del sistema |
+ | Ingreso / egreso de geocerca | Cruce del radio; el punto exactamente en el radio se considera **dentro** | Coordenada, radio, distancia calculada |
+ 
+ Enlace de seguimiento de prueba: token opaco por envío, guardado como hash, con expiración (por defecto: 24 h después de `planned_delivery_at` o 6 h después de `entregado`, lo que ocurra según la regla implementada). La página pública no muestra nombres, RUT, correos, teléfonos, patentes completas ni montos.
+@@ -1042,45 +1042,45 @@
+ - **Datos:** SH-03 con `planned_delivery_at` ya no alcanzable según el ETA recalculado (inyectar una posición lejana a una hora tardía, o un ETA forzado de prueba).
+ - **Pasos:**
+   1. Inyectar la posición o el escenario de ETA tardío.
+-  2. Leer `ops_exceptions` y el panel.
+-- **Resultado esperado:** Se crea una excepción de atraso, con umbral usado, ETA, hora planificada, posición y hora de detección. No se emite si el atraso está dentro de la tolerancia (15 min de prueba). Queda `ops_events` y `audit_log` según diseño.
++  2. Leer `ops_alerts` (`GET /api/ops/envios/{id}/alertas`) y el panel.
++- **Resultado esperado:** Se abre `atraso` en `ops_alerts` (`severity='media'`) con `etaAt`, `plannedDeliveryAt`, `umbralMin` y `gpsPointId` en la evidencia. No se abre si el ETA supera el plan en 30 min o menos. Queda `ops_events` (`alerta.abierta`) y `audit_log` (`ops.alerta_abierta`).
+ 
+ ### TWR-08 — No hay falsa alarma de atraso dentro de tolerancia
+ - **Objetivo:** Controlar falsas alarmas (riesgo declarado en el issue).
+ - **Prioridad:** P1 · **Tipo:** negativo / límite
+-- **Datos:** ETA 10 min posterior a `planned_delivery_at`, tolerancia 15 min.
++- **Datos:** ETA 30 min posterior a `planned_delivery_at` (borde) y, en un control, 31 min; umbral 30.
+ - **Pasos:**
+   1. Inyectar el escenario.
+-- **Resultado esperado:** No se abre excepción de atraso. Si el código usa un umbral distinto, debe coincidir con la configuración del ambiente de prueba, no con un valor oculto.
++- **Resultado esperado:** Con +30 min no se abre `atraso` (la regla es estrictamente mayor). Con +31 min sí. Si el ambiente define `OPS_ALERTA_ATRASO_MIN`, rige ese valor.
+ 
+ ### TWR-09 — Alerta de detención con evidencia
+ - **Objetivo:** Detectar detención en tránsito.
+ - **Prioridad:** P0 · **Tipo:** positivo / límite
+-- **Datos:** SH-04 o SH-01 en P-RUTA. Serie de posiciones con desplazamiento menor a 30 m durante 30 min o más.
++- **Datos:** SH-04 o SH-01 en P-RUTA. Dos posiciones a 200 m o menos entre sí, separadas por 20 min o más, fuera de la geocerca de destino.
+ - **Pasos:**
+   1. Inyectar la serie (por ejemplo, cada 5 min).
+-  2. Verificar el momento exacto en que se abre la excepción (al cruzar 30 min).
+-  3. Inyectar una serie de 25 min como control negativo en otra corrida.
+-- **Resultado esperado:** A los 30 min (o al primer punto que supera el umbral) se abre `detencion` con la serie y la duración en la evidencia. La serie de 25 min no alerta.
++  2. Verificar que se abre exactamente con 20 min entre las dos últimas posiciones (comparación `>=`).
++  3. Inyectar una separación de 19 min como control negativo en otra corrida.
++- **Resultado esperado:** Con 20 min se abre `detencion` (`severity='alta'`) con `gpsPointId`, `distanciaM`, `minutos`, `umbralMin` y `radioM`. Con 19 min no alerta. Dentro de la geocerca de destino no alerta.
+ 
+ ### TWR-10 — Alerta de sin señal con evidencia
+ - **Objetivo:** Detectar ausencia de posición nueva.
+ - **Prioridad:** P0 · **Tipo:** positivo / límite
+-- **Datos:** Última posición de SH-01 en P-RUTA a hora H. Reloj de prueba en H+20 min y, en un control, H+19 min.
++- **Datos:** Última posición de SH-01 en P-RUTA a hora H. Reloj de prueba en H+45 min y, en un control, H+44 min.
+ - **Pasos:**
+-  1. Avanzar el reloj de prueba o el job que evalúa excepciones.
++  1. Avanzar el reloj de prueba e invocar el evaluador (`evaluateSilentSignals(now)` en pruebas, o `POST /api/ops/alertas/senal` con el secreto del ambiente de QA; en producción lo llamará el timer systemd cada 5 min, hoy bloqueado por el secreto).
+   2. Comparar ambos cortes.
+   3. Enviar una posición nueva y comprobar que no se abre otra alerta de sin señal, o que la abierta se cierra, según la regla documentada.
+-- **Resultado esperado:** A los 20 min se abre `sin_senal` con la hora de la última posición. A los 19 min, no. La evidencia no incluye datos de contacto del conductor.
++- **Resultado esperado:** A los 45 min se abre `sin_senal` (`severity='alta'`) con la hora de la última posición. A los 44 min, no. Con una posición nueva, la alerta abierta se cierra. La evidencia no incluye datos de contacto del conductor. Sin secreto configurado, la ruta responde 503.
+ 
+ ### TWR-11 — Umbrales configurables por ambiente de prueba
+ - **Objetivo:** Los umbrales no van fijos de forma que impidan probarlos.
+ - **Prioridad:** P1 · **Tipo:** positivo
+-- **Datos:** Umbral de detención de prueba cambiado a 10 min, luego restaurado a 30 min.
++- **Datos:** `OPS_ALERTA_DETENCION_MIN=10` en el ambiente de prueba y luego sin definir (vuelve a 20). Por envío, `PUT /api/ops/envios/{id}/alertas` con `{"detencionMin":10}`.
+ - **Pasos:**
+   1. Cambiar en QA el umbral de detención a 10 min y repetir una serie corta.
+-  2. Restaurar el valor de prueba de la sección 5.5.
+-- **Resultado esperado:** El nuevo umbral rige. El cambio queda auditado. No se modifica producción.
++  2. Quitar la variable y comprobar que rige 20; probar también un valor inválido (`30min`), que vuelve a 20.
++- **Resultado esperado:** El nuevo umbral rige. El cambio por envío queda auditado (`ops.alerta_umbral`); el cambio por variable de entorno no se audita en la aplicación (queda en el despliegue). La fila por envío gana sobre la variable. No se modifica producción.
+ 
+ ### TWR-12 — Enlace de seguimiento: token opaco por envío, sin datos sensibles
+ - **Objetivo:** OPS-304. El cliente del mandante sigue la carga sin ver datos de contacto ni montos.
+@@ -1122,13 +1122,13 @@
+ - **Resultado esperado:** 403 o 404. Ningún mapa muestra la unidad QAXX11 ni las coordenadas de SH-01.
+ 
+ ### TWR-16 — Las excepciones no se exponen en el enlace público más de lo debido
+-- **Objetivo:** El cliente puede ver que hay un atraso o una demora, pero no evidencia interna ni datos del conductor.
++- **Objetivo:** El enlace público no muestra ningún estado de alerta (ni genérico), ni evidencia interna, ni datos del conductor (PR #55, `facd763`).
+ - **Prioridad:** P1 · **Tipo:** seguridad
+ - **Precondiciones:** SH-01 con una excepción de atraso o detención abierta.
+ - **Datos:** Enlace público de SH-01 y panel interno de U-M1-TR.
+ - **Pasos:**
+   1. Abrir el enlace público y el panel interno, y comparar campos.
+-- **Resultado esperado:** El panel interno muestra evidencia completa (serie, umbral, actor). El enlace público, como máximo, un estado genérico (“en tránsito”, “con demora”) sin notas internas, sin identificadores de jobs y sin datos de contacto.
++- **Resultado esperado:** El panel interno muestra la evidencia completa (serie, umbral, severidad). La respuesta pública tiene exactamente las claves `destination`, `etaAt`, `origin`, `position`, `stage`, `token` y `truckAware`: sin `alerts`, sin `severity`, sin ningún `kind`, sin «con demora», sin notas internas y sin datos de contacto. Abrir el enlace no abre ni cierra alertas.
+ 
+ ---
+ 
+@@ -1159,7 +1159,7 @@
+   1. Crear geocercas GF-CAL-ORI y GF-ANF-DST.
+   2. Inyectar P-CAL-ORI (ingreso a origen), luego P-RUTA (ETA), luego una detención breve bajo umbral, luego P-ANF-DST (destino).
+   3. Generar el enlace de seguimiento y abrirlo sin sesión.
+-  4. Verificar excepciones (no debe haber detención en este recorrido si no se superó el umbral).
++  4. Verificar alertas (no debe haber `detencion` si la detención breve duró menos de 20 min).
+ - **Resultado esperado:** La torre muestra el recorrido y el ETA actualizado. El enlace público funciona con el mínimo de datos de TWR-12. La cadena del envío incorpora los hechos relevantes. No se usan credenciales reales.
+ 
+ ### E2E-03 — Cascada con vencimiento, reintento e idempotencia, y rechazo del no acreditado
