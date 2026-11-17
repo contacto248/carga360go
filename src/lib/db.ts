@@ -839,13 +839,13 @@ function registerSha256(db: Database.Database) {
 }
 
 /**
- * Migración 035: documentos de conductor y vehículo, y el kind aviso_vencimiento.
- * 033 es del PR #66 y 034 del PR #68. Esta no las usa.
- * Extiende el CHECK de ops_alerts de forma aditiva (atraso, detencion, sin_senal se conservan).
- * Copia en docs/migrations/035-documentos-vencimiento.sql.
- * Reversa: docs/migrations/035-documentos-vencimiento-rollback.sql.
+ * Migración 036: documentos de conductor y vehículo, y el kind aviso_vencimiento.
+ * La 033 (hash del enlace) ya está en release. 034 es del PR #68 y 035 del PR #70: no se aplican aquí.
+ * El CHECK de ops_alerts suma aviso_vencimiento a los kinds que declara la 034.
+ * Copia en docs/migrations/036-documentos-vencimiento.sql.
+ * Reversa: docs/migrations/036-documentos-vencimiento-rollback.sql.
  */
-export const MIGRATION_35_SQL = `
+export const MIGRATION_36_SQL = `
 CREATE TABLE IF NOT EXISTS documentos_vencimiento (
   id TEXT PRIMARY KEY,
   sujeto TEXT NOT NULL CHECK (sujeto IN ('conductor', 'vehiculo')),
@@ -872,21 +872,21 @@ CREATE TABLE IF NOT EXISTS documentos_faena (
   PRIMARY KEY (faena, tipo)
 );
 
-DROP TABLE IF EXISTS ops_alerts_docs035;
-CREATE TABLE ops_alerts_docs035 (
+DROP TABLE IF EXISTS ops_alerts_docs036;
+CREATE TABLE ops_alerts_docs036 (
   id TEXT PRIMARY KEY,
   shipment_id TEXT NOT NULL REFERENCES ops_shipments(id) ON DELETE CASCADE,
-  kind TEXT NOT NULL CHECK (kind IN ('atraso', 'detencion', 'sin_senal', 'aviso_vencimiento')),
+  kind TEXT NOT NULL CHECK (kind IN ('atraso', 'detencion', 'sin_senal', 'desvio_geocerca', 'espera_destino', 'siniestro', 'rechazo_entrega', 'entrega_con_reparos', 'documento_vencido', 'documento_faltante', 'sin_asignar', 'retiro_no_iniciado', 'cambio_no_verificado', 'sin_contacto', 'evidencia_faltante', 'cierre_pendiente', 'diferencia_costo', 'temperatura_fuera_rango', 'incidente_seguridad', 'aviso_vencimiento')),
   status TEXT NOT NULL CHECK (status IN ('abierta', 'cerrada')),
   evidence_json TEXT NOT NULL,
   opened_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   severity TEXT NOT NULL DEFAULT 'media' CHECK (severity IN ('baja', 'media', 'alta'))
 );
-INSERT INTO ops_alerts_docs035 (id, shipment_id, kind, status, evidence_json, opened_at, updated_at, severity)
+INSERT INTO ops_alerts_docs036 (id, shipment_id, kind, status, evidence_json, opened_at, updated_at, severity)
 SELECT id, shipment_id, kind, status, evidence_json, opened_at, updated_at, severity FROM ops_alerts;
 DROP TABLE ops_alerts;
-ALTER TABLE ops_alerts_docs035 RENAME TO ops_alerts;
+ALTER TABLE ops_alerts_docs036 RENAME TO ops_alerts;
 CREATE INDEX IF NOT EXISTS idx_ops_alerts_shipment ON ops_alerts(shipment_id, status);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_ops_alerts_open ON ops_alerts(shipment_id, kind) WHERE status = 'abierta';
 `;
@@ -1453,11 +1453,11 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
-  // Documentos de conductor y vehículo (035). 034 es del PR #68: no se aplica aquí. La 033 ya está arriba.
-  if (!hasMigration(db, 35)) {
+  // Documentos de conductor y vehículo (036). 034 es del #68 y 035 del #70: no se aplican aquí. La 033 ya está arriba.
+  if (!hasMigration(db, 36)) {
     const apply = db.transaction(() => {
-      db.exec(MIGRATION_35_SQL);
-      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (35, ?)`).run(new Date().toISOString());
+      db.exec(MIGRATION_36_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (36, ?)`).run(new Date().toISOString());
     });
     apply();
   }

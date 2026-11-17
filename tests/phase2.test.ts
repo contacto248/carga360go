@@ -33,9 +33,9 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   // Migración 12: inmediata + trip_status en loads, tablas trip_events y ratings (viaje/calificación).
   // Migración 14: contacto de respaldo y verificación manual (solo lectura 30 días) en users.
   // Migración 16: motor de costos (tablas cost_*). Se comprueba por número exacto para convivir con la 15 de otra rama.
-  // 22 organizaciones, 23 envíos, 27 GPS, 28 traza, 29 torre, 30 alta de operación, 31 severidad, 32 uso del orquestador, 33 hash del enlace y 35 documentos.
-  // 34 queda en el PR #68 y no se aplica en esta rama.
-  assert.equal(version.v, 35);
+  // 22 organizaciones, 23 envíos, 27 GPS, 28 traza, 29 torre, 30 alta de operación, 31 severidad, 32 uso del orquestador, 33 hash del enlace y 36 documentos.
+  // 34 y 35 quedan en PRs abiertos (#68 y #70) y no se aplican en esta rama.
+  assert.equal(version.v, 36);
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 22`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 23`).get());
   assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 24`).get());
@@ -50,7 +50,8 @@ test("migración 2, documentos por tipo y solo transportistas verificados", () =
   const linkCols = (db.prepare(`PRAGMA table_info(ops_tracking_links)`).all() as { name: string }[]).map((column) => column.name);
   assert.ok(linkCols.includes("token_hash"));
   assert.equal(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 34`).get(), undefined);
-  assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 35`).get());
+  assert.equal(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 35`).get(), undefined);
+  assert.ok(db.prepare(`SELECT 1 FROM schema_migrations WHERE version = 36`).get());
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'documentos_vencimiento'`).get());
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM documentos_faena`).get() as { n: number }).n, 0);
   assert.ok(db.prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'ai_router_usage'`).get());

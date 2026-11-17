@@ -9,7 +9,7 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
   throw new Error("DATABASE_PATH de prueba no está configurada. Ejecuta npm test.");
 }
 
-import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL, MIGRATION_28_SQL, MIGRATION_29_SQL, MIGRATION_30_SQL, MIGRATION_31_SQL, MIGRATION_35_SQL } from "../src/lib/db";
+import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL, MIGRATION_28_SQL, MIGRATION_29_SQL, MIGRATION_30_SQL, MIGRATION_31_SQL, MIGRATION_36_SQL } from "../src/lib/db";
 
 const FIX = path.join(__dirname, "fixtures", "db");
 const ORIGINAL_PATH = process.env.DATABASE_PATH;
@@ -50,9 +50,10 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 35]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 36]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
   assert.equal(v.includes(34), false);
-  assert.equal(Math.max(...v), 35);
+  assert.equal(v.includes(35), false);
+  assert.equal(Math.max(...v), 36);
   for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_carrier_scores", "ops_score_events", "ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs", "ops_allocation_traces", "ops_telematics_sources", "ops_gps_receipts", "ops_geofences", "ops_eta_snapshots", "ops_alert_rules", "ops_alerts", "ops_tracking_links", "ops_operations", "ops_operation_keys", "ops_operation_counters", "ai_router_usage", "documentos_vencimiento", "documentos_faena"]) assert.ok(hasTable(db, t), t);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
@@ -121,7 +122,7 @@ test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni 
   const file = process.env.DATABASE_PATH!;
   closeDb();
   const after = snapshot(file);
-  assert.deepEqual(after, { ...before, version: 35 });
+  assert.deepEqual(after, { ...before, version: 36 });
   const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
   assert.equal(mandante.backup_contact, "respaldo@demo.local");
   assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
@@ -196,7 +197,7 @@ test("reversa 022 borra solo organizaciones y deja la 023 y la 027", () => {
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(versions(db).includes(23));
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 35);
+    assert.equal(Math.max(...versions(db)), 36);
     assert.equal(hasTable(db, "ops_telematics_sources"), true);
     assert.equal(hasTable(db, "ops_gps_receipts"), true);
     assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
@@ -297,14 +298,14 @@ test("023 sobre base vacía y sobre producción v14 no altera tablas previas; la
       assert.equal(afterVersions.includes(23), false);
       assert.ok(afterVersions.includes(22));
       assert.ok(afterVersions.includes(27));
-      assert.equal(Math.max(...afterVersions), 35);
+      assert.equal(Math.max(...afterVersions), 36);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_telematics_sources'`).get()), true);
       assert.deepEqual(protectedCols(raw), colsBefore);
       raw.exec(rollback22);
       const unwound = (raw.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all() as { version: number }[]).map((row) => row.version);
       assert.equal(unwound.includes(22), false);
       assert.ok(unwound.includes(27));
-      assert.equal(Math.max(...unwound), 35);
+      assert.equal(Math.max(...unwound), 36);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_organizations'`).get()), false);
       assert.equal((raw.prepare(`PRAGMA foreign_key_check`).all() as unknown[]).length, 0);
       assert.equal((raw.prepare(`PRAGMA integrity_check`).get() as { integrity_check: string }).integrity_check, "ok");
@@ -342,7 +343,7 @@ test("reversa 024 borra solo procurement y deja la 023", () => {
     assert.equal(versions(db).includes(24), false);
     assert.equal(versions(db).includes(23), true);
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 35);
+    assert.equal(Math.max(...versions(db)), 36);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_telematics_sources"));
@@ -378,7 +379,7 @@ test("reversa 025 borra puntajes y conserva 022, 023, 024 y 027", () => {
     assert.equal(hasTable(db, "ops_score_events"), false);
     assert.equal(versions(db).includes(25), false);
     for (const n of [22, 23, 24, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 35);
+    assert.equal(Math.max(...versions(db)), 36);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
@@ -469,7 +470,7 @@ test("reversa 026 borra la asignación y conserva 022, 023, 024, 025 y 027", () 
     }
     assert.equal(versions(db).includes(26), false);
     for (const n of [22, 23, 24, 25, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 35);
+    assert.equal(Math.max(...versions(db)), 36);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
@@ -631,78 +632,97 @@ test("la copia SQL de 031 agrega severity y la reversa solo quita esa columna", 
   }
 });
 
-test("la copia SQL de 035 agrega aviso_vencimiento y la reversa vuelve a los tres kinds", () => {
-  const doc = fs.readFileSync(path.join(__dirname, "../docs/migrations/035-documentos-vencimiento.sql"), "utf8");
-  assert.equal(sqlBody(doc), sqlBody(MIGRATION_35_SQL));
-  assert.match(sqlBody(doc), /'atraso', 'detencion', 'sin_senal', 'aviso_vencimiento'/);
+test("la copia SQL de 036 suma aviso_vencimiento a los kinds de la 034", () => {
+  const kinds034 = [
+    "atraso",
+    "detencion",
+    "sin_senal",
+    "desvio_geocerca",
+    "espera_destino",
+    "siniestro",
+    "rechazo_entrega",
+    "entrega_con_reparos",
+    "documento_vencido",
+    "documento_faltante",
+    "sin_asignar",
+    "retiro_no_iniciado",
+    "cambio_no_verificado",
+    "sin_contacto",
+    "evidencia_faltante",
+    "cierre_pendiente",
+    "diferencia_costo",
+    "temperatura_fuera_rango",
+    "incidente_seguridad",
+  ];
+  const doc = fs.readFileSync(path.join(__dirname, "../docs/migrations/036-documentos-vencimiento.sql"), "utf8");
+  assert.equal(sqlBody(doc), sqlBody(MIGRATION_36_SQL));
+  for (const kind of kinds034) assert.match(sqlBody(doc), new RegExp(`'${kind}'`));
+  assert.match(sqlBody(doc), /'aviso_vencimiento'/);
   assert.match(sqlBody(doc), /CREATE TABLE IF NOT EXISTS documentos_vencimiento/);
   assert.match(sqlBody(doc), /CREATE TABLE IF NOT EXISTS documentos_faena/);
   assert.equal(/INSERT\s+INTO\s+documentos_faena/i.test(sqlBody(doc)), false);
-  assert.equal(/users|loads|offers|trip_events|ops_operation_alerts/i.test(sqlBody(doc)), false);
-  const rollback = fs.readFileSync(path.join(__dirname, "../docs/migrations/035-documentos-vencimiento-rollback.sql"), "utf8");
-  assert.match(rollback, /DELETE FROM schema_migrations WHERE version = 35/);
+  assert.equal(/\b(users|loads|offers|trip_events)\b/i.test(sqlBody(doc)), false);
+  const rollback = fs.readFileSync(path.join(__dirname, "../docs/migrations/036-documentos-vencimiento-rollback.sql"), "utf8");
+  assert.match(rollback, /DELETE FROM schema_migrations WHERE version = 36/);
   assert.match(rollback, /DROP TABLE IF EXISTS documentos_vencimiento/);
   assert.match(rollback, /DROP TABLE IF EXISTS documentos_faena/);
   assert.match(rollback, /DELETE FROM ops_alerts WHERE kind = 'aviso_vencimiento'/);
-  assert.match(rollback, /'atraso', 'detencion', 'sin_senal'/);
+  const rollbackCheck = sqlBody(rollback);
+  const rollbackTable = rollbackCheck.split("CREATE TABLE ops_alerts_docs036")[1] ?? "";
+  for (const kind of kinds034) assert.match(rollbackTable, new RegExp(`'${kind}'`));
+  assert.equal(rollbackTable.includes("'aviso_vencimiento'"), false);
   const db = openCopy(null);
   try {
     const kindOf = (database: ReturnType<typeof getDb>) =>
       (database.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'ops_alerts'`).get() as { sql: string }).sql;
-    assert.match(kindOf(db), /'atraso', 'detencion', 'sin_senal', 'aviso_vencimiento'/);
+    for (const kind of [...kinds034, "aviso_vencimiento"]) assert.match(kindOf(db), new RegExp(`'${kind}'`));
     assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM documentos_faena`).get() as { n: number }).n, 0);
-    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version = 35`).get() as { n: number }).n, 1);
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version = 36`).get() as { n: number }).n, 1);
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version = 33`).get() as { n: number }).n, 1);
+    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM schema_migrations WHERE version IN (34, 35)`).get() as { n: number }).n, 0);
     const shipmentId = "22222222-2222-4222-8222-222222222222";
     const stamp = "2026-01-01T00:00:00.000Z";
+    const insertKind = (database: ReturnType<typeof getDb>, id: string, kind: string) =>
+      database
+        .prepare(
+          `INSERT INTO ops_alerts (id, shipment_id, kind, status, severity, evidence_json, opened_at, updated_at)
+           VALUES (?, ?, ?, 'abierta', 'media', '{}', ?, ?)`,
+        )
+        .run(id, shipmentId, kind, stamp, stamp);
     db.prepare(
       `INSERT INTO ops_shipments (
         id, load_id, shipper_org_id, carrier_org_id, rate_card_id, lane_id, assigned_offer_id,
         stage, planned_pickup_at, planned_delivery_at, created_at, updated_at
       ) VALUES (?, NULL, NULL, NULL, NULL, NULL, NULL, 'ejecucion', NULL, NULL, ?, ?)`,
     ).run(shipmentId, stamp, stamp);
-    db.prepare(
-      `INSERT INTO ops_alerts (id, shipment_id, kind, status, severity, evidence_json, opened_at, updated_at)
-       VALUES ('alerta-detencion', ?, 'detencion', 'abierta', 'alta', '{}', ?, ?)`,
-    ).run(shipmentId, stamp, stamp);
-    db.prepare(
-      `INSERT INTO ops_alerts (id, shipment_id, kind, status, severity, evidence_json, opened_at, updated_at)
-       VALUES ('alerta-aviso', ?, 'aviso_vencimiento', 'abierta', 'media', '{}', ?, ?)`,
-    ).run(shipmentId, stamp, stamp);
-    assert.throws(() =>
-      db.prepare(
-        `INSERT INTO ops_alerts (id, shipment_id, kind, status, severity, evidence_json, opened_at, updated_at)
-         VALUES ('alerta-ajena', ?, 'documento_vencido', 'abierta', 'media', '{}', ?, ?)`,
-      ).run(shipmentId, stamp, stamp),
-    );
-    db.exec(MIGRATION_35_SQL);
-    assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_alerts WHERE id = 'alerta-detencion'`).get() as { n: number }).n, 1);
+    insertKind(db, "alerta-detencion", "detencion");
+    insertKind(db, "alerta-aviso", "aviso_vencimiento");
+    insertKind(db, "alerta-034", "documento_vencido");
+    assert.throws(() => insertKind(db, "alerta-ajena", "kind_que_no_existe"));
+    db.exec(MIGRATION_36_SQL);
     assert.equal((db.prepare(`SELECT kind FROM ops_alerts WHERE id = 'alerta-detencion'`).get() as { kind: string }).kind, "detencion");
+    assert.equal((db.prepare(`SELECT kind FROM ops_alerts WHERE id = 'alerta-034'`).get() as { kind: string }).kind, "documento_vencido");
     db.exec(rollback);
     assert.equal(kindOf(db).includes("aviso_vencimiento"), false);
-    assert.match(kindOf(db), /'atraso', 'detencion', 'sin_senal'/);
-    assert.throws(() =>
-      db.prepare(
-        `INSERT INTO ops_alerts (id, shipment_id, kind, status, severity, evidence_json, opened_at, updated_at)
-         VALUES ('alerta-aviso-2', ?, 'aviso_vencimiento', 'abierta', 'media', '{}', ?, ?)`,
-      ).run(shipmentId, stamp, stamp),
-    );
+    for (const kind of kinds034) assert.match(kindOf(db), new RegExp(`'${kind}'`));
+    assert.throws(() => insertKind(db, "alerta-aviso-2", "aviso_vencimiento"));
+    insertKind(db, "alerta-034-sigue", "desvio_geocerca");
     assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_alerts WHERE id = 'alerta-detencion'`).get() as { n: number }).n, 1);
     assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_alerts WHERE kind = 'aviso_vencimiento'`).get() as { n: number }).n, 0);
     assert.equal(hasTable(db, "documentos_vencimiento"), false);
     assert.equal(hasTable(db, "documentos_faena"), false);
-    assert.equal(versions(db).includes(35), false);
+    assert.equal(versions(db).includes(36), false);
     assert.ok(versions(db).includes(32));
     closeDb();
     const migrated = getDb();
     assert.ok(hasTable(migrated, "documentos_vencimiento"));
     assert.equal((migrated.prepare(`SELECT COUNT(*) AS n FROM documentos_faena`).get() as { n: number }).n, 0);
-    assert.match(kindOf(migrated), /'atraso', 'detencion', 'sin_senal', 'aviso_vencimiento'/);
+    for (const kind of [...kinds034, "aviso_vencimiento"]) assert.match(kindOf(migrated), new RegExp(`'${kind}'`));
     assert.equal((migrated.prepare(`SELECT kind FROM ops_alerts WHERE id = 'alerta-detencion'`).get() as { kind: string }).kind, "detencion");
-    migrated.prepare(
-      `INSERT INTO ops_alerts (id, shipment_id, kind, status, severity, evidence_json, opened_at, updated_at)
-       VALUES ('alerta-aviso-3', ?, 'aviso_vencimiento', 'abierta', 'media', '{}', ?, ?)`,
-    ).run(shipmentId, stamp, stamp);
-    assert.equal(versions(migrated).includes(35), true);
+    assert.equal((migrated.prepare(`SELECT kind FROM ops_alerts WHERE id = 'alerta-034'`).get() as { kind: string }).kind, "documento_vencido");
+    insertKind(migrated, "alerta-aviso-3", "aviso_vencimiento");
+    assert.equal(versions(migrated).includes(36), true);
+    assert.equal(versions(migrated).includes(35), false);
     assert.ok(versions(migrated).includes(31));
   } finally {
     closeDb();
