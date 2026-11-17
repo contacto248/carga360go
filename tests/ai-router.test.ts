@@ -5,7 +5,7 @@ import path from "node:path";
 import { after, before, test } from "node:test";
 import Database from "better-sqlite3";
 import { POST } from "../src/app/api/ai/v1/orchestrate/route";
-import { aiRouterEnabled, readRouterEnv } from "../src/lib/ai-router/config";
+import { aiRouterEnabled, dailySpendCapUsd, readRouterEnv } from "../src/lib/ai-router/config";
 import { orchestrate } from "../src/lib/ai-router/orchestrator";
 import { estimateCost, providerOrder } from "../src/lib/ai-router/providers";
 import { sessionActor } from "../src/lib/ai-router/session";
@@ -74,6 +74,20 @@ function withEnv(values: Record<string, string | undefined>, run: () => Promise<
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 }
+
+test("el tope diario por defecto es 5 USD", () => {
+  for (const value of [undefined, "", "no", "-1", "101"]) {
+    withEnv({ AI_ROUTER_DAILY_USD: value }, () => {
+      assert.equal(dailySpendCapUsd(), 5, String(value));
+    });
+  }
+  withEnv({ AI_ROUTER_DAILY_USD: "5" }, () => {
+    assert.equal(dailySpendCapUsd(), 5);
+  });
+  const example = fs.readFileSync(path.join(process.cwd(), ".env.example"), "utf8");
+  assert.match(example, /^AI_ROUTER_DAILY_USD=5$/m);
+  assert.match(example, /^AI_ROUTER_ENABLED=false$/m);
+});
 
 test("el flag solo se enciende con el texto exacto true", () => {
   for (const value of [undefined, "", "1", "TRUE", "True", " true", "true ", "yes", "false"]) {
