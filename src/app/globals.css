@@ -880,3 +880,14 @@ main.agente-360-main{min-height:100dvh;display:flex;flex-direction:column;margin
 .ds-empty{margin:0;padding:16px;color:var(--muted)}
 @media(min-width:820px){.ds-kpis ul{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:819px){.ds-kit{gap:12px}.ds-kpi strong{font-size:1.2rem}}
+.page-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.page-actions .btn{min-height:44px}
+.page-legal{margin:0;color:var(--ink);line-height:1.5}
+.page-legal a{font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.module-list,.plain-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.module-list li,.plain-list li{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;color:var(--ink)}
+.module-list h3,.plain-list h3{margin:0 0 6px;font-size:1.05rem;color:var(--navy)}
+.module-list p,.plain-list p{margin:0;color:var(--ink);line-height:1.5}
+.ds-kit .steps-rail p{color:var(--ink)}
+@media(min-width:820px){.module-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:819px){.page-actions .btn{width:100%;justify-content:center}}
