@@ -29,3 +29,8 @@ export function procurementGuard(handler: (request: Request, ctx: RouteCtx) => P
 export function allocationGuard(handler: (request: Request, ctx: RouteCtx) => Promise<Response>) {
   return opsGuard(handler, "OPS_ALLOCATION_ENABLED");
 }
+
+/** API v1 de lectura: maestro y OPS_API_V1_ENABLED. Apagado ⇒ 404. */
+export function apiV1Guard(handler: (request: Request, ctx: RouteCtx) => Promise<Response>) {
+  return opsGuard(handler, "OPS_API_V1_ENABLED");
+}
