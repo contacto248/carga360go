@@ -20,6 +20,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { hubspotPortalId } from "@/lib/hubspot";
 import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
+import "./tokens.css";
 import "./globals.css";
 
 const display = Sora({
@@ -160,23 +161,45 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         ) : null}
         {productionAnalytics && !agente360 ? <AnalyticsRouteGuard /> : null}
         {agente360 ? null : <HubSpotTracking portalId={hubspotPortalId()} />}
-        {agente360 ? null : <Header user={user} />}
-        <main className={agente360 ? "agente-360-main" : undefined}>
-          {privacy.required && user ? (
-            <PrivacyGate
-              name={user.contactName || user.razonSocial}
-              version={privacyVersion()}
-              termsVersion={termsVersion()}
-              firstTime={privacy.firstTime}
-              terms={<TermsBody prefix="t-" />}
-            >
-              <PolicyBody prefix="p-" />
-            </PrivacyGate>
-          ) : (
-            children
-          )}
-        </main>
-        {agente360 ? null : <Footer />}
+        {agente360 ? (
+          <main className="agente-360-main">
+            {privacy.required && user ? (
+              <PrivacyGate
+                name={user.contactName || user.razonSocial}
+                version={privacyVersion()}
+                termsVersion={termsVersion()}
+                firstTime={privacy.firstTime}
+                terms={<TermsBody prefix="t-" />}
+              >
+                <PolicyBody prefix="p-" />
+              </PrivacyGate>
+            ) : (
+              children
+            )}
+          </main>
+        ) : (
+          <div className="app-shell">
+            <Header user={user} />
+            <div className="shell-content">
+              <main id="contenido">
+                {privacy.required && user ? (
+                  <PrivacyGate
+                    name={user.contactName || user.razonSocial}
+                    version={privacyVersion()}
+                    termsVersion={termsVersion()}
+                    firstTime={privacy.firstTime}
+                    terms={<TermsBody prefix="t-" />}
+                  >
+                    <PolicyBody prefix="p-" />
+                  </PrivacyGate>
+                ) : (
+                  children
+                )}
+              </main>
+              <Footer />
+            </div>
+          </div>
+        )}
       </body>
     </html>
   );

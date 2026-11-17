@@ -1,0 +1,22 @@
+/* Tokens vigentes del CSS de marca. Mismos valores, sin paleta nueva. */
+:root {
+  --navy: #0B1633;
+  --navy2: #152647;
+  --brand-navy: #002451;
+  --brand-orange: #FF5001;
+  --accent: #C84300;
+  --accent2: #A33600;
+  --bg: #f5f7fa;
+  --card: #fff;
+  --ink: #0f1b2d;
+  --muted: #5b6778;
+  --muted-soft: #66717f;
+  --line: #d9e0ea;
+  --line-strong: #c3cddc;
+  --ok: #16a34a;
+  --warn: #eab308;
+  --bad: #dc2626;
+  --focus: #0E7490;
+  --focus-dark: #67E8F9;
+  --r: 16px;
+}

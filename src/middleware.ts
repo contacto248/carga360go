@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isEnabled } from "@/lib/ops/flags";
 import { opsPageHidden, opsPageRule } from "@/lib/ops/page-gate";
 import { userFromHeaders } from "@/lib/request-auth";
+import { sistemaPageHidden } from "@/lib/sistema/flag";
 
 /**
  * CORS para la API (solo lo necesita Expo web; las apps nativas no envían Origin).
@@ -44,6 +45,7 @@ export function middleware(request: NextRequest) {
     const user = isEnabled(rule.flag) ? userFromHeaders(request.headers) : null;
     if (opsPageHidden(pathname, user)) return opsNotFound();
   }
+  if (sistemaPageHidden(pathname)) return opsNotFound();
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
