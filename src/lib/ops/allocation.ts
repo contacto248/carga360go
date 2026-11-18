@@ -9,6 +9,7 @@ import { getDb } from "../db";
 import { AppError } from "../errors";
 import { todayChile } from "../format";
 import { MATCH_VERSION, blockingChecksFor, evaluateLoadTruck, type BlockingCheck } from "../match";
+import { assertDocumentosParaCarga } from "../documentos-vencimiento";
 import { acceptOffer, submitOffer } from "../offers";
 import { resolveRate } from "./procurement";
 import { appendEvent } from "./shipments";
@@ -1145,6 +1146,13 @@ export async function confirmAllocation(user: PublicUser, runId: string, candida
   if (load.is_demo) throw new AppError("Esta carga es de demostración y no se adjudica.", 409);
   const blocks = blocksForConfirmation(load, candidate.truckId);
   if (blocks.length) throw new AppError(`No se puede confirmar: ${blocks.map((item) => item.detail).join(" ")}`, 409);
+  assertDocumentosParaCarga({
+    accion: "asignar",
+    carrierId: candidate.carrierUserId,
+    truckId: candidate.truckId,
+    actor: user,
+    loadId: load.id,
+  });
   if (load.status === "adjudicada") {
     const awarded = getDb()
       .prepare(`SELECT carrier_id FROM offers WHERE id = ?`)

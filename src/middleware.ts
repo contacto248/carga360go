@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { documentosPageHidden } from "@/lib/documentos-vencimiento";
 import { isEnabled } from "@/lib/ops/flags";
 import { opsPageHidden, opsPageRule } from "@/lib/ops/page-gate";
 import { userFromHeaders } from "@/lib/request-auth";
@@ -50,6 +51,7 @@ export function middleware(request: NextRequest) {
   if (sistemaPageHidden(pathname)) return opsNotFound();
   if (paginasOpsHidden(pathname)) return opsNotFound();
   if (uiVistaHidden(pathname)) return opsNotFound();
+  if (documentosPageHidden(pathname)) return opsNotFound();
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);

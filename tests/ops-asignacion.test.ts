@@ -7,6 +7,7 @@ import { test } from "node:test";
 import { GET as getRuns, POST as postRun } from "../src/app/api/ops/asignacion/route";
 import { POST as postConfirm } from "../src/app/api/ops/asignacion/[runId]/confirmar/route";
 import { POST as postRule } from "../src/app/api/ops/reglas/route";
+import { listAudit } from "../src/lib/audit";
 import { COOKIE_NAME, createSession, registerUser, upsertAdmin } from "../src/lib/auth";
 import { REQUIRED_CARRIER_DOCS } from "../src/lib/carrier";
 import { getDb } from "../src/lib/db";
@@ -647,4 +648,44 @@ test("peligrosa, refrigerada y minera bloquean la confirmación", async () => {
   assert.deepEqual(run.trace?.body.candidates.find((candidate) => candidate.carrierUserId === ready.low.id)?.blockingChecks, []);
   const confirmed = await confirmAllocation(ready.admin, run.id, chosen?.id);
   assert.equal(confirmed.status, "confirmada");
+});
+
+test("documento vencido impide asignar y con el flag apagado el bloqueo no corre", async () => {
+  const previous = process.env.DOCS_VENCIMIENTO_ENABLED;
+  try {
+    withOps(true);
+    process.env.DOCS_VENCIMIENTO_ENABLED = "true";
+    const blocked = scene("doc-vence");
+    const stamp = new Date().toISOString();
+    getDb()
+      .prepare(
+        `INSERT INTO documentos_vencimiento (
+          id, sujeto, sujeto_id, tipo, numero, vence_el, verificacion, verificado_por, created_at, updated_at
+        ) VALUES (?, 'conductor', ?, 'licencia', NULL, ?, 'verificado', ?, ?, ?)`,
+      )
+      .run(randomUUID(), blocked.low.id, addDays(-1), blocked.admin.id, stamp, stamp);
+    const run = proposeAllocation(blocked.admin, { shipmentId: blocked.shipmentId, ruleId: rule(blocked.admin, blocked.shipperOrgId, "por_tarifa").id });
+    const chosen = run.candidates.find((candidate) => candidate.carrierUserId === blocked.low.id);
+    assert.equal(chosen?.status, "propuesto");
+    await assert.rejects(() => confirmAllocation(blocked.admin, run.id, chosen?.id), /No se puede asignar la carga/);
+    assert.equal((getDb().prepare(`SELECT status FROM loads WHERE id = ?`).get(blocked.loadId) as { status: string }).status, "abierta");
+    assert.ok(listAudit(40).some((entry) => entry.action === "carga.documento_bloquea" && entry.targetId === blocked.loadId));
+
+    delete process.env.DOCS_VENCIMIENTO_ENABLED;
+    const open = scene("doc-apagado");
+    getDb()
+      .prepare(
+        `INSERT INTO documentos_vencimiento (
+          id, sujeto, sujeto_id, tipo, numero, vence_el, verificacion, verificado_por, created_at, updated_at
+        ) VALUES (?, 'conductor', ?, 'licencia', NULL, ?, 'verificado', ?, ?, ?)`,
+      )
+      .run(randomUUID(), open.low.id, addDays(-1), open.admin.id, stamp, stamp);
+    const quiet = proposeAllocation(open.admin, { shipmentId: open.shipmentId, ruleId: rule(open.admin, open.shipperOrgId, "por_tarifa").id });
+    const winner = quiet.candidates.find((candidate) => candidate.carrierUserId === open.low.id);
+    const confirmed = await confirmAllocation(open.admin, quiet.id, winner?.id);
+    assert.equal(confirmed.status, "confirmada");
+  } finally {
+    if (previous === undefined) delete process.env.DOCS_VENCIMIENTO_ENABLED;
+    else process.env.DOCS_VENCIMIENTO_ENABLED = previous;
+  }
 });
