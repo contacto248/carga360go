@@ -20,7 +20,8 @@ import { getParams } from "../src/lib/costos/params";
 import { getDb } from "../src/lib/db";
 import { todayChile, rutDv } from "../src/lib/format";
 import { createLoad } from "../src/lib/listings";
-import { evaluateSilentSignals, listAlerts } from "../src/lib/ops/alerts";
+import { evaluateSilentSignals, listAlerts, reviewAlerts } from "../src/lib/ops/alerts";
+import type { EtaView } from "../src/lib/ops/eta-types";
 import { ensureShipmentForLoad, verifyChain } from "../src/lib/ops/shipments";
 import type { PublicUser } from "../src/lib/types";
 
@@ -501,5 +502,95 @@ test("sin_senal usa 45 minutos por defecto y solo la abre el evaluador invocado"
     else process.env.OPS_ALERTA_SIN_SENAL_MIN = previous.silent;
     if (previous.secret === undefined) delete process.env.OPS_ALERTAS_JOB_SECRET;
     else process.env.OPS_ALERTAS_JOB_SECRET = previous.secret;
+  }
+});
+
+test("OPS_ALERTA_ATRASO_MIN usa 30, acepta override y la fila del envío gana", () => {
+  const previous = process.env.OPS_ALERTA_ATRASO_MIN;
+  const { load, shipment } = awarded("atraso-min");
+  const plan = "2026-11-18T16:00:00.000Z";
+  getDb().prepare(`UPDATE ops_shipments SET planned_delivery_at = ? WHERE id = ?`).run(plan, shipment.id);
+  const eta = (at: string): EtaView => ({
+    id: "eta-atraso",
+    shipmentId: shipment.id,
+    gpsPointId: "gps-atraso",
+    from: ORIGEN,
+    to: DESTINO,
+    recordedAt: plan,
+    distanceM: 1000,
+    durationS: 60,
+    durationTruckS: 90,
+    factorDuracionCamion: 1.2,
+    etaAt: at,
+    provider: "osrm",
+    profile: "driving",
+    truckAware: false,
+    aviso: "",
+    evaluacion: [],
+    createdAt: plan,
+    recalculado: true,
+  });
+  try {
+    delete process.env.OPS_ALERTA_ATRASO_MIN;
+    reviewAlerts(load.id, eta("2026-11-18T16:31:00.000Z"), null);
+    assert.equal(openCount(shipment.id, "atraso"), 1);
+    assert.equal(
+      (getDb().prepare(`SELECT severity FROM ops_alerts WHERE shipment_id = ? AND kind = 'atraso' AND status = 'abierta'`).get(shipment.id) as { severity: string }).severity,
+      "media",
+    );
+    process.env.OPS_ALERTA_ATRASO_MIN = "45";
+    reviewAlerts(load.id, eta("2026-11-18T16:20:00.000Z"), null);
+    assert.equal(openCount(shipment.id, "atraso"), 0);
+    reviewAlerts(load.id, eta("2026-11-18T16:31:00.000Z"), null);
+    assert.equal(openCount(shipment.id, "atraso"), 0);
+    process.env.OPS_ALERTA_ATRASO_MIN = "30min";
+    reviewAlerts(load.id, eta("2026-11-18T16:31:00.000Z"), null);
+    assert.equal(openCount(shipment.id, "atraso"), 1);
+    reviewAlerts(load.id, eta("2026-11-18T16:20:00.000Z"), null);
+    getDb().prepare(
+      `INSERT INTO ops_alert_rules (id, shipment_id, kind, threshold_min, created_at, updated_at) VALUES (?, ?, 'atraso', 20, ?, ?)`,
+    ).run(randomUUID(), shipment.id, plan, plan);
+    process.env.OPS_ALERTA_ATRASO_MIN = "45";
+    reviewAlerts(load.id, eta("2026-11-18T16:31:00.000Z"), null);
+    assert.equal(openCount(shipment.id, "atraso"), 1);
+  } finally {
+    if (previous === undefined) delete process.env.OPS_ALERTA_ATRASO_MIN;
+    else process.env.OPS_ALERTA_ATRASO_MIN = previous;
+  }
+});
+
+test("el enlace público no lee ops_operation_alerts ni los kinds nuevos", async () => {
+  const previous = process.env.OPS_FEATURE_ENABLED;
+  const nuevos = ["desvio_geocerca", "espera_destino", "siniestro", "rechazo_entrega", "entrega_con_reparos", "documento_vencido", "documento_faltante", "sin_asignar", "retiro_no_iniciado", "cambio_no_verificado", "sin_contacto", "evidencia_faltante", "cierre_pendiente", "diferencia_costo", "temperatura_fuera_rango", "incidente_seguridad"];
+  for (const file of ["src/lib/ops/tracking.ts", "src/app/seguimiento/[token]/page.tsx"]) {
+    const text = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
+    assert.equal(text.includes("ops_operation_alerts"), false, file);
+    assert.equal(text.includes("operation-alerts"), false, file);
+    for (const kind of nuevos) assert.equal(text.includes(kind), false, `${file} ${kind}`);
+  }
+  const { load, shipment, adminCookie } = awarded("incidencia-publica");
+  pin(load.id, "2026-06-01T12:00:00.000Z");
+  const stamp = "2026-11-18T13:00:00.000Z";
+  getDb().prepare(
+    `INSERT INTO ops_operation_alerts (
+      id, shipment_id, operation_id, kind, severity, status, source, evidence_json, opened_by, opened_at, updated_at
+    ) VALUES (?, ?, NULL, 'rechazo_entrega', 'alta', 'abierta', 'manual', ?, NULL, ?, ?),
+             (?, ?, NULL, 'siniestro', 'alta', 'abierta', 'manual', '{}', NULL, ?, ?)`,
+  ).run(randomUUID(), shipment.id, JSON.stringify({ motivo: "interno" }), stamp, stamp, randomUUID(), shipment.id, stamp, stamp);
+  try {
+    process.env.OPS_FEATURE_ENABLED = "true";
+    const issued = await call(postSeguimiento, `/api/ops/envios/${shipment.id}/seguimiento`, "POST", { id: shipment.id }, adminCookie);
+    assert.equal(issued.status, 201);
+    const link = (await issued.json()) as { token: string };
+    const pub = await call(getPublico, `/api/ops/seguimiento/${link.token}`, "GET", { token: link.token });
+    assert.equal(pub.status, 200);
+    const body = await pub.json();
+    assert.deepEqual(Object.keys(body).sort(), ["destination", "etaAt", "origin", "position", "stage", "token", "truckAware"]);
+    const text = JSON.stringify(body);
+    for (const kind of nuevos) assert.equal(text.includes(kind), false, kind);
+    assert.equal(text.includes("ops_operation_alerts"), false);
+  } finally {
+    if (previous === undefined) delete process.env.OPS_FEATURE_ENABLED;
+    else process.env.OPS_FEATURE_ENABLED = previous;
   }
 });

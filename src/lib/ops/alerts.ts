@@ -6,7 +6,7 @@ import { getDb } from "../db";
 import { AppError } from "../errors";
 import type { PublicUser } from "../types";
 import type { EtaView, GeofenceHit } from "./eta-types";
-import { detencionMinDefault, sinSenalMinDefault } from "./alert-config";
+import { atrasoMinDefault, detencionMinDefault, sinSenalMinDefault } from "./alert-config";
 import { appendEvent, canReadShipment, type OpsShipment, type ShipmentStage } from "./shipments";
 
 export const ALERT_KINDS = ["atraso", "detencion", "sin_senal"] as const;
@@ -25,7 +25,7 @@ const KIND_SEVERITY: Record<AlertKind, AlertSeverity> = {
 const STOP_RADIUS_M = 200;
 
 function defaultMinutes(): Record<AlertKind, number> {
-  return { atraso: 30, detencion: detencionMinDefault(), sin_senal: sinSenalMinDefault() };
+  return { atraso: atrasoMinDefault(), detencion: detencionMinDefault(), sin_senal: sinSenalMinDefault() };
 }
 
 export type AlertView = {

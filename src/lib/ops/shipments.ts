@@ -30,6 +30,7 @@ export type OpsShipment = {
   stage: ShipmentStage;
   plannedPickupAt: string | null;
   plannedDeliveryAt: string | null;
+  operationId?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -80,12 +81,13 @@ type ShipmentRow = {
   stage: string;
   planned_pickup_at: string | null;
   planned_delivery_at: string | null;
+  operation_id: string | null;
   created_at: string;
   updated_at: string;
 };
 
 const SHIPMENT_SELECT = `SELECT id, load_id, shipper_org_id, carrier_org_id, rate_card_id, lane_id, assigned_offer_id,
-  stage, planned_pickup_at, planned_delivery_at, created_at, updated_at FROM ops_shipments`;
+  stage, planned_pickup_at, planned_delivery_at, operation_id, created_at, updated_at FROM ops_shipments`;
 
 function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -125,6 +127,7 @@ function mapShipment(row: ShipmentRow): OpsShipment {
     stage: row.stage as ShipmentStage,
     plannedPickupAt: row.planned_pickup_at,
     plannedDeliveryAt: row.planned_delivery_at,
+    operationId: row.operation_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -360,6 +363,29 @@ export function readShipment(shipmentId: string, user: PublicUser) {
     derived: derivedForLoad(shipment.loadId),
     chain: verifyChain(shipment.id),
   };
+}
+
+const OPERATION_CODE = /^360-\d{4}-\d{4}$/;
+
+/**
+ * Vincula el envío con una operación ya creada. El id público es 360-YYMM-NNNN.
+ * No crea tablas. Audita ops.envio_operacion y deja el evento envio.operacion_vinculada.
+ */
+export function linkShipmentToOperation(user: PublicUser, shipmentId: string, operationId: string): OpsShipment {
+  const shipment = assertReadable(user, shipmentId);
+  if (!OPERATION_CODE.test(operationId)) throw new AppError("Revisa los datos enviados.");
+  const db = getDb();
+  const operation = db.prepare(`SELECT id FROM ops_operations WHERE id = ?`).get(operationId) as { id: string } | undefined;
+  if (!operation) throw new AppError("Operación no encontrada.", 404);
+  const now = new Date().toISOString();
+  db.transaction(() => {
+    db.prepare(`UPDATE ops_shipments SET operation_id = ?, updated_at = ? WHERE id = ?`).run(operation.id, now, shipment.id);
+    insertEvent(shipment.id, "envio.operacion_vinculada", { operationId: operation.id }, user.id, now);
+    auditStrict(user, "ops.envio_operacion", { type: "envio", id: shipment.id }, { operationId: operation.id });
+  })();
+  const row = getShipmentRow(shipment.id);
+  if (!row) throw new AppError("Envío no encontrado.", 404);
+  return mapShipment(row);
 }
 
 /** Listado del panel de administración. Quien no es admin de plataforma recibe 404. */
