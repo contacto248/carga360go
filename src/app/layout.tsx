@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree, Sora } from "next/font/google";
 import { headers } from "next/headers";
-import Script from "next/script";
-import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
+import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -10,12 +9,6 @@ import { HubSpotTracking } from "@/components/HubSpotTracking";
 import { PolicyBody, TermsBody } from "@/components/PolicyBody";
 import { PrivacyGate } from "@/components/PrivacyGate";
 import { privacyGateFor } from "@/lib/accreditation";
-import {
-  GA_MEASUREMENT_ID,
-  GTM_ID,
-  gtagBootstrapScript,
-  isAdminPathname,
-} from "@/lib/analytics";
 import { getCurrentUser } from "@/lib/current-user";
 import { hubspotPortalId } from "@/lib/hubspot";
 import { privacyVersion, termsVersion } from "@/lib/privacy";
@@ -127,39 +120,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const productionAnalytics = await isProductionAnalyticsEnabled();
   const pathname = (await headers()).get("x-pathname") || "";
   const agente360 = pathname === "/agente-360go" || pathname.startsWith("/agente-360go/");
-  const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360;
   return (
     <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
       <body className={agente360 ? "app-standalone" : undefined}>
         <CookieConsentBanner />
-        {loadAnalyticsTags ? (
-          <>
-            <noscript>
-              <iframe
-                src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-                height="0"
-                width="0"
-                style={{ display: "none", visibility: "hidden" }}
-                title="Google Tag Manager"
-              />
-            </noscript>
-            <Script id="google-tag-manager" strategy="afterInteractive">
-              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`}
-            </Script>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {gtagBootstrapScript()}
-            </Script>
-          </>
-        ) : null}
-        {productionAnalytics && !agente360 ? <AnalyticsRouteGuard /> : null}
+        {/* GTM y GA solo tras consentimiento explícito. /agente-360go sigue sin etiquetas, como en producción. */}
+        {productionAnalytics && !agente360 ? <AnalyticsConsent /> : null}
         {agente360 ? null : <HubSpotTracking portalId={hubspotPortalId()} />}
         {agente360 ? (
           <main className="agente-360-main">
@@ -196,7 +162,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                   children
                 )}
               </main>
-              <Footer />
+              <Footer analyticsConsent={productionAnalytics} />
             </div>
           </div>
         )}

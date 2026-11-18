@@ -1,12 +1,13 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
+import { ConsentPreferencesLink } from "@/components/ConsentPreferencesLink";
 import { VoiceAgentLauncher } from "@/components/VoiceAgent";
 import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 import { BRAND } from "@/lib/catalog";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
 
-export function Footer() {
+export function Footer({ analyticsConsent = false }: { analyticsConsent?: boolean }) {
   const payments = paymentsLegalPublished();
   const waNumber = BRAND.whatsapp;
   const waText = BRAND.infoMessage;
@@ -61,6 +62,7 @@ export function Footer() {
             <Link href="/cargas-de-retorno">Cargas de retorno</Link>
             <Link href="/terminos">Términos de uso</Link>
             <Link href="/privacidad">Política de privacidad</Link>
+            {analyticsConsent ? <ConsentPreferencesLink /> : null}
             {payments ? <Link href="/politica-de-pagos">Política de pagos</Link> : null}
           </div>
         </div>
