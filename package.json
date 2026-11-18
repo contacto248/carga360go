@@ -12,6 +12,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "NODE_OPTIONS='--require ./tests/env.cjs' tsx --test tests/match.test.ts tests/auth-crud.test.ts tests/phase2.test.ts tests/carrier-gate.test.ts tests/regions.test.ts tests/redesign.test.ts tests/mobile-api.test.ts tests/whatsapp.test.ts tests/verification.test.ts tests/offers-security.test.ts tests/privacy.test.ts tests/accreditation.test.ts tests/admin-2fa.test.ts tests/mejoras-paquete.test.ts tests/web-chat.test.ts tests/whatsapp-canal.test.ts tests/pagos-mp.test.ts tests/kyc-didit.test.ts tests/registration-pdf.test.ts tests/kyc-lanzamiento.test.ts tests/pagos-legal.test.ts tests/audit-carga-publicada.test.ts tests/chat-respuestas-tres.test.ts tests/viaje-autoria.test.ts tests/ai-consumo.test.ts tests/migraciones-15-16.test.ts tests/consentimiento-analitica.test.ts",
+    "politica:generar": "node scripts/generar-politica.mjs",
+    "test:e2e": "tsx --test tests/e2e/consentimiento.e2e.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "seed-dev": "tsx scripts/seed-dev.ts"
   },
@@ -32,6 +34,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.6",
+    "playwright-core": "^1.65.1",
     "typescript": "^5"
   }
 }

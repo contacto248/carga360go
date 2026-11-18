@@ -172,6 +172,9 @@ test("Política §8 informa GTM/GA con consentimiento y cómo revocar, sin negar
   assert.match(text, /consentimiento/);
   assert.match(text, /Preferencias de privacidad/);
   assert.match(text, /c360-analytics-consent/);
+  assert.match(text, /stats\.g\.doubleclick\.net/);
+  assert.match(text, /personalización de anuncios/);
+  assert.match(text, /\[Por confirmar: plazo de conservación/);
   assert.doesNotMatch(text, /No usamos cookies de publicidad ni herramientas de analítica de terceros/);
 });
 
