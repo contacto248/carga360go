@@ -1,0 +1,124 @@
+/* Carga360go | Capa visual 2026 — solo presentación, sin comportamiento nuevo.
+   Referencias de estilo: negro espacial, blanco nítido, líneas finas y paneles compactos.
+   Se puede revertir eliminando esta importación en layout.tsx. */
+
+:root {
+  color-scheme: dark;
+  --navy: #08090c;
+  --navy2: #12151b;
+  --brand-navy: #08090c;
+  --accent: #f7f8fa;
+  --accent2: #dbe0e6;
+  --bg: #08090b;
+  --card: #111318;
+  --ink: #f4f5f7;
+  --muted: #a8b0bc;
+  --muted-soft: #a8b0bc;
+  --line: #292e36;
+  --line-strong: #414953;
+  --focus: #c5d5ff;
+  --focus-dark: #dfe8ff;
+  --r: 12px;
+}
+html { background: #08090b; }
+body { background: var(--bg); color: var(--ink); }
+.app-shell { background: #08090b; min-height: 100vh; }
+.wrap { max-width: 1320px; padding-left: clamp(16px, 3vw, 36px); padding-right: clamp(16px, 3vw, 36px); }
+
+header.top {
+  background: rgba(8, 9, 12, .95);
+  color: #f7f8fa;
+  border-bottom: 1px solid #23262c;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+header.top .wrap { min-height: 64px; height: auto; }
+nav.links a { border-radius: 7px; color: #c8cbd1; font-weight: 500; }
+nav.links a.on, nav.links a:hover { background: #1d2027; color: #fff; }
+.mobile-menu { background: #101216; border-bottom: 1px solid #292e36; }
+.mobile-menu a { color: #e4e7ea; }
+
+.btn { background: #f7f8fa; border-color: #f7f8fa; color: #101115; border-radius: 8px; box-shadow: none; }
+.btn:hover { background: #dce0e6; border-color: #dce0e6; color: #070809; }
+.btn.sec { background: #171a20; color: #f6f7f8; border-color: #353940; }
+.btn.sec:hover { background: #252a32; color: #fff; }
+.btn.ghost { background: transparent; color: #f7f8fa; border-color: #666c76; }
+.btn.wa { background: #f7f8fa; border-color: #f7f8fa; color: #0e1014; }
+.btn.wa:hover { background: #e2e6eb; color: #0e1014; }
+.btn:focus-visible, a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible { outline: 2px solid #ecf2ff; outline-offset: 3px; }
+
+.hero, .hero.hero2, .hero.hero-v2, .hero.hero-v3 {
+  position: relative;
+  isolation: isolate;
+  background: radial-gradient(ellipse 80% 55% at 86% 0%, #1b2331 0%, transparent 72%),
+              linear-gradient(155deg, #090a0e 0%, #0e1117 56%, #070809 100%);
+  color: #fff;
+  border-bottom: 1px solid #292e36;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: .12;
+  background-image: linear-gradient(#a8b0bb 1px, transparent 1px),
+                    linear-gradient(90deg, #a8b0bb 1px, transparent 1px);
+  background-size: 76px 76px;
+  -webkit-mask-image: linear-gradient(to left, #000, transparent 90%);
+  mask-image: linear-gradient(to left, #000, transparent 90%);
+}
+.hero h1 { color: #fff; letter-spacing: -.045em; font-weight: 700; }
+.hero p { color: #b9c0ca; }
+.hero h1 em { color: #fff; }
+.brand-hero { color: #fff !important; letter-spacing: -.04em; }
+
+.benefits-band, .block, .home-live-band, .alt { background-color: transparent; color: #f5f6f8; }
+.benefits-band { border-top: 1px solid #22262d; border-bottom: 1px solid #22262d; }
+.benefits-grid > li, .card, .filters, .matchitem, .lb-empty, .lb-list > li {
+  background: #12151a;
+  color: #f6f7f9;
+  border: 1px solid #2a2e36;
+  box-shadow: none;
+  border-radius: 10px;
+}
+.card:hover { border-color: #464b56; }
+.benefits-grid > li, .card { padding: clamp(14px, 1.6vw, 21px); }
+.lead, .meta, .page-title p, .cat p { color: #a8b0bc; }
+a.chip, .chip, .pill { background: #242830; color: #eef1f5; }
+a.chip:hover { background: #333840; color: #fff; }
+.pill.ok, .pill.warn, .pill.bad { color: #14171c; }
+.route .arrow { color: #f7f8fa; }
+
+.page-title h1, section.block h2, .benefits-band h2 { color: #fff; letter-spacing: -.035em; }
+label.f, label { color: #d9dde4; }
+input, select, textarea {
+  background: #171a20;
+  color: #f4f6f8;
+  border-color: #3a404a;
+  border-radius: 8px;
+}
+input::placeholder, textarea::placeholder { color: #9ea7b4; }
+input:focus, select:focus, textarea:focus { border-color: #e6ebf1; outline-color: #e6ebf1; }
+.eqpick button { background: #171a20; color: #f4f6f8; border-color: #353b45; }
+.eqpick button.on { background: #282d35; border-color: #d7dbe0; }
+.tbl th, .tbl td { border-color: #2d3139; }
+.matchitem, .notice, .empty { color: #d1d7e0; }
+.matchitem ul { color: #aab7c5; }
+.lb-route, .lb-head { color: #eef1f5; }
+.lb-meta, .lb-kind { color: #b6bdc8; }
+.steps-n { border-color: #555d68; color: #f7f8fa; }
+.steps .card:before { background: #2c323a; color: #fff; }
+.cta-band, footer.foot { background: #0d0f13; color: #abb4c1; border-color: #24282f; }
+footer.foot { border-top: 1px solid #272b33; }
+footer.foot a { color: #f5f6f8; }
+
+@media (max-width: 819px) {
+  .hero::before { opacity: .07; }
+  .hero { padding-top: 42px; padding-bottom: 42px; }
+  .benefits-grid > li, .card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
