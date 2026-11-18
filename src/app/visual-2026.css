@@ -122,3 +122,102 @@ footer.foot a { color: #f5f6f8; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
+
+
+/* 2026: four REAL panels. Visual-only overrides; routes, flags and actions unchanged. */
+:root {
+  --ui-base: #08090b;
+  --ui-surface: #0d0f12;
+  --ui-card: #12151a;
+  --ui-elevated: #181c22;
+  --ui-border: #292e36;
+  --ui-text: #f5f7fa;
+  --ui-muted: #adb5c0;
+  --ui-action: #f5f7fa;
+  --brand-orange: #f5f7fa;
+  --r: 9px;
+}
+body { background: var(--ui-base); color: var(--ui-text); }
+.app-shell .shell-content { min-width: 0; }
+.app-shell .side-nav {
+  background: #0b0c10;
+  border-right: 1px solid var(--ui-border);
+}
+.app-shell .side-links a {
+  color: #bfc6d0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-weight: 500;
+}
+.app-shell .side-links a.on,
+.app-shell .side-links a:hover {
+  background: #1b1f25;
+  color: #fff;
+  box-shadow: inset 2px 0 0 #f5f7fa;
+}
+.app-shell .tabbar { background: #0d0f12; border-top: 1px solid var(--ui-border); }
+.app-shell .tabbar a { color: #c1c8d2; }
+.app-shell .tabbar a.on { color: #fff; }
+.page-title, .ds-page .page-title { color: var(--ui-text); }
+.page-title h1, .ds-page h1, .ds-kit h1 { color: var(--ui-text); }
+.page-title p, .lead, .ds-page .lead, .ds-note, .ds-legal, .meta { color: var(--ui-muted); }
+.ds-kit, .ds-page { color: var(--ui-text); }
+.ds-kit h2, .ds-page h2, .ds-kit h3, .ds-page h3 { color: var(--ui-text); }
+.ds-kit :where(.card,.module-list li,.plain-list li,.ds-table-wrap,.ds-timeline,.ds-alerts,.ds-kpi),
+.ds-page :where(.card,.module-list li,.plain-list li,.ds-table-wrap,.ds-timeline,.ds-alerts,.ds-kpi),
+.account, .notice {
+  background: var(--ui-card);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  box-shadow: none;
+}
+.ds-kit :where(.card,.module-list li,.plain-list li) h3,
+.ds-page :where(.card,.module-list li,.plain-list li) h3,
+.ds-kit .ds-kpi strong,.ds-page .ds-kpi strong { color: #fff; }
+.ds-kit :where(.module-list,.plain-list) p,
+.ds-page :where(.module-list,.plain-list) p { color: #c1c8d1; }
+.ds-page .ds-transparency { color: #d0d6de; }
+.ds-page .ds-transparency a, .ds-kit a:not(.btn) { color: #e9edf2; }
+.ds-kit .ds-table th, .ds-page .ds-table th { color: #acb5c0; }
+.ds-kit .ds-table td, .ds-page .ds-table td { color: #eef0f3; }
+.ds-kit .ds-table th,.ds-kit .ds-table td,
+.ds-page .ds-table th,.ds-page .ds-table td { border-color: var(--ui-border); font-variant-numeric: tabular-nums; }
+.ds-kpi { border-top: 1px solid var(--ui-border); border-radius: 9px; }
+.ds-alerts li, .ds-timeline, .ds-kit .card, .ds-page .card { border-radius: 9px; }
+.ds-timeline ol { border-color: #8a929e; }
+.ds-table-wrap { overflow-x: auto; }
+.ds-kit :where(a,button,input,select,textarea),
+.ds-page :where(a,button,input,select,textarea) { transition: background-color .14s ease, border-color .14s ease; }
+.ds-kit :where(a,button,input,select,textarea):focus-visible,
+.ds-page :where(a,button,input,select,textarea):focus-visible,
+.app-shell :where(a,button,input,select,textarea):focus-visible {
+  outline: 2px solid #e8eef5;
+  outline-offset: 2px;
+}
+.card h3, .card p, .module-list h3, .plain-list h3 { overflow-wrap: anywhere; }
+.page-actions .btn, .ds-page .btn, .ds-kit .btn { border-radius: 8px; }
+.pill { border-radius: 7px; }
+.pill.ok { background: #163827; color: #bbf7d0; }
+.pill.warn { background: #3c3013; color: #fde68a; }
+.pill.bad { background: #3e1e25; color: #fecdd3; }
+.pill.gray { background: #242830; color: #e2e8f0; }
+.notice { border: 1px solid #3b424d; }
+.err { color: #fca5a5; }
+.okmsg { color: #86efac; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  background: #16191f;
+  color: #f5f7fa;
+  border: 1px solid #414753;
+}
+input::placeholder, textarea::placeholder { color: #aeb7c3; opacity: 1; }
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+select:focus-visible, textarea:focus-visible { border-color: #f1f5f9; }
+@media (max-width: 819px) {
+  .wrap { padding-inline: 16px; }
+  .ds-kit, .ds-page { gap: 12px; }
+  .ds-table-wrap { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-kit :where(a,button,input,select,textarea),
+  .ds-page :where(a,button,input,select,textarea) { transition: none; }
+}
