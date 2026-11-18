@@ -18,9 +18,14 @@ function outboxFor(email: string): { file: string; body: string }[] {
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)
-    .sort()
-    .map((name) => ({ file: name, body: fs.readFileSync(path.join(dir, name), "utf8") }))
-    .filter((item) => item.body.startsWith(`To: ${email}\n`));
+    .map((name) => {
+      const full = path.join(dir, name);
+      const stat = fs.statSync(full);
+      return { file: name, body: fs.readFileSync(full, "utf8"), mtime: stat.mtimeMs, ctime: stat.ctimeMs };
+    })
+    .filter((item) => item.body.startsWith(`To: ${email}\n`))
+    .sort((a, b) => a.mtime - b.mtime || a.ctime - b.ctime || a.file.localeCompare(b.file))
+    .map(({ file, body }) => ({ file, body }));
 }
 
 function lastToken(email: string): string {

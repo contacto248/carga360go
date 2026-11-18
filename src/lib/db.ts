@@ -838,6 +838,52 @@ function registerSha256(db: Database.Database) {
   });
 }
 
+/**
+ * Migración 035: estados v1.1 de la operación.
+ * La 033 es el hash del token y la 034 las alertas de operación. Esta no las usa.
+ * Reconstruye el CHECK. planificada pasa a abierta.
+ * No crea ops_operation_seq ni mueve ops_operation_counters.
+ * No altera el tope 9999. Copia en docs/migrations/035-ops-operacion-estados.sql.
+ * Reversa: docs/migrations/035-ops-operacion-estados-rollback.sql.
+ */
+export const MIGRATION_35_SQL = `
+DROP TABLE IF EXISTS ops_operations_v35;
+CREATE TABLE ops_operations_v35 (
+  id TEXT PRIMARY KEY,
+  cliente TEXT NOT NULL,
+  origen TEXT NOT NULL,
+  destino TEXT NOT NULL,
+  tipo_carga TEXT NOT NULL,
+  peso_kg REAL NOT NULL CHECK (peso_kg > 0),
+  estado TEXT NOT NULL CHECK (estado IN (
+    'abierta',
+    'documentacion_pendiente',
+    'en_asignacion',
+    'asignada',
+    'en_curso',
+    'entregada',
+    'cerrada',
+    'cancelada'
+  )),
+  version INTEGER NOT NULL CHECK (version >= 1),
+  created_by TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+INSERT INTO ops_operations_v35 (
+  id, cliente, origen, destino, tipo_carga, peso_kg, estado, version, created_by, created_at, updated_at
+)
+SELECT
+  id, cliente, origen, destino, tipo_carga, peso_kg,
+  CASE estado WHEN 'planificada' THEN 'abierta' ELSE estado END,
+  version, created_by, created_at, updated_at
+FROM ops_operations;
+DROP INDEX IF EXISTS idx_ops_operations_created;
+DROP TABLE ops_operations;
+ALTER TABLE ops_operations_v35 RENAME TO ops_operations;
+CREATE INDEX IF NOT EXISTS idx_ops_operations_created ON ops_operations(created_at);
+`;
+
 function schemaVersion(db: Database.Database): number {
   const row = db.prepare(`SELECT MAX(version) AS v FROM schema_migrations`).get() as { v: number | null };
   return row.v ?? 0;
@@ -1399,6 +1445,19 @@ function migrate(db: Database.Database) {
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (33, ?)`).run(new Date().toISOString());
     });
     apply();
+  }
+  // Estados v1.1 (035). La 033 es el hash del token. La 034 no está en esta release. Se comprueba el número 35, no el máximo.
+  if (!hasMigration(db, 35)) {
+    db.pragma("foreign_keys = OFF");
+    try {
+      const apply = db.transaction(() => {
+        db.exec(MIGRATION_35_SQL);
+        db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (35, ?)`).run(new Date().toISOString());
+      });
+      apply();
+    } finally {
+      db.pragma("foreign_keys = ON");
+    }
   }
 }
 
