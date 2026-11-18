@@ -23,6 +23,7 @@ import { OTP_MAX_ATTEMPTS, parseTrackingCode, setOtpSenderForTests, trackingCode
 import { parseContact, parseDate, parseWeightT, redactSensitive, toSpeech } from "../src/lib/agent/validate";
 import { twilioSignature, voiceProvidersStatus } from "../src/lib/agent/voice";
 import { listAudit } from "../src/lib/audit";
+import { privacyVersion } from "../src/lib/privacy";
 import { COOKIE_NAME } from "../src/lib/auth";
 import { setSetting } from "../src/lib/whatsapp/store";
 import { MIGRATION_15_SQL, getDb } from "../src/lib/db";
@@ -139,6 +140,20 @@ test("API apagada por defecto: GET enabled false y POST 503", async () => {
   assert.equal(response.status, 503);
 });
 
+test("sin consentimiento no se anota el nombre ni el contacto", async () => {
+  enable();
+  const started = await post({ message: "Quiero cotizar un flete" });
+  assert.match(String(started.data.reply), /Política de Privacidad/);
+  const refused = await post({ message: "Me llamo Ana Pérez, ana@ejemplo.cl, +56 9 1111 2222" }, started.cookie);
+  assert.match(String(refused.data.reply), /no guardo/i);
+  const row = getDb().prepare(`SELECT state FROM agent_conversations ORDER BY updated_at DESC LIMIT 1`).get() as { state: string };
+  const state = JSON.parse(row.state) as { data: Record<string, string> };
+  assert.equal(state.data.nombre, undefined);
+  assert.equal(state.data.contacto, undefined);
+  assert.notEqual(state.data.consentimiento, "si");
+  assert.equal(state.data.privacy_version, undefined);
+});
+
 test("cotización completa: lead en la base, resumen confirmado, sin precios ni comisiones", async () => {
   enable();
   const init = await GET(new Request(`${BASE}/api/agente`), ctx);
@@ -154,6 +169,7 @@ test("cotización completa: lead en la base, resumen confirmado, sin precios ni 
 
   const { cookie, last } = await talk([
     "Quiero cotizar un flete",
+    "acepto",
     "Frutícola Andes SpA",
     "+56 9 8765 4321",
     "+56 9 8765 4321",
@@ -187,6 +203,9 @@ test("cotización completa: lead en la base, resumen confirmado, sin precios ni 
   // Motor conectado, pero sin red la ruta no se calcula: cotización incompleta, sin cifra.
   assert.equal(lead.data.costo_fuente, "motor-costos-1.0 (incompleto)");
   assert.equal(lead.data.costo_estimado_clp, "");
+  assert.equal(lead.data.consentimiento, "si");
+  assert.equal(lead.data.privacy_version, privacyVersion());
+  assert.match(lead.data.consent_at, /^\d{4}-\d{2}-\d{2}T/);
   assert.match(reply, /datos pendientes/);
   assert.ok(listAudit(50).some((a) => a.action === "agente.lead_creado" && a.targetId === lead.id));
   // Respuesta con voz y sin secretos.
@@ -205,7 +224,7 @@ test("derivación a una persona: auditada sin texto del cliente, sin duplicar, c
   assert.equal(/Secreta99|clave/.test(entry!.detail || ""), false);
   const row = getDb().prepare(`SELECT body FROM agent_messages WHERE body LIKE '%clave es%' ORDER BY created_at DESC LIMIT 1`).get() as { body: string };
   assert.match(row.body, /clave es \[oculto\]/);
-  const steps = await talk(["+56 9 5555 1234", "+56 9 5555 1234", "omitir"], first.cookie);
+  const steps = await talk(["acepto", "+56 9 5555 1234", "+56 9 5555 1234", "omitir"], first.cookie);
   assert.match(String(steps.last.data.reply), /dejé su contacto/);
   const lead = listAgentLeads({ kind: "derivacion" }).find((l) => l.code === code)!;
   assert.equal(lead.contact, "56955551234");
@@ -216,7 +235,7 @@ test("derivación a una persona: auditada sin texto del cliente, sin duplicar, c
 
 test("registro: pide contacto de respaldo distinto y recuerda el respaldo como el bot", async () => {
   enable();
-  const { last } = await talk(["Quiero registrarme", "transportista", "Juan Soto", "juan@soto.cl", "juan@soto.cl", "+56 2 2345 6789"]);
+  const { last } = await talk(["Quiero registrarme", "transportista", "acepto", "Juan Soto", "juan@soto.cl", "juan@soto.cl", "+56 2 2345 6789"]);
   const reply = String(last.data.reply);
   assert.match(reply, /pre-registro/);
   assert.match(reply, /Contacto de respaldo/);
@@ -224,7 +243,7 @@ test("registro: pide contacto de respaldo distinto y recuerda el respaldo como e
   const lead = listAgentLeads({ kind: "registro" }).find((l) => l.code === last.data.leadCode)!;
   assert.equal(lead.role, "transportista");
   assert.equal(lead.backupContact, "56223456789");
-  const same = await talk(["Quiero registrarme", "empresa", "Ana", "ana@a.cl"]);
+  const same = await talk(["Quiero registrarme", "empresa", "acepto", "Ana", "ana@a.cl"]);
   const rejected = await post({ message: "ana@a.cl" }, same.cookie);
   assert.match(String(rejected.data.reply), /distinto del principal/);
 });
@@ -333,7 +352,7 @@ test("costos: el agente no da cifras sin cotización completa; con motor complet
     status: () => ({ connected: true, state: "prueba" }),
     estimate: async () => ({ ...base, totalClp: 1234567, complete: true, pending: [], km: 1612, dieselDate: "2026-11-14T12:00:00.000Z", breakdown: { peajes: 100000 } }),
   });
-  const { last } = await talk(["cuánto cuesta un flete de Santiago a Calama", "Minera Norte", "a@b.cl", "omitir", "Santiago", "Calama", "mañana", "equipos", "10 t", "rampla", "no", "sí"]);
+  const { last } = await talk(["cuánto cuesta un flete de Santiago a Calama", "acepto", "Minera Norte", "a@b.cl", "omitir", "Santiago", "Calama", "mañana", "equipos", "10 t", "rampla", "no", "sí"]);
   const reply = String(last.data.reply);
   assert.match(reply, /Costo referencial del flete.*\$1\.234\.567 con IVA/);
   assert.match(reply, /ruta real \(1\.612 km\)/);
@@ -352,7 +371,7 @@ test("costos: integración real con el motor (ruta y diésel grabados) — mismo
   net.online = true;
   try {
     await refreshDiesel();
-    const { last } = await talk(["quiero cotizar un flete", "Minera Pampa", "c@d.cl", "omitir", "Antofagasta", "Santiago", "mañana", "cobre", "20 t", "rampla", "no", "sí"]);
+    const { last } = await talk(["quiero cotizar un flete", "acepto", "Minera Pampa", "c@d.cl", "omitir", "Antofagasta", "Santiago", "mañana", "cobre", "20 t", "rampla", "no", "sí"]);
     const reply = String(last.data.reply);
     const expected = publicView(await quote({ origin: "Antofagasta", destination: "Santiago", equipment: "rampla_plana", weightT: 20 }), true);
     assert.equal(expected.complete, true, JSON.stringify(expected.pending));

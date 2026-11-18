@@ -72,6 +72,8 @@ npm run build
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | Correo real. Con `SMTP_HOST` vacío el enlace de “olvidé mi contraseña” queda en `MAIL_OUTBOX` y en el journal. |
 | `MAX_UPLOAD_BYTES` | Tope de cada archivo. Nginx debe permitir un poco más (`client_max_body_size 12m`). |
 | `TZ` | `America/Santiago` para que “hoy” y las fechas de retiro coincidan con Chile. |
+| `AI_ROUTER_ENABLED`, `OPENAI_API_KEY`, `XAI_API_KEY` | Orquestador y, si el flag es exactamente `true`, la redacción de AI GO. Sin flag, AI GO responde por reglas. |
+| `AUTOMATIONS_NOTIFY_ENABLED` | `true` envía el correo de sugerencias (y el webhook si hay `AUTOMATIONS_WEBHOOK_URL`). Cualquier otro valor lo deja apagado. No enciende WhatsApp. |
 
 La cookie de sesión se llama `c360_session`, es `httpOnly`, `SameSite=Lax` y dura 14 días. En la base se guarda solo el SHA-256 del token. La contraseña usa scrypt.
 

@@ -291,6 +291,14 @@ export function getAgentLead(id: string): AgentLead | null {
   return row ? toLead(row) : null;
 }
 
+/** Deja en el lead la versión de la política y la hora del consentimiento, sin reescribir el resto. */
+export function stampLeadConsent(id: string, version: string, at: string) {
+  const lead = getAgentLead(id);
+  if (!lead || !version || !at) return;
+  const data = { ...lead.data, consentimiento: "si", privacy_version: version, consent_at: at };
+  getDb().prepare(`UPDATE agent_leads SET data = ?, updated_at = ? WHERE id = ?`).run(JSON.stringify(data), at, id);
+}
+
 export function updateLeadContact(
   id: string,
   contact: { contact?: string | null; contactType?: ContactType | null; backupContact?: string | null; backupContactType?: ContactType | null },

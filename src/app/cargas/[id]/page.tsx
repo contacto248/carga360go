@@ -4,6 +4,7 @@ import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LoadCard } from "@/components/Cards";
+import { LoadSuggestions } from "@/components/LoadSuggestions";
 import { OffersPanel } from "@/components/OffersPanel";
 import { TripBoard } from "@/components/TripBoard";
 import { accreditationOf } from "@/lib/accreditation";
@@ -81,6 +82,7 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
         </p>
       ) : null}
       <LoadCard load={load} canManage={isOwner} priceHint={settings.showSuggestedPrice ? costHintFor(load) : null} showOfferButton={false} />
+      {!load.isDemo && (isOwner || mode === "admin") ? <LoadSuggestions loadId={load.id} /> : null}
       {load.isDemo ? null : (
         <OffersPanel
           loadId={load.id}
