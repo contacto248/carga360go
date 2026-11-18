@@ -64,7 +64,7 @@ export default function VistaConceptual() {
           <p className="p-intro">{view.intro}</p>
           <div className="p-image" aria-label="Ilustración conceptual de logística terrestre">
             <span className="p-image-copy">CARGA360GO<br/>INTELIGENCIA LOGÍSTICA<br/>CHILE · OPERACIÓN NACIONAL</span>
-            <span className="p-truck" aria-hidden="true">🚛</span>
+            <svg className="p-truck" aria-hidden="true" viewBox="0 0 320 125" width="320" height="125" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 91H184V20H22V91H14ZM184 44H255L300 75V91H184V44Z" stroke="currentColor" strokeWidth="2.5"/><path d="M203 53H247L275 73H203V53ZM10 91H307M38 24H165" stroke="currentColor" strokeWidth="1.3"/><circle cx="67" cy="94" r="19" fill="#0d0f11" stroke="currentColor" strokeWidth="2.5"/><circle cx="67" cy="94" r="8" stroke="currentColor" strokeWidth="1.5"/><circle cx="235" cy="94" r="19" fill="#0d0f11" stroke="currentColor" strokeWidth="2.5"/><circle cx="235" cy="94" r="8" stroke="currentColor" strokeWidth="1.5"/><path d="M30 36H160M30 44H160M30 52H160" stroke="currentColor" strokeWidth=".7" opacity=".45"/></svg>
           </div>
           <div className="p-grid">
             {view.metrics.map(([name, value]) => <div key={name} className="p-metric"><span>{name}</span><strong>{value}</strong></div>)}
