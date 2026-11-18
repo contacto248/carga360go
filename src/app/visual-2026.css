@@ -246,3 +246,19 @@ select:focus-visible, textarea:focus-visible { border-color: #f1f5f9; }
   background: #252a32;
   color: #f5f7fa;
 }
+
+
+/* Additional Codex review fixes: keep all dark sections and their headings legible. */
+section.block.alt {
+  background: #0d0f12 !important;
+  color: #f5f7fa !important;
+  border-top: 1px solid #292e36;
+  border-bottom: 1px solid #292e36;
+}
+section.block.alt :where(h1,h2,h3,h4,strong) { color: #f5f7fa; }
+section.block :where(h2,h3,h4),
+.steps-rail :where(h2,h3,h4),
+.audience-grid :where(h2,h3,h4) {
+  color: #f5f7fa;
+}
+section.block.alt :where(p,li,small,.lead,.meta) { color: #adb5c0; }
