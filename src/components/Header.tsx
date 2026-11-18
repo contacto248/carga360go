@@ -6,6 +6,8 @@ import type { PublicUser } from "@/lib/types";
 
 const LINKS = [
   { href: "/", label: "Inicio" },
+  { href: "/marketplace", label: "Marketplace" },
+  { href: "/control-tower", label: "Torre de control" },
   { href: "/cargas", label: "Cargas" },
   { href: "/camiones", label: "Camiones" },
   { href: "/mi-cuenta?rol=mandante", label: "Publicar carga" },
