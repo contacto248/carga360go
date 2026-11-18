@@ -221,3 +221,28 @@ select:focus-visible, textarea:focus-visible { border-color: #f1f5f9; }
   .ds-kit :where(a,button,input,select,textarea),
   .ds-page :where(a,button,input,select,textarea) { transition: none; }
 }
+
+
+/* Codex review fixes: preserve contrast on legacy light surfaces and controls. */
+.cost-banner, .qsearch {
+  color: #171a20;
+  background: #f7f8fa;
+}
+.cost-banner p, .cost-banner strong, .cost-tags span { color: #171a20; }
+.qsearch :where(label, p, strong, span) { color: #171a20; }
+.benefits-grid h3, .card h3 { color: #f5f7fa; }
+.agent-fab, .agent-fab:hover {
+  background: #252a32;
+  color: #f5f7fa;
+  border: 1px solid #59616d;
+}
+.agent-fab :where(span, svg) { color: #f5f7fa; }
+.agent-mic.is-on {
+  background: #252a32;
+  color: #f5f7fa;
+  border-color: #59616d;
+}
+.wizard-steps li.on button span {
+  background: #252a32;
+  color: #f5f7fa;
+}
