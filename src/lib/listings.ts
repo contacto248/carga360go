@@ -1,4 +1,7 @@
 import { randomUUID } from "crypto";
+import { automationsNotifyEnabled } from "./automations/config";
+import { notifyLoadSuggestions } from "./automations/notify";
+import { recordLoadSuggestions } from "./automations/suggest";
 import { cityByName, equipmentById, isEquipmentId, isKnownCity } from "./catalog";
 import { getDb } from "./db";
 import { AppError } from "./errors";
@@ -505,6 +508,19 @@ export function createLoad(user: PublicUser, input: LoadInput, isDemo = false): 
     );
   const created = getLoad(id);
   if (!created) throw new AppError("No se pudo publicar la carga.", 500);
+  if (!isDemo) {
+    try {
+      const suggestions = recordLoadSuggestions(created);
+      if (suggestions.length > 0 && automationsNotifyEnabled()) {
+        const loadId = created.id;
+        queueMicrotask(() => {
+          void notifyLoadSuggestions(loadId).catch((error) => console.error("[carga360go] aviso de automatización", error));
+        });
+      }
+    } catch (error) {
+      console.error("[carga360go] sugerencias de carga", error);
+    }
+  }
   return created;
 }
 

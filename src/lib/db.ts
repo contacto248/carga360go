@@ -760,6 +760,31 @@ ALTER TABLE ops_alerts ADD COLUMN severity TEXT NOT NULL DEFAULT 'media' CHECK (
  * Copia en docs/migrations/032-ai-router-uso.sql.
  * Reversa: docs/migrations/032-ai-router-uso-rollback.sql.
  */
+/**
+ * Migración 033: sugerencias al publicar una carga (compatible o retorno).
+ * La 032 queda intacta. Solo una tabla nueva. Sin precios ni teléfono del transportista.
+ * Copia en docs/migrations/033-sugerencias-carga.sql.
+ * Reversa: docs/migrations/033-sugerencias-carga-rollback.sql.
+ */
+export const MIGRATION_33_SQL = `
+CREATE TABLE IF NOT EXISTS load_suggestions (
+  id TEXT PRIMARY KEY,
+  load_id TEXT NOT NULL REFERENCES loads(id) ON DELETE CASCADE,
+  truck_id TEXT NOT NULL REFERENCES trucks(id) ON DELETE CASCADE,
+  carrier_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('compatible', 'retorno')),
+  score INTEGER NOT NULL,
+  reasons_json TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL,
+  notified_at TEXT,
+  UNIQUE (load_id, truck_id, kind)
+);
+CREATE INDEX IF NOT EXISTS idx_load_suggestions_load ON load_suggestions(load_id, kind);
+CREATE INDEX IF NOT EXISTS idx_load_suggestions_kind ON load_suggestions(kind, created_at);
+`;
+
+export const MIGRATION_33_TABLES = ["load_suggestions"] as const;
+
 export const MIGRATION_32_SQL = `
 CREATE TABLE IF NOT EXISTS ai_router_usage (
   id TEXT PRIMARY KEY,
@@ -1343,6 +1368,16 @@ function migrate(db: Database.Database) {
     const apply = db.transaction(() => {
       db.exec(MIGRATION_32_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (32, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // Sugerencias de carga (033). La 032 (uso del orquestador) queda intacta. Se comprueba el número 33, no el máximo.
+  if (!hasMigration(db, 33)) {
+    const apply = db.transaction(() => {
+      // Camión compatible o corredor de retorno al publicar una carga. Solo una tabla nueva, sin filas de ejemplo.
+      // No toca agent_leads, ops_* ni el motor de costos. Copia en docs/migrations/033-sugerencias-carga.sql.
+      db.exec(MIGRATION_33_SQL);
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (33, ?)`).run(new Date().toISOString());
     });
     apply();
   }

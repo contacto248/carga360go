@@ -8,7 +8,7 @@ import { sendEmail } from "../notify";
 import type { EquipmentId, PublicUser } from "../types";
 import { BACKUP_CONTACT_ASK, LINKS, detectIntent, normalize } from "../whatsapp/intents";
 import { waConfig } from "../whatsapp/config";
-import { applySlot, clearSlot, nextSlot, previousSlot, slotByMention, slotsFor, summaryOf, type Slot } from "./flow";
+import { applySlot, clearSlot, CONSENT_SLOT, nextSlot, previousSlot, slotByMention, slotsFor, summaryOf, type Slot } from "./flow";
 import { costAboutShipment, detectAgentIntent, isBack, isCancel } from "./intents";
 import {
   createAgentLead,
@@ -17,6 +17,7 @@ import {
   listAgentMessages,
   markAgentHandoff,
   saveAgentState,
+  stampLeadConsent,
   updateLeadContact,
   upsertAgentConversation,
   type AgentConversation,
@@ -215,8 +216,17 @@ async function handoff(conv: AgentConversation, input: TurnInput, reason: string
   };
 }
 
+function consentRecord(data: Record<string, string>): { consentimiento: string; privacy_version: string; consent_at: string } | null {
+  if (data.consentimiento !== "si" || !data.privacy_version || !data.consent_at) return null;
+  return { consentimiento: "si", privacy_version: data.privacy_version, consent_at: data.consent_at };
+}
+
 async function finishQuote(conv: AgentConversation, state: AgentState, user: PublicUser | null | undefined, at: string): Promise<Outcome> {
   const d = state.data;
+  const consent = consentRecord(d);
+  if (!consent) {
+    return { text: CONSENT_SLOT.ask, state: { ...state, step: "consentimiento" }, intent: "cotizar", mode: "flujo", engine: "flujo:cotizar:sin_consentimiento" };
+  }
   const origin = cityFromText(d.origen ?? "") ?? "";
   const destination = cityFromText(d.destino ?? "") ?? "";
   const costs = freightCostProvider();
@@ -261,6 +271,7 @@ async function finishQuote(conv: AgentConversation, state: AgentState, user: Pub
       costo_estimado_clp: estimate?.complete && estimate.totalClp !== null ? String(Math.round(estimate.totalClp)) : "",
       costo_fuente: estimate ? `${estimate.source}${estimate.complete ? "" : " (incompleto)"}` : costs.status().connected ? "motor_sin_resultado" : "pendiente_de_conectar",
       costo_cotizacion_id: estimate?.quoteId ?? "",
+      ...consent,
     },
     summary: summaryOf("cotizar", { ...d, contacto: d.contacto ? "(registrado)" : "", respaldo: d.respaldo ? "(registrado)" : "" }),
     at,
@@ -298,6 +309,10 @@ async function finishQuote(conv: AgentConversation, state: AgentState, user: Pub
 
 function finishRegister(conv: AgentConversation, state: AgentState, at: string): Outcome {
   const d = state.data;
+  const consent = consentRecord(d);
+  if (!consent) {
+    return { text: CONSENT_SLOT.ask, state: { ...state, step: "consentimiento" }, intent: "registro", mode: "flujo", engine: "flujo:registro:sin_consentimiento" };
+  }
   const lead = createAgentLead({
     conversationId: conv.id,
     channel: conv.channel,
@@ -308,7 +323,7 @@ function finishRegister(conv: AgentConversation, state: AgentState, at: string):
     backupContact: d.respaldo_valor || null,
     backupContactType: contactType(d.respaldo_tipo),
     role: d.tipo,
-    data: { tipo: d.tipo ?? "" },
+    data: { tipo: d.tipo ?? "", ...consent },
     summary: `Pre-registro de ${d.tipo}`,
     at,
   });
@@ -334,6 +349,10 @@ function finishRegister(conv: AgentConversation, state: AgentState, at: string):
 
 function finishHandoff(state: AgentState, at: string): Outcome {
   if (state.leadId && state.data.contacto_valor) {
+    const consent = consentRecord(state.data);
+    if (!consent) {
+      return { text: CONSENT_SLOT.ask, state: { ...state, step: "consentimiento" }, intent: "humano", mode: "flujo", engine: "flujo:humano:sin_consentimiento", handoff: true };
+    }
     updateLeadContact(
       state.leadId,
       {
@@ -344,6 +363,7 @@ function finishHandoff(state: AgentState, at: string): Outcome {
       },
       at,
     );
+    stampLeadConsent(state.leadId, consent.privacy_version, consent.consent_at);
     return {
       text: `Gracias, dejé su contacto (${state.data.contacto}) en la solicitud. Una persona del equipo le escribirá.`,
       state: { ...EMPTY_STATE, leadId: state.leadId },

@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/admin/whatsapp", label: "WhatsApp" },
   { href: "/admin/chat", label: "Chat web" },
   { href: "/admin/agente", label: "Agente comercial" },
+  { href: "/admin/gestion", label: "Control de gestión" },
   { href: "/admin/costos", label: "Costos" },
 ];
 

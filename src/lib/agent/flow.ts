@@ -1,7 +1,9 @@
-import { normalize } from "../whatsapp/intents";
+import { BRAND } from "../catalog";
+import { privacyVersion } from "../privacy";
+import { LINKS, normalize } from "../whatsapp/intents";
 import type { EquipmentId } from "../types";
 import type { AgentFlow, AgentState } from "./types";
-import { isSkip, parseContact, parseDate, parseWeightT } from "./validate";
+import { isSkip, isYes, parseContact, parseDate, parseWeightT } from "./validate";
 
 /**
  * Flujos guiados del agente: piden un dato a la vez, validan cada respuesta y terminan con un resumen
@@ -59,13 +61,40 @@ export function equipmentFromText(text: string): EquipmentId | null {
   return null;
 }
 
+const BACKUP_ASK =
+  "¿Tiene un teléfono o correo de respaldo, distinto del anterior, por si no logramos ubicarle? Si no, diga «omitir».";
+
+/** Se pide antes de guardar nombre, correo o teléfono. La versión y la hora las estampa el servidor al aceptar. */
+export function acceptConsent(text: string): SlotResult {
+  const answer = text.trim();
+  if (isYes(answer) || /^(acepto|autorizo|de acuerdo)\b/i.test(answer)) {
+    return {
+      ok: true,
+      value: "si",
+      extra: { privacy_version: privacyVersion(), consent_at: new Date().toISOString() },
+    };
+  }
+  return {
+    ok: false,
+    error: "Sin ese consentimiento no guardo su nombre, correo ni teléfono. Si está de acuerdo con la Política de Privacidad, responda «acepto».",
+  };
+}
+
+export const CONSENT_SLOT: Slot = {
+  key: "consentimiento",
+  label: "Consentimiento",
+  ask: `Antes de guardar su nombre, correo o teléfono, ¿acepta que ${BRAND.company} los trate según la Política de Privacidad (${LINKS.privacidad}) solo para responder esta solicitud? Responda «acepto».`,
+  validate: acceptConsent,
+};
+
 export const QUOTE_SLOTS: Slot[] = [
+  CONSENT_SLOT,
   { key: "nombre", label: "Nombre o razón social", ask: "Para registrar su solicitud, ¿a nombre de quién o de qué empresa la dejo?", validate: freeText(2, 120, "Indíqueme un nombre o razón social.") },
   { key: "contacto", label: "Contacto", ask: "¿A qué teléfono o correo le puede responder un ejecutivo?", validate: contactSlot },
   {
     key: "respaldo",
     label: "Contacto de respaldo",
-    ask: "¿Tiene un teléfono o correo de respaldo, distinto del anterior, por si no logramos ubicarle? Si no, diga «omitir».",
+    ask: BACKUP_ASK,
     optional: true,
     validate: backupSlot,
   },
@@ -123,12 +152,14 @@ export const REGISTER_SLOTS: Slot[] = [
       return { ok: false, error: "Dígame «empresa» si tiene carga para mover, o «transportista» si tiene camión." };
     },
   },
+  CONSENT_SLOT,
   { key: "nombre", label: "Nombre o empresa", ask: "¿Cuál es su nombre o el de su empresa?", validate: freeText(2, 120, "Indíqueme un nombre o razón social.") },
   { key: "contacto", label: "Contacto", ask: "¿A qué teléfono o correo le escribimos para ayudarle con la inscripción?", validate: contactSlot },
-  { key: "respaldo", label: "Contacto de respaldo", ask: QUOTE_SLOTS[2].ask, optional: true, validate: backupSlot },
+  { key: "respaldo", label: "Contacto de respaldo", ask: BACKUP_ASK, optional: true, validate: backupSlot },
 ];
 
 export const HANDOFF_SLOTS: Slot[] = [
+  CONSENT_SLOT,
   {
     key: "contacto",
     label: "Contacto",
@@ -139,7 +170,7 @@ export const HANDOFF_SLOTS: Slot[] = [
   {
     key: "respaldo",
     label: "Contacto de respaldo",
-    ask: QUOTE_SLOTS[2].ask,
+    ask: BACKUP_ASK,
     optional: true,
     validate: backupSlot,
   },
@@ -171,6 +202,7 @@ export function previousSlot(flow: AgentFlow, current: string | null): Slot | nu
 export function slotByMention(flow: AgentFlow, text: string): Slot | null {
   const t = normalize(text);
   const aliases: Record<string, RegExp> = {
+    consentimiento: /\b(consentimiento|privacidad|acepto)\b/,
     nombre: /\b(nombre|empresa|razon social)\b/,
     contacto: /\b(contacto|telefono|celular|correo|mail|numero)\b/,
     respaldo: /\b(respaldo)\b/,
@@ -221,5 +253,9 @@ export function clearSlot(state: AgentState, key: string): AgentState {
   }
   if (key === "peso") delete data.peso_t;
   if (key === "camion") delete data.equipo;
+  if (key === "consentimiento") {
+    delete data.privacy_version;
+    delete data.consent_at;
+  }
   return { ...state, data };
 }
