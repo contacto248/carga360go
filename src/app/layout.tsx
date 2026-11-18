@@ -23,6 +23,7 @@ import { BRAND } from "@/lib/catalog";
 import "./tokens.css";
 import "./globals.css";
 import "./visual-2026.css";
+import "./visual-2026.css";
 
 const display = Sora({
   subsets: ["latin"],
