@@ -1,0 +1,219 @@
+/* Carga360go: refresco visual acotado a la portada. Sin modificar formularios ni lógica. */
+.c360-modern-home {
+  min-height: 100vh;
+  background: #0a0a0b;
+  color: #f4f4f5;
+}
+
+.c360-modern-home .hero.hero2.hero-v2.hero-v3.hero-fold {
+  background:
+    radial-gradient(ellipse 70% 70% at 87% 25%, rgba(255, 122, 46, .13), transparent 68%),
+    linear-gradient(110deg, #0a0a0b 0%, #131316 74%, #0a0a0b 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+.c360-modern-home .hero-copy h1 {
+  color: #fff;
+  font-size: clamp(2.4rem, 5.1vw, 5.1rem);
+  font-weight: 800;
+  letter-spacing: -.055em;
+  line-height: 1.04;
+}
+.c360-modern-home .hero .brand-hero {
+  color: #ff995b;
+  letter-spacing: .04em;
+}
+.c360-modern-home .hero .hero-lead,
+.c360-modern-home .hero .hero-legal {
+  color: #c2c2ca;
+}
+.c360-modern-home .hero .hero-cost-line {
+  color: #ffc39c;
+}
+.c360-modern-home .hero .cta .btn {
+  background: #ff7a2e;
+  color: #16100d;
+  border-color: #ff7a2e;
+  box-shadow: 0 12px 36px rgba(255, 122, 46, .18);
+}
+.c360-modern-home .hero .cta .btn:hover {
+  background: #ff9657;
+}
+.c360-modern-home .hero .hero-secondary-links a {
+  color: #ffbc91;
+}
+.c360-modern-home .hero .tower-board {
+  background: rgba(21, 21, 24, .94);
+  border: 1px solid rgba(255, 255, 255, .17);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .35);
+  color: #f4f4f5;
+}
+.c360-modern-home .hero .tower-board .tower-head,
+.c360-modern-home .hero .tower-board .tower-steps strong {
+  color: #f4f4f5;
+}
+.c360-modern-home .hero .tower-board .tower-step-text {
+  color: #b6b6c0;
+}
+
+/* El diseño de paneles utiliza únicamente enlaces a páginas existentes. */
+.c360-existing-modules {
+  padding: clamp(34px, 5vw, 64px) 0;
+  background: #0e0e10;
+  border-block: 1px solid rgba(255, 255, 255, .08);
+}
+.c360-module-eyebrow {
+  margin: 0 0 14px;
+  color: #ff9b5f;
+  font-size: .73rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+.c360-module-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.c360-module-heading h2 {
+  color: #fff;
+  font-size: clamp(1.65rem, 3vw, 2.7rem);
+  letter-spacing: -.04em;
+  margin: 0 0 10px;
+}
+.c360-module-heading p {
+  color: #b4b4be;
+  max-width: 640px;
+  margin: 0;
+}
+.c360-module-mark {
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 122, 46, .35);
+  border-radius: 999px;
+  padding: 6px 11px;
+  color: #ffb787;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+.c360-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.c360-module-card {
+  display: flex;
+  min-width: 0;
+  min-height: 218px;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 18px;
+  padding: 20px;
+  background: linear-gradient(135deg, #19191c 0%, #121214 100%);
+  color: #f4f4f5;
+  text-decoration: none;
+  transition: border-color .18s ease, transform .18s ease;
+}
+.c360-module-card:hover,
+.c360-module-card:focus-visible {
+  border-color: #ff7a2e;
+  transform: translateY(-2px);
+}
+.c360-module-card:focus-visible {
+  outline: 3px solid #ffb37b;
+  outline-offset: 2px;
+}
+.c360-module-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.c360-module-number {
+  color: #ff9859;
+  font-family: ui-monospace, monospace;
+  font-size: .85rem;
+}
+.c360-module-arrow {
+  color: #ff9859;
+  font-size: 1.4rem;
+}
+.c360-module-card strong {
+  color: #fff;
+  font-size: 1.08rem;
+}
+.c360-module-description {
+  flex: 1;
+  color: #b9b9c2;
+  line-height: 1.5;
+  font-size: .88rem;
+}
+.c360-module-action {
+  color: #ffae75;
+  font-weight: 800;
+  font-size: .84rem;
+}
+.c360-modern-home .benefits-band,
+.c360-modern-home section.block,
+.c360-modern-home .counters-band {
+  background: #0a0a0b;
+  color: #f4f4f5;
+}
+.c360-modern-home section.block.alt,
+.c360-modern-home section.home-live-band {
+  background: #111113;
+}
+.c360-modern-home .benefits-band h2,
+.c360-modern-home section.block h2 {
+  color: #fff;
+}
+.c360-modern-home .lead {
+  color: #b8b8c1;
+}
+.c360-modern-home .benefits-grid li,
+.c360-modern-home .steps-rail li,
+.c360-modern-home .audience-grid article,
+.c360-modern-home .faq .card,
+.c360-modern-home .cta-band {
+  background: #171719;
+  color: #f4f4f5;
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: 18px;
+  box-shadow: none;
+}
+.c360-modern-home .benefits-grid h3,
+.c360-modern-home .steps-rail h3,
+.c360-modern-home .audience-grid h3,
+.c360-modern-home .faq summary {
+  color: #fff;
+}
+.c360-modern-home .benefits-grid p,
+.c360-modern-home .steps-rail p,
+.c360-modern-home .audience-grid p,
+.c360-modern-home .faq details p {
+  color: #bdbdc6;
+}
+.c360-modern-home section.block a:not(.btn) {
+  color: #ffb07c;
+}
+.c360-modern-home .tower-live {
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: #161618;
+  color: #f4f4f5;
+}
+.c360-modern-home .cta-band {
+  background: radial-gradient(circle at 85% 0%, rgba(255, 122, 46, .14), transparent 55%), #18181b;
+}
+@media (max-width: 900px) {
+  .c360-modules-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .c360-modules-grid { grid-template-columns: 1fr; }
+  .c360-module-card { min-height: 160px; }
+  .c360-module-heading { align-items: start; flex-direction: column; }
+  .c360-modern-home .hero-copy h1 { font-size: clamp(2.2rem, 10vw, 3.4rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .c360-module-card { transition: none; }
+  .c360-module-card:hover { transform: none; }
+}
