@@ -1,18 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import Script from "next/script";
-import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
+import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { PolicyBody, TermsBody } from "@/components/PolicyBody";
 import { PrivacyGate } from "@/components/PrivacyGate";
 import { privacyGateFor } from "@/lib/accreditation";
-import {
-  GA_MEASUREMENT_ID,
-  GTM_ID,
-  gtagBootstrapScript,
-  isAdminPathname,
-} from "@/lib/analytics";
 import { getCurrentUser } from "@/lib/current-user";
 import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
@@ -106,39 +99,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   // Cuentas con sesión que no han aceptado las versiones vigentes de la Política de Privacidad y los Términos: todo el sitio queda tras el aviso.
   const privacy = privacyGateFor(user);
   const productionAnalytics = await isProductionAnalyticsEnabled();
-  const pathname = (await headers()).get("x-pathname") || "";
-  const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname);
   return (
     <html lang="es-CL">
       <body>
-        {loadAnalyticsTags ? (
-          <>
-            <noscript>
-              <iframe
-                src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-                height="0"
-                width="0"
-                style={{ display: "none", visibility: "hidden" }}
-                title="Google Tag Manager"
-              />
-            </noscript>
-            <Script id="google-tag-manager" strategy="afterInteractive">
-              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`}
-            </Script>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {gtagBootstrapScript()}
-            </Script>
-          </>
-        ) : null}
-        {productionAnalytics ? <AnalyticsRouteGuard /> : null}
+        {/* GTM y GA solo se cargan tras un consentimiento explícito (banner de aceptar o rechazar). Ver AnalyticsConsent. */}
+        {productionAnalytics ? <AnalyticsConsent /> : null}
         <Header user={user} />
         <main>
           {privacy.required && user ? (
@@ -155,7 +120,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             children
           )}
         </main>
-        <Footer />
+        <Footer analyticsConsent={productionAnalytics} />
       </body>
     </html>
   );

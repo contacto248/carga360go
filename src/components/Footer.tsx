@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { ConsentPreferencesLink } from "@/components/ConsentPreferencesLink";
 import { HelpLauncher } from "@/components/ChatWidget";
 import { webChatEnabled } from "@/lib/chat/config";
 import { BRAND } from "@/lib/catalog";
 import { waLink } from "@/lib/format";
 import { paymentsComingSoon, paymentsLegalPublished } from "@/lib/pagos/config";
 
-export function Footer() {
+export function Footer({ analyticsConsent = false }: { analyticsConsent?: boolean } = {}) {
   const payments = paymentsLegalPublished();
   const comingSoon = paymentsComingSoon();
   const href = waLink(BRAND.whatsapp, BRAND.infoMessage);
@@ -56,6 +57,7 @@ export function Footer() {
             <Link href="/cargas-de-retorno-mineras">Cargas de retorno</Link>
             <Link href="/terminos">Términos de uso</Link>
             <Link href="/privacidad">Política de privacidad</Link>
+            {analyticsConsent ? <ConsentPreferencesLink /> : null}
             {payments ? <Link href="/politica-de-pagos">Política de pagos</Link> : null}
           </div>
         </div>

@@ -1,0 +1,144 @@
+/* Portada en negro y blanco. Solo aplica bajo .home-bw; el resto del sitio no cambia.
+   Un único acento naranja (el de la marca: --accent), usado solo en la insignia "Agente". Sin fuentes externas. */
+body:has(.home-bw){background:#000}
+body:has(.home-bw) .demo-banner{background:#0a0a0a;color:#a6a6a6;border-bottom:1px solid #ffffff24}
+body:has(.home-bw) .demo-banner strong{color:#fff}
+body:has(.home-bw) header.top{background:#000c;backdrop-filter:blur(10px);border-bottom:1px solid #ffffff24}
+body:has(.home-bw) nav.links a{color:#fff;opacity:.88}
+body:has(.home-bw) nav.links a.on,body:has(.home-bw) nav.links a:hover{background:#1d1d1d;opacity:1}
+body:has(.home-bw) .mobile-menu{background:#0a0a0a}
+body:has(.home-bw) footer.foot{background:#000;border-top:1px solid #ffffff24;color:#8a8a8a;margin-top:0}
+
+.home-bw{
+  --ink:#fff;--muted:#8a8a8a;--line:#ffffff24;--card:#111;--navy:#fff;--navy2:#1d1d1d;--bg:#000;
+  background:#000;color:#fff;font-family:Inter,"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+}
+.home-bw h1,.home-bw h2,.home-bw h3{font-weight:400;letter-spacing:-.025em}
+.home-bw .lead,.home-bw .meta{color:#a6a6a6}
+.home-bw a{text-underline-offset:4px}
+.home-bw :focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+/* Botones */
+.home-bw .btn,.home-bw .bw-btn{border-radius:999px;font-weight:500;box-shadow:none}
+.home-bw .btn{background:#fff;color:#000;border-color:#fff}
+.home-bw .btn:hover{background:#e6e6e6}
+.home-bw .btn.sec,.home-bw .btn.ghost,.home-bw .bw-btn-dark{background:#1d1d1d;color:#fff;border:1px solid #2a2a2a}
+.home-bw .btn.sec:hover,.home-bw .btn.ghost:hover,.home-bw .bw-btn-dark:hover{background:#262626}
+.home-bw .hero .cta .btn.wa,.home-bw .btn.wa{background:#1d1d1d;color:#fff;border:1px solid #2a2a2a}
+.bw-btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;text-decoration:none;font-size:.95rem;cursor:pointer}
+.bw-btn-light{background:#fff;color:#000}
+.bw-btn-light:hover{background:#e6e6e6}
+.bw-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+
+/* Hero */
+.home-bw .hero{background:radial-gradient(900px 500px at 78% 40%,#ffffff0f,transparent 70%),#000;border-bottom:1px solid #ffffff24;color:#fff}
+.home-bw .hero2{padding:56px 0 64px}
+.home-bw .hero h1{font-size:clamp(2.2rem,5.2vw,4.2rem);line-height:1.04;max-width:14em}
+.home-bw .hero p{color:#a6a6a6}
+.home-bw .hero-pill{background:transparent;color:#a6a6a6;border:1px solid #ffffff3d;letter-spacing:.14em;text-transform:uppercase;font-weight:500;font-size:.7rem}
+.home-bw .hero-legal{color:#8a8a8a}
+.home-bw .live-board{background:#0a0a0a;border:1px solid #ffffff24;border-radius:20px;backdrop-filter:none}
+.home-bw .lb-head{color:#fff;font-weight:500}
+.home-bw .lb-all{color:#fff}
+.home-bw .dot-live{background:#fff;box-shadow:0 0 0 4px #ffffff22}
+.home-bw .lb-list a,.home-bw .lb-empty{background:#111;color:#fff;border:1px solid #ffffff1a}
+.home-bw .lb-meta,.home-bw .lb-time,.home-bw .lb-empty p{color:#8a8a8a}
+.home-bw .lb-kind,.home-bw .lb-kind.camion{background:#1d1d1d;color:#fff;border:1px solid #ffffff2a}
+.home-bw .qsearch{background:#0a0a0a;border:1px solid #ffffff24}
+.home-bw .qtabs button{background:#1d1d1d;color:#fff}
+.home-bw .qtabs button.on{background:#fff;color:#000}
+.home-bw input,.home-bw select{background:#0a0a0a;color:#fff;border:1px solid #2d2d2d;border-radius:12px}
+.home-bw input::placeholder{color:#767676}
+.home-bw input:focus,.home-bw select:focus{outline:2px solid #fff;border-color:transparent}
+.home-bw label.f,.home-bw .qeq-toggle{color:#a6a6a6}
+
+/* Secciones existentes, en oscuro */
+.home-bw section.block,.home-bw section.block.alt{background:#000;border-top:1px solid #ffffff24}
+.home-bw section.block h2{font-size:clamp(1.8rem,3.4vw,2.8rem)}
+.home-bw .counters-band{background:#000;border-bottom:1px solid #ffffff24}
+.home-bw .counter strong{color:#fff;font-weight:400}
+.home-bw .counter span,.home-bw .path p,.home-bw .eq-tile p,.home-bw .cat p,.home-bw .faq details p,.home-bw .soon{color:#a6a6a6}
+.home-bw .card{background:#111;border:1px solid #ffffff24;border-radius:20px;color:#fff}
+.home-bw .card:hover{border-color:#ffffff55}
+.home-bw .eq-tile:hover,.home-bw .cat.hl{border-color:#ffffff55;box-shadow:none}
+.home-bw .eq-tile .truck-art{filter:grayscale(1) brightness(1.15)}
+.home-bw .notice{background:#0a0a0a;border:1px solid #ffffff24;color:#a6a6a6}
+.home-bw .faq summary:after{color:#fff}
+.home-bw .badge-v,.home-bw .badge-l,.home-bw .badge-f,.home-bw .chip,.home-bw .pill{background:#1d1d1d;color:#fff;border:1px solid #ffffff2a}
+.home-bw .wa-channel{background:#111;border:1px solid #ffffff24;border-left:1px solid #ffffff24;border-radius:20px}
+.home-bw .wa-channel strong{color:#fff}.home-bw .wa-channel span{color:#a6a6a6}
+.home-bw .cta-band{background:#111;border:1px solid #ffffff24;border-radius:20px;color:#fff}
+.home-bw .rdash-head .btn{background:#1d1d1d;color:#fff}
+.home-bw .rdash-table,.home-bw .rdash-kpis,.home-bw .rdash-sel{color:#fff}
+.home-bw .rdash-sel{background:#111;border-color:#ffffff24}
+.home-bw .rdash-table .n,.home-bw .rdash-table tfoot th,.home-bw .rdash-table tfoot td,.home-bw .rdash-kpis b,.home-bw .rdash-sel b{color:#fff}
+
+/* Banda del agente */
+.bw-band{padding:clamp(56px,8vw,112px) 0;border-bottom:1px solid #ffffff24;background:#0a0a0a}
+.bw-agent{display:grid;grid-template-columns:1fr;gap:40px;align-items:center}
+.bw-badge{display:inline-block;margin-bottom:22px;color:var(--accent);border:1px solid #f26b1d73;background:#f26b1d14;border-radius:999px;padding:5px 12px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase}
+.bw-band h2{font-size:clamp(2rem,4.2vw,3.4rem);line-height:1.06;margin:0}
+.bw-lead{font-size:clamp(1rem,1.5vw,1.2rem);color:#a6a6a6;max-width:34em;margin:22px 0 0}
+.bw-agent-card{background:#111;border:1px solid #ffffff24;border-radius:20px;padding:clamp(20px,3vw,36px);display:grid;grid-template-columns:1fr;gap:24px;align-items:start}
+.bw-sphere{width:120px;height:120px;filter:drop-shadow(0 0 28px #ffffff1f)}
+.bw-agent-card h3{font-size:1.75rem;margin:0}
+.bw-role{color:#a6a6a6;font-size:.9rem;margin:6px 0 18px}
+.bw-contact{margin:0;display:grid;gap:10px}
+.bw-contact div{display:grid;grid-template-columns:1fr;gap:2px;padding-top:10px;border-top:1px solid #ffffff24;font-size:.95rem}
+.bw-contact dt{color:#8a8a8a}
+.bw-contact dd{margin:0;overflow-wrap:break-word}
+.bw-note{font-size:.8rem;color:#8a8a8a;margin:14px 0 0}
+@media(min-width:700px){
+  .bw-agent-card{grid-template-columns:150px 1fr}
+  .bw-sphere{width:150px;height:150px}
+  .bw-contact div{grid-template-columns:110px 1fr;gap:12px}
+}
+@media(min-width:1000px){.bw-agent{grid-template-columns:.8fr 1.2fr;gap:56px}}
+
+/* Cuatro paneles */
+.bw-panels{padding:clamp(56px,8vw,112px) 0;background:#000}
+.bw-eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#a6a6a6;margin:0 0 20px}
+.bw-panels h2{font-size:clamp(2rem,4.2vw,3.4rem);line-height:1.06;margin:0 0 44px}
+.bw-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:16px}
+.bw-tile{background:#111;border:1px solid #ffffff24;border-radius:20px;padding:24px;display:flex;flex-direction:column;min-height:340px;transition:background .2s,border-color .2s}
+.bw-tile:hover{background:#161616;border-color:#ffffff4d}
+.bw-art{width:100%;max-width:320px;height:auto;margin:8px auto auto;display:block}
+.bw-tile-foot{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:8px 24px;margin-top:28px}
+.bw-tile h3{font-size:1.5rem;font-weight:500;margin:0}
+.bw-tile p{grid-column:1/-1;margin:4px 0 0;color:#a6a6a6;font-size:.95rem;max-width:34em}
+.bw-more{color:#fff;text-decoration:none;white-space:nowrap;border-bottom:1px solid transparent}
+.bw-more:hover{border-bottom-color:#fff}
+.bw-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(min-width:700px){.bw-grid{grid-template-columns:repeat(2,1fr)}.bw-tile{min-height:420px;padding:28px}.bw-tile p{min-height:4.7em}}
+
+/* Formulario del agente */
+.bw-form{grid-column:1/-1;border-top:1px solid #ffffff24;padding-top:24px;display:grid;gap:14px}
+.bw-form h4{font-size:1.15rem;font-weight:400;margin:0}
+.bw-fields{display:grid;grid-template-columns:1fr;gap:14px}
+.bw-form label{display:grid;gap:6px;font-size:.82rem;color:#a6a6a6}
+.bw-form input[type=text],.bw-form input[type=email],.bw-form input[type=tel]{width:100%}
+.bw-form input::placeholder{color:#8a8a8a}
+.bw-form label.bw-check{display:flex;align-items:flex-start;gap:10px;font-size:.88rem;color:#d0d0d0}
+.bw-form label.bw-check input{margin-top:3px;flex:0 0 18px}
+.bw-form label.bw-check a{color:#fff}
+.bw-form .bw-btn{justify-self:start}
+@media(min-width:700px){.bw-fields{grid-template-columns:repeat(3,1fr)}}
+
+/* Cabecera, aviso de campaña y botón flotante en oscuro (solo en la portada) */
+body:has(.home-bw) header.top .btn{background:#fff;color:#000;border-color:#fff;border-radius:999px;font-weight:500}
+body:has(.home-bw) header.top .btn.sec{background:#1d1d1d;color:#fff;border:1px solid #2a2a2a}
+body:has(.home-bw) .logo-img{border-radius:6px}
+body:has(.home-bw) .fab,body:has(.home-bw) .btn.wa{background:#1d1d1d;color:#fff;border:1px solid #2a2a2a}
+.home-bw .free-banner{background:#0a0a0a;border:1px solid #ffffff24;border-left:1px solid #ffffff24;border-radius:16px;color:#fff}
+.home-bw .free-banner .meta{color:#a6a6a6}
+.home-bw .free-banner a{color:#fff}
+.home-bw .hero h1{font-size:clamp(2.1rem,4.4vw,3.6rem);max-width:none}
+.bw-more-2{grid-column:1/-1;justify-self:start;color:#a6a6a6;font-size:.9rem}
+.bw-more-2:hover{color:#fff}
+
+/* Móvil: el hero deja un carril a la derecha para el botón flotante de WhatsApp, de modo que en la primera pantalla
+   no tape «Busco camión» ni ningún otro control del hero (ver redisenio-LEEME.md). */
+@media(max-width:819px){
+  .home-bw .hero2 .wrap{padding-right:76px}
+  .home-bw .free-banner .meta{display:none}
+}
