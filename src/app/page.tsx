@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ExistingModules } from "@/components/ExistingModules";
+import "./modern-home.css";
 import { HomeTowerBoard } from "@/components/HomeTowerBoard";
 import { WhatsAppChannel } from "@/components/WhatsAppChannel";
 import { QuickSearch } from "@/components/QuickSearch";
@@ -81,7 +83,7 @@ export default async function HomePage() {
   if (stats.regionsActive > 0) visibleCounters.push({ value: stats.regionsActive, label: "regiones con avisos" });
 
   return (
-    <>
+    <div className="c360-modern-home">
       {/* 1. Hero: marca + titular seguro T-065 + torre + un CTA principal */}
       <section className="hero hero2 hero-v2 hero-v3 hero-fold">
         <div className="wrap hero-grid">
@@ -116,6 +118,8 @@ export default async function HomePage() {
           <HomeTowerBoard steps={FLOW} compact />
         </div>
       </section>
+
+      <ExistingModules />
 
       {/* 2. Cuatro beneficios */}
       <section className="benefits-band" aria-labelledby="beneficios-titulo">
@@ -318,6 +322,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
