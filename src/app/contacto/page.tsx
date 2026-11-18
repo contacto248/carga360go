@@ -5,7 +5,7 @@ import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 
 export const metadata: Metadata = {
   title: "Contacto",
-  description: `Contacta a ${BRAND.company} (Carga360go): WhatsApp ${BRAND.whatsappDisplay}, correo ${BRAND.email}, oficina en La Serena.`,
+  description: `Contacta a ${BRAND.company} (Carga360go) por WhatsApp ${BRAND.whatsappDisplay} o al correo ${BRAND.email}. Operamos solo en línea, en Chile.`,
   alternates: { canonical: "/contacto" },
 };
 
@@ -21,9 +21,6 @@ export default function ContactoPage() {
     taxID: BRAND.rut,
     address: {
       "@type": "PostalAddress",
-      streetAddress: "Colón 352, oficina 318",
-      addressLocality: "La Serena",
-      addressRegion: "Coquimbo",
       addressCountry: "CL",
     },
   };
@@ -56,7 +53,7 @@ export default function ContactoPage() {
             <br />
             RUT {BRAND.rut}
             <br />
-            {BRAND.address}
+            Operamos solo en línea, en Chile.
           </address>
         </div>
       </div>

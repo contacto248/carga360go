@@ -1,8 +1,8 @@
 # Adición a la Política de Privacidad: verificación de identidad y datos biométricos
 
 > **Estado:** aprobada para publicarse **junto con** `KYC_FEATURE_ENABLED=true` (Bastián, 11-nov-2026; texto revisado por un abogado).
-> Con el flag apagado, /privacidad sigue en la versión **1.2-2026-11-10** (la publicada hoy) y los PDF/DOCX no cambian.
-> Al encender el flag, la política pasa a **1.3-2026-11-11**, se agrega esta sección (y ajustes en definiciones, proveedores e historial) y el sitio pide a todas las cuentas aceptarla de nuevo.
+> Con el flag apagado, /privacidad queda en la versión **1.8-2026-11-17**.
+> Al encender el flag, la política pasa a **1.9-2026-11-17**, se agrega esta sección (y ajustes en definiciones, proveedores e historial) y el sitio pide a todas las cuentas aceptarla de nuevo.
 > El HTML de /privacidad se arma en `src/lib/privacy-policy.ts` (`policySections()`). Los PDF/DOCX de /privacidad hay que regenerarlos al encender el flag (`scripts/legal-json.ts` + `scripts/export-legal-docs.py`), con el flag en true.
 >
 > **Pendiente de confirmación de Bastián antes de producción:** plazos de conservación propuestos (30 días de imágenes en Didit; resultado en Carga360go hasta 12 meses después del cierre de la cuenta). No hay consulta al Registro Civil.

@@ -249,7 +249,6 @@ Mientras eso no se defina, el sistema no desglosa IVA del flete (lo deja en $0) 
 
 - Correo: [contacto@carga360go.cl](mailto:contacto@carga360go.cl)
 - WhatsApp: +56 9 5842 8693
-- Correo postal: CARGA360 GO SpA, Colón 352, oficina 318, La Serena, Región de Coquimbo, Chile
 
 12.2. El canal de WhatsApp de difusión o soporte no publica montos, contactos ni enlaces de pago de un flete concreto.
 
