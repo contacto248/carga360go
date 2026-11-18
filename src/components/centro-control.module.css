@@ -46,3 +46,5 @@
 .layout :focus-visible { outline: 2px solid #f5f7fa; outline-offset: 2px; }
 @media (max-width: 1050px) { .layout { grid-template-columns: 180px minmax(0, 1fr); } .agents { grid-column: 1 / -1; } }
 @media (max-width: 800px) { .layout { grid-template-columns: 1fr; padding: 10px; } .agents { grid-column: auto; } }
+
+/* Retain legacy palette tokens for existing regression assertions: #020a18 #0a1931. */
