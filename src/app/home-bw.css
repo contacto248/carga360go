@@ -1,4 +1,4 @@
-/* Portada en negro y blanco . Solo aplica bajo .home-bw; el resto del sitio no cambia.
+/* Portada en negro y blanco. Solo aplica bajo .home-bw; el resto del sitio no cambia.
    Un único acento naranja (el de la marca: --accent), usado solo en la insignia "Agente". Sin fuentes externas. */
 body:has(.home-bw){background:#000}
 body:has(.home-bw) .demo-banner{background:#0a0a0a;color:#a6a6a6;border-bottom:1px solid #ffffff24}
@@ -133,3 +133,5 @@ body:has(.home-bw) .fab,body:has(.home-bw) .btn.wa{background:#1d1d1d;color:#fff
 .home-bw .free-banner .meta{color:#a6a6a6}
 .home-bw .free-banner a{color:#fff}
 .home-bw .hero h1{font-size:clamp(2.1rem,4.4vw,3.6rem);max-width:none}
+.bw-more-2{grid-column:1/-1;justify-self:start;color:#a6a6a6;font-size:.9rem}
+.bw-more-2:hover{color:#fff}

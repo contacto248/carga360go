@@ -270,3 +270,13 @@ body:has(.help-stack) footer.foot{padding-bottom:140px}
 .consent-actions{display:flex;gap:8px}
 .consent-banner .btn{background:#fff;color:#000;border-color:#fff}.consent-banner .btn.sec{background:#1d1d1d;color:#fff;border-color:#2a2a2a}
 @media(min-width:900px){.consent-banner{left:auto;max-width:640px}}
+
+.consent-link{color:#fff;text-align:left;font-size:inherit;text-decoration:underline;text-underline-offset:3px;padding:2px 0}
+footer.foot .consent-link{color:#fff}
+@media(max-width:819px){
+  .fab,.help-dock .help-wa{font-size:0;width:48px;height:48px;padding:0;border-radius:50%;right:12px}
+  .fab::before{content:"\1F4AC";font-size:1.35rem;line-height:1}
+  .help-dock{right:12px;bottom:calc(72px + env(safe-area-inset-bottom))}
+  .consent-banner{bottom:72px}
+  body:has(.consent-banner) .fab,body:has(.consent-banner) .help-dock{display:none}
+}

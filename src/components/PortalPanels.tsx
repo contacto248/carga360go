@@ -1,6 +1,24 @@
 import Link from "next/link";
 
-const PANELS = [
+type Panel = {
+  id: string;
+  title: string;
+  text: string;
+  href: string;
+  cta: string;
+  second?: { href: string; label: string };
+  art: React.ReactNode;
+};
+
+/**
+ * Destinos (comprobados en el repo):
+ * - Público: /cargas (listado público de cargas; /camiones es el de camiones).
+ * - Clientes inscritos: /panel (sin sesión muestra «Registrar» e «Ingresar»; con sesión, publicaciones, matches y alertas).
+ * - Transportistas: /camiones/nuevo publica camión o retorno (sin sesión pide registro o ingreso; transportista sin verificar ve el panel de acreditación);
+ *   gestión y ofertas en /panel.
+ * - Mandantes: /cargas/nueva publica la carga (misma lógica); el seguimiento está en /panel.
+ */
+const PANELS: Panel[] = [
   {
     id: "publico",
     title: "Público",
@@ -39,6 +57,7 @@ const PANELS = [
     text: "Gestiona tus camiones y publica tu retorno para encontrar cargas de retorno por ruta, fecha y equipo.",
     href: "/camiones/nuevo",
     cta: "el panel Transportistas",
+    second: { href: "/panel", label: "Gestionar mis camiones y ofertas" },
     art: (
       <>
         <rect x="18" y="38" width="94" height="40" rx="2" />
@@ -58,6 +77,7 @@ const PANELS = [
     text: "Publica tu carga con origen, destino, fecha, peso y equipo; sigue tus avisos y elige una oferta.",
     href: "/cargas/nueva",
     cta: "el panel Mandantes",
+    second: { href: "/panel", label: "Seguir mis cargas" },
     art: (
       <>
         <path d="M100 18L160 44V84L100 110L40 84V44Z" opacity=".85" />
@@ -92,6 +112,11 @@ export function PortalPanels() {
                   <span className="bw-sr"> {p.cta}</span>
                 </Link>
                 <p>{p.text}</p>
+                {p.second ? (
+                  <Link className="bw-more bw-more-2" href={p.second.href}>
+                    {p.second.label} <span aria-hidden="true">→</span>
+                  </Link>
+                ) : null}
               </div>
             </li>
           ))}
