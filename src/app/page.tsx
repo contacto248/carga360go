@@ -8,6 +8,9 @@ import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
 import { TruckArt } from "@/components/TruckArt";
 import { BRAND, EQUIPMENT, equipmentById } from "@/lib/catalog";
 import { formatDateCL, waLink } from "@/lib/format";
+import "./home-bw.css";
+import { AgentCard } from "@/components/AgentCard";
+import { PortalPanels } from "@/components/PortalPanels";
 import { RegionsDashboard } from "@/components/RegionsDashboard";
 import { liveStats, recentListings, regionIndicators, timeAgo } from "@/lib/stats";
 
@@ -102,7 +105,7 @@ export default async function HomePage() {
   const showRegionPanel = activeRegions >= 3;
 
   return (
-    <>
+    <div className="home-bw">
       <div className="wrap" style={{ paddingTop: 12 }}>
         <FreeBanner user={user} />
       </div>
@@ -176,6 +179,9 @@ export default async function HomePage() {
           </aside>
         </div>
       </section>
+
+      <AgentCard />
+      <PortalPanels />
 
       {visibleCounters.length > 0 ? (
         <section className="counters-band">
@@ -390,6 +396,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
