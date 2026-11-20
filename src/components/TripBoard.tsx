@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -14,6 +15,7 @@ export type TripData = {
   myRating: { stars: number; comment: string | null } | null;
   average: number | null;
   ratingCount: number;
+  retiroPorQr?: boolean;
   events: EventRow[];
 };
 
@@ -57,7 +59,16 @@ export function TripBoard({ loadId, initial }: { loadId: string; initial: TripDa
         <h2 style={{ margin: 0 }}>Seguimiento del viaje</h2>
         <span className="pill ok">{viaje.label}</span>
       </div>
-      <p className="meta">Estados declarados por los participantes. No corresponde a ubicación GPS.</p>
+      <p className="meta">
+        {viaje.retiroPorQr
+          ? "El retiro se valida con el QR o el código de 6 dígitos, y con la confirmación de quien entrega."
+          : "Estados declarados por los participantes. No corresponde a ubicación GPS."}
+      </p>
+      {viaje.retiroPorQr ? (
+        <p>
+          <Link href={`/viajes/${loadId}/comprobante`}>Abrir comprobante y QR de retiro</Link>
+        </p>
+      ) : null}
       {viaje.events.length ? (
         <ol>
           {viaje.events.map((event) => (

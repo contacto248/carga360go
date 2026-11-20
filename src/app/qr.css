@@ -1,0 +1,212 @@
+/* Pantallas del QR: negro, blanco y naranjo. Sin azul. */
+.qr-body {
+  background: #0d1014;
+  color: #f3f4f6;
+  color-scheme: dark;
+}
+.qr-body .qr-main {
+  min-height: 100vh;
+  background: #0d1014;
+}
+.qr-app {
+  width: min(100%, 430px);
+  margin: 0 auto;
+  padding: 16px 16px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.qr-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.qr-brand {
+  color: #ff7a1a;
+  font-weight: 700;
+}
+.qr-muted {
+  color: #bdbdbd;
+}
+.qr-pill {
+  align-self: flex-start;
+  background: rgba(255, 122, 26, 0.16);
+  color: #ff7a1a;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.qr-folio {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+.qr-card {
+  background: #171b22;
+  border: 1px solid #2b313b;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qr-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.qr-qr {
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px;
+  align-self: center;
+  width: 72%;
+}
+.qr-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.qr-code {
+  text-align: center;
+  font-size: 34px;
+  letter-spacing: 6px;
+  font-weight: 700;
+  padding: 14px 0;
+  background: #171b22;
+  border-radius: 14px;
+  border: 1px solid #2b313b;
+}
+.qr-btn {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-radius: 12px;
+  padding: 12px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  background: #ff7a1a;
+  color: #16100a;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+.qr-btn.sec {
+  background: transparent;
+  color: #f3f4f6;
+  border: 1px solid #2b313b;
+}
+.qr-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.qr-person {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.qr-avatar,
+.qr-avatar img {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  object-fit: cover;
+}
+.qr-avatar {
+  background: rgba(255, 122, 26, 0.16);
+  color: #ff7a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.qr-scan {
+  position: relative;
+  height: 220px;
+  border-radius: 16px;
+  background: #05070a;
+  border: 1px solid #2b313b;
+  overflow: hidden;
+}
+.qr-scan video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.qr-corner {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 4px solid #ff7a1a;
+}
+.qr-corner.a { top: 14px; left: 14px; border-right: 0; border-bottom: 0; border-radius: 6px 0 0 0; }
+.qr-corner.b { top: 14px; right: 14px; border-left: 0; border-bottom: 0; border-radius: 0 6px 0 0; }
+.qr-corner.c { bottom: 14px; left: 14px; border-right: 0; border-top: 0; border-radius: 0 0 0 6px; }
+.qr-corner.d { bottom: 14px; right: 14px; border-left: 0; border-top: 0; border-radius: 0 0 6px 0; }
+.qr-scan p {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  text-align: center;
+  color: #bdbdbd;
+  font-size: 12px;
+  margin: 0;
+}
+.qr-digits {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.qr-digits input {
+  width: 40px;
+  height: 48px;
+  min-height: 0;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  background: #0d1014;
+  color: #f3f4f6;
+  border: 1px solid #2b313b;
+  border-radius: 8px;
+  padding: 0;
+}
+.qr-body .qr-app input,
+.qr-body .qr-app select,
+.qr-body .qr-app textarea {
+  background: #0d1014;
+  color: #f3f4f6;
+  border: 1px solid #2b313b;
+}
+.qr-body .qr-app input:focus,
+.qr-body .qr-app select:focus,
+.qr-body .qr-app textarea:focus {
+  outline: 2px solid #ff7a1a;
+}
+.qr-body .qr-app label.f {
+  color: #f3f4f6;
+}
+.qr-alert {
+  color: #ff7a1a;
+  font-weight: 600;
+  margin: 0;
+}
+.qr-panel-card {
+  background: #0d1014;
+  color: #f3f4f6;
+  border-radius: 16px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qr-panel-card a {
+  color: #ff7a1a;
+  font-weight: 700;
+}

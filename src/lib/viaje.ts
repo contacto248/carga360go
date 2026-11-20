@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { stripContacts } from "./contact-filter";
 import { getDb } from "./db";
 import { AppError } from "./errors";
+import { retiroValidado, tratoExigeQr } from "./qr/deal";
 import type { PublicUser } from "./types";
 
 export const TRIP_STATUSES = ["asignado", "en_camino", "retirado", "en_transito", "incidencia", "entregado"] as const;
@@ -75,10 +76,15 @@ export function tripView(loadId: string, user: PublicUser | null) {
     : undefined;
   const current = isTripStatus(row.tripStatus) ? row.tripStatus : "asignado";
   const average = ratings.length ? Math.round((ratings.reduce((sum, item) => sum + item.stars, 0) / ratings.length) * 10) / 10 : null;
+  const retiroPorQr = tratoExigeQr(loadId);
+  const validado = current === "retirado" && retiroValidado(loadId);
   return {
     status: current,
-    label: TRIP_LABEL[current],
-    next: NEXT[current].map((status) => ({ status, label: TRIP_LABEL[status] })),
+    label: validado ? "Retiro validado" : TRIP_LABEL[current],
+    retiroPorQr,
+    next: NEXT[current]
+      .filter((status) => !(retiroPorQr && status === "retirado"))
+      .map((status) => ({ status, label: TRIP_LABEL[status] })),
     canUpdate: current !== "entregado",
     canRate: user?.role !== "admin" && current === "entregado" && !mine,
     myRating: mine ?? null,
@@ -99,6 +105,9 @@ export function advanceTrip(user: PublicUser, loadId: string, status: string, no
   if (!isTripParty(loadId, user)) throw new AppError("Solo las dos partes pueden registrar el viaje.", 403);
   const current = isTripStatus(row.tripStatus) ? row.tripStatus : "asignado";
   if (!NEXT[current].includes(status)) throw new AppError("Ese paso no corresponde al estado actual del viaje.", 409);
+  if (status === "retirado" && tratoExigeQr(loadId)) {
+    throw new AppError("El retiro de este viaje se valida con el QR o el código, y con la confirmación de quien entrega.", 409, "retiro_qr");
+  }
   const clean = note?.trim() ? stripContacts(note.trim()).slice(0, 500) : null;
   const stamp = new Date().toISOString();
   const db = getDb();

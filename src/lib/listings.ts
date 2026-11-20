@@ -7,7 +7,8 @@ import { publicVerifiedSeal } from "./public-trust";
 import { offersOpen } from "./offers";
 import { matchLoadsForTruck, matchTrucksForLoad } from "./match";
 import { canPublishLoad, canPublishTruck } from "./roles";
-import { cleanClp } from "./security";
+import { qrFase1Enabled } from "./qr/flag";
+import { cleanClp, normalizePatente } from "./security";
 import { getSettings } from "./settings";
 import { assertNotManualReadonly } from "./manual-readonly";
 import type {
@@ -232,7 +233,15 @@ export type TruckInput = {
   tonnage: number;
   specs: Specs;
   notes?: string | null;
+  patente?: string | null;
 };
+
+function patenteInput(value: string | null | undefined): string | null {
+  if (value == null || value.trim() === "") return null;
+  const patente = normalizePatente(value);
+  if (!patente) throw new AppError("La patente no tiene formato chileno (ej: BBCD12 o AB1234).");
+  return patente;
+}
 
 function normalizeLoad(input: LoadInput) {
   assertRoute(input.origin, input.destination);
@@ -564,6 +573,7 @@ export function createTruck(user: PublicUser, input: TruckInput, isDemo = false)
   if (!canPublishTruck(user.role)) {
     throw new AppError("Solo un transportista o un administrador puede publicar camiones.", 403);
   }
+  const patente = qrFase1Enabled() ? patenteInput(input.patente) : null;
   const data = normalizeTruck(input);
   const id = randomUUID();
   const stamp = new Date().toISOString();
@@ -589,6 +599,7 @@ export function createTruck(user: PublicUser, input: TruckInput, isDemo = false)
       stamp,
       stamp,
     );
+  if (patente) getDb().prepare(`UPDATE trucks SET patente = ? WHERE id = ?`).run(patente, id);
   const created = getTruck(id);
   if (!created) throw new AppError("No se pudo publicar el camión.", 500);
   return created;
@@ -600,6 +611,7 @@ export function updateTruck(user: PublicUser, id: string, input: TruckInput): Tr
   const current = getDb().prepare(`SELECT owner_id FROM trucks WHERE id = ?`).get(id) as { owner_id: string } | undefined;
   if (!current) throw new AppError("Camión no encontrado.", 404);
   assertOwner(current.owner_id, user);
+  const patente = qrFase1Enabled() && input.patente !== undefined ? patenteInput(input.patente) : undefined;
   const data = normalizeTruck(input);
   getDb()
     .prepare(
@@ -618,6 +630,7 @@ export function updateTruck(user: PublicUser, id: string, input: TruckInput): Tr
       new Date().toISOString(),
       id,
     );
+  if (patente !== undefined) getDb().prepare(`UPDATE trucks SET patente = ? WHERE id = ?`).run(patente, id);
   const updated = getTruck(id);
   if (!updated) throw new AppError("Camión no encontrado.", 404);
   return updated;
