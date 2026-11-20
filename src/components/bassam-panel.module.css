@@ -1,6 +1,6 @@
 .shell {
-  background: #0b1633;
-  color: #e8eef8;
+  background: #000000;
+  color: #ffffff;
   border-radius: 12px;
   padding: 16px;
   margin: 8px 0 32px;
@@ -10,7 +10,7 @@
   letter-spacing: 0.08em;
   font-size: 0.75rem;
   font-weight: 800;
-  color: #9fb0c8;
+  color: #cfcfcf;
 }
 .shell h1 {
   margin: 4px 0 6px;
@@ -19,7 +19,7 @@
 }
 .lede {
   margin: 0 0 12px;
-  color: #9fb0c8;
+  color: #cfcfcf;
   font-size: 0.95rem;
 }
 .counts {
@@ -30,14 +30,14 @@
 }
 .counts p {
   margin: 0;
-  background: #12203a;
-  border: 1px solid #243656;
+  background: #111111;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 10px 12px;
 }
 .counts span {
   display: block;
-  color: #9fb0c8;
+  color: #cfcfcf;
   font-size: 0.8rem;
 }
 .counts strong {
@@ -66,12 +66,12 @@
   margin: 12px 0;
 }
 .card {
-  background: #12203a;
-  border: 1px solid #243656;
+  background: #111111;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 14px;
   margin: 0;
-  color: #e8eef8;
+  color: #ffffff;
 }
 .card h2 {
   font-size: 1.05rem;
@@ -80,7 +80,7 @@
 }
 .label {
   margin: 0;
-  color: #93a0b5;
+  color: #bdbdbd;
   font-size: 0.8rem;
 }
 .value {
@@ -89,7 +89,7 @@
   font-size: 1.35rem;
 }
 .trip {
-  border-top: 1px solid #243656;
+  border-top: 1px solid #2a2a2a;
   padding-top: 12px;
   margin-top: 12px;
 }
@@ -97,14 +97,14 @@
   font-size: 1.05rem;
 }
 .meta {
-  color: #9fb0c8;
+  color: #cfcfcf;
   margin: 4px 0 8px;
 }
 .footer {
   margin-top: 12px;
-  background: #12203a;
-  color: #e8eef8;
-  border: 1px solid #243656;
+  background: #111111;
+  color: #ffffff;
+  border: 1px solid #2a2a2a;
   border-radius: 12px;
   padding: 12px 14px;
   font-weight: 700;
@@ -165,14 +165,14 @@
 }
 .auto {
   margin: 0;
-  color: #9fb0c8;
+  color: #cfcfcf;
 }
 .history {
   display: grid;
   gap: 10px;
 }
 .history article {
-  background: #0d1526;
+  background: #000000;
   border-radius: 12px;
   padding: 10px 12px;
 }
@@ -186,7 +186,7 @@
   padding: 8px 10px;
 }
 .link {
-  color: #ffb07a;
+  color: #FF5001;
 }
 @media (min-width: 800px) {
   .approve {
@@ -198,7 +198,7 @@
 .ejecutivo {
   background: #000;
   color: #fff;
-  border: 1px solid #ffc400;
+  border: 1px solid #FF5001;
 }
 .ejecutivo h1,
 .ejecutivo .card h2,
@@ -213,7 +213,7 @@
 }
 .secundario {
   margin: 0 0 8px;
-  color: #ffc400;
+  color: #FF5001;
   font-size: clamp(1rem, 2.8vw, 1.25rem);
   font-weight: 800;
   line-height: 1.3;
@@ -228,7 +228,7 @@
   padding: 0 16px;
   border: 0;
   border-radius: 12px;
-  background: #ffc400;
+  background: #FF5001;
   color: #000;
   font: inherit;
   font-size: 1rem;
@@ -236,7 +236,7 @@
   cursor: pointer;
 }
 .enlace {
-  color: #ffc400;
+  color: #FF5001;
   font-weight: 700;
 }
 .ejecutivo .counts p,
@@ -272,13 +272,13 @@
   cursor: pointer;
 }
 .ejecutivo .approve {
-  background: #ffc400;
+  background: #FF5001;
   color: #000;
   min-width: 0;
 }
 .ejecutivo .secondary {
-  border-color: #ffc400;
-  color: #ffc400;
+  border-color: #FF5001;
+  color: #FF5001;
   background: #000;
 }
 .rechazar:disabled {

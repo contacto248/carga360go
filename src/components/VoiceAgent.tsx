@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { AgentAvatar, type AgentAvatarState } from "@/components/AgentAvatar";
 import { AgentAvatarStage } from "@/components/AgentAvatarStage";
 import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
@@ -67,12 +68,14 @@ export function VoiceAgentLauncher({ waNumber, waText }: { waNumber: string; waT
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [bassam, setBassam] = useState(false);
+  const pathname = usePathname() || "/";
+  const seccion = useSearchParams().get("seccion");
   useEffect(() => {
-    const path = window.location.pathname;
-    const onBassam = path === "/admin/bassam" || path.startsWith("/admin/bassam/");
+    const path = pathname || window.location.pathname;
+    const onBassam = path === "/admin/bassam" || path.startsWith("/admin/bassam/") || (path === "/admin" && seccion === "panel");
     setBassam(onBassam);
     setHidden(path.startsWith("/admin") && !onBassam);
-  }, []);
+  }, [pathname, seccion]);
   if (hidden) return null;
   function openAgent() {
     if ("speechSynthesis" in window) window.speechSynthesis.resume();
