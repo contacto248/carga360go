@@ -234,7 +234,7 @@ test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {
   assert.doesNotMatch(visible, /\$\d|CLP\s*\d|comisi[oó]n|%\s*fee/i);
 });
 
-test("portada visual: cookie compacta y un solo CTA primario naranja en el hero", () => {
+test("portada visual: cookie compacta y dos CTA de perfil con el mismo peso", () => {
   const banner = read("src/components/CookieConsentBanner.tsx");
   assert.match(banner, /cookie-banner-compact/);
   assert.match(banner, /Solo necesarias/);
@@ -242,6 +242,26 @@ test("portada visual: cookie compacta y un solo CTA primario naranja en el hero"
   const home = read("src/app/page.tsx");
   const hero = home.match(/hero-fold[\s\S]*?<\/section>/)?.[0] || "";
   assert.match(hero, /className="btn"[^>]*>\s*Tengo carga/);
+  assert.match(hero, /className="btn"[^>]*>\s*Tengo camión o retorno/);
   assert.doesNotMatch(hero, /className="btn"[^>]*>\s*Soy transportista/);
-  assert.match(hero, /hero-secondary-links/);
+  const secondary = hero.match(/hero-secondary-links[\s\S]*?<\/p>/)?.[0] || "";
+  assert.match(secondary, /Abrir el cotizador/);
+  assert.doesNotMatch(secondary, /Tengo camión/);
+  assert.doesNotMatch(secondary, /className="btn"/);
+  const css = read("src/app/orbita.module.css");
+  assert.match(css, /\.surface :global\(section\.block h2\)/);
+  assert.match(css, /color:#f5f5f5/);
+});
+
+test("las maquetas Órbita viven en docs y Next no las publica", () => {
+  for (const rel of ["v1/index.html", "v2/index.html", "v3/index.html", "SESSION.md", "README-original.md"]) {
+    assert.equal(fs.existsSync(path.join(ROOT, "docs/design/orbita", rel)), true, rel);
+  }
+  assert.equal(fs.existsSync(path.join(ROOT, "src/app/docs")), false);
+  assert.equal(fs.existsSync(path.join(ROOT, "public/design/orbita")), false);
+  const config = read("next.config.ts");
+  assert.doesNotMatch(config, /docs\/design\/orbita/);
+  const session = read("docs/design/orbita/SESSION.md");
+  assert.doesNotMatch(session, /contacto@carga360go\.cl/);
+  assert.doesNotMatch(session, /-----BEGIN|ssh-rsa|AKIA/);
 });

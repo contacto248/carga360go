@@ -17,9 +17,16 @@
 .surface :global(.tower-n),.surface :global(.tower-tag){background:#222;color:#ddd;border-color:#555}
 .surface :global(.tower-trace-rail){background:#444}.surface :global(.tower-trace-pulse),.surface :global(.dot-live){background:#ddd;box-shadow:none}
 .surface :global(.block),.surface :global(.benefits-band){background:#080808;color:#eee;border-top:1px solid #292929;padding-top:70px;padding-bottom:70px}
-.surface :global(.block.alt){background:#101010}.surface :global(h2){color:#eee;letter-spacing:-.045em;font-weight:600}
-.surface :global(.lead){color:#aaa}.surface :global(.benefits-grid li),.surface :global(.steps-rail li){background:#141414;border:1px solid #333;border-radius:14px;color:#ddd}
-.surface :global(.benefits-grid h3),.surface :global(.steps-rail h3){color:#eee}.surface :global(.benefits-grid p),.surface :global(.steps-rail p){color:#bbb}
+.surface :global(.block.alt){background:#101010}.surface :global(h2){color:#f5f5f5;letter-spacing:-.045em;font-weight:600}
+/* globals.css pinta section.block h2 y .benefits-band h2 en --navy (#0B1633). Esa regla gana a un h2 suelto y deja los títulos sobre negro. */
+.surface :global(section.block h2),
+.surface :global(.benefits-band h2),
+.surface :global(.audience-grid h3){color:#f5f5f5}
+.surface :global(section.block h2)::after,
+.surface :global(.benefits-band h2)::after{background:#d0d0d0}
+.surface :global(.lead){color:#c8c8c8}.surface :global(.benefits-grid li),.surface :global(.steps-rail li){background:#141414;border:1px solid #333;border-radius:14px;color:#ddd}
+.surface :global(.benefits-grid h3),.surface :global(.steps-rail h3),.surface :global(.audience-grid h3){color:#f5f5f5}.surface :global(.benefits-grid p),.surface :global(.steps-rail p),.surface :global(.audience-grid p){color:#c8c8c8}
+.surface :global(.audience-grid article){border-top-color:#333}
 .surface :global(.steps-n){background:#222;color:#ddd;border-color:#555}
 .surface a:focus-visible,.surface button:focus-visible{outline:2px solid #fff;outline-offset:4px}
 @media(max-width:800px){.surface :global(.hero-fold){padding:60px 0 45px}.surface :global(.hero-grid){grid-template-columns:1fr;gap:32px}.surface :global(.hero-copy h1){font-size:clamp(2.2rem,8vw,3.5rem);max-width:none}.surface :global(.hero-fold)::before{width:650px;height:650px;top:300px}.surface :global(.hero-fold)::after{top:550px}.surface :global(.block),.surface :global(.benefits-band){padding-top:45px;padding-bottom:45px}}

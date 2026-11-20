@@ -103,10 +103,11 @@ export default async function HomePage() {
               <Link className="btn" href="/cargas/nueva">
                 Tengo carga
               </Link>
+              <Link className="btn" href="/camiones/nuevo">
+                Tengo camión o retorno
+              </Link>
             </div>
             <p className="hero-secondary-links">
-              <Link href="/camiones/nuevo">Tengo camión o retorno</Link>
-              <span aria-hidden="true"> · </span>
               <Link href="/herramientas/calculadora">Abrir el cotizador</Link>
             </p>
             <p className="hero-legal">
@@ -170,7 +171,7 @@ export default async function HomePage() {
                   <Link className="btn sm" href="/cargas/nueva">
                     Publicar carga
                   </Link>
-                  <Link className="btn sec sm" href="/camiones/nuevo">
+                  <Link className="btn sm" href="/camiones/nuevo">
                     Publicar camión
                   </Link>
                 </div>
