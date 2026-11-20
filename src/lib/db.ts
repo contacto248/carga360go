@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "./bassam/schema";
 import { MIGRATION_27_SQL } from "./ops/gps/schema";
+import { qrFase1Enabled } from "./qr/flag";
 import { migration34Sql } from "./qr/schema";
 import { seedTolls } from "./costos/tolls-seed";
 import Database from "better-sqlite3";
@@ -1347,8 +1348,8 @@ function migrate(db: Database.Database) {
     });
     apply();
   }
-  // QR del trato (034). La 033 no se usa. La 032 queda intacta.
-  if (!hasMigration(db, 34)) {
+  // QR del trato (034). Solo con QR_FASE1_ENABLED=true. La 033 no se usa. La 032 queda intacta.
+  if (qrFase1Enabled() && !hasMigration(db, 34)) {
     const apply = db.transaction(() => {
       if (!hasColumn(db, "trucks", "patente")) db.exec(`ALTER TABLE trucks ADD COLUMN patente TEXT`);
       db.exec(migration34Sql());

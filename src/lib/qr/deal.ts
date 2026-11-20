@@ -8,6 +8,7 @@ import { codigoOperacion, periodoOperacion } from "../ops/operacion";
 import { sendEmail } from "../notify";
 import type { PublicUser } from "../types";
 import { prepararCadena, escribirEvento } from "./chain";
+import { assertQrFase1, qrFase1Enabled } from "./flag";
 import { hashOtp, newOtpCode } from "./token";
 
 const CONFIRM_MS = 2 * 60 * 60 * 1000;
@@ -43,6 +44,7 @@ export function nombreCorto(value: string): string {
 }
 
 export function tratoDeCarga(loadId: string): DealRow | null {
+  if (!qrFase1Enabled()) return null;
   const row = getDb().prepare(`SELECT * FROM trip_deals WHERE load_id = ?`).get(loadId) as DealRow | undefined;
   return row ?? null;
 }
@@ -52,6 +54,7 @@ export function tratoExigeQr(loadId: string): boolean {
 }
 
 export function retiroValidado(loadId: string): boolean {
+  if (!qrFase1Enabled()) return false;
   const row = getDb()
     .prepare(`SELECT 1 FROM trip_handoffs WHERE load_id = ? AND kind = 'retiro' AND status = 'confirmado'`)
     .get(loadId);
@@ -102,6 +105,7 @@ export function termsSnapshot(loadId: string): string {
 
 /** Se llama dentro de la transacción de acceptOffer. No exige la clave del QR. */
 export function insertPendingDeal(loadId: string, offerId: string, acceptedBy: string, stamp: string): { code: string } | null {
+  if (!qrFase1Enabled()) return null;
   const db = getDb();
   const existing = db.prepare(`SELECT id FROM trip_deals WHERE load_id = ?`).get(loadId);
   if (existing) return null;
@@ -140,6 +144,7 @@ function carrierEmail(carrierId: string): { email: string; contact: string } | n
 }
 
 export function emitirCodigoTrato(user: PublicUser, loadId: string, now = new Date()): string {
+  assertQrFase1();
   const deal = tratoDeCarga(loadId);
   if (!deal) throw new AppError("Esta carga no tiene un trato pendiente.", 404);
   const row = loadOffer(loadId);
@@ -171,6 +176,7 @@ export async function reemitirCodigo(user: PublicUser, loadId: string): Promise<
 }
 
 export function confirmarTrato(user: PublicUser, loadId: string, code: string, now = new Date()) {
+  assertQrFase1();
   const deal = tratoDeCarga(loadId);
   if (!deal) throw new AppError("Esta carga no tiene un trato por confirmar.", 404);
   const row = loadOffer(loadId);

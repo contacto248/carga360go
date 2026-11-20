@@ -1,4 +1,5 @@
 import { getDb } from "../db";
+import { qrFase1Enabled } from "./flag";
 import { normalizePatente } from "../security";
 
 const SPEC_KEYS = ["patente", "placa", "plate", "patenteCamion", "patente_camion"];
@@ -36,6 +37,7 @@ function fromHolder(holder: string | null | undefined): string | null {
  * si tampoco está, la patente ya guardada en el padrón (documents.holder_name).
  */
 export function resolverPatente(truckId: string): PatenteResuelta {
+  if (!qrFase1Enabled()) return { patente: null, origen: null };
   const db = getDb();
   const truck = db.prepare(`SELECT patente, specs_json, owner_id FROM trucks WHERE id = ?`).get(truckId) as
     | { patente: string | null; specs_json: string; owner_id: string }
@@ -60,6 +62,7 @@ export function resolverPatente(truckId: string): PatenteResuelta {
 }
 
 export function guardarPatente(truckId: string, patente: string) {
+  if (!qrFase1Enabled()) return;
   getDb().prepare(`UPDATE trucks SET patente = ? WHERE id = ? AND (patente IS NULL OR patente = '')`).run(patente, truckId);
 }
 

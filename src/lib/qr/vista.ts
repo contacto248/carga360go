@@ -5,7 +5,7 @@ import { formatDateCL } from "../format";
 import type { PublicUser } from "../types";
 import { asignacionVigente } from "./assignment";
 import { nombreCorto, retiroValidado, tratoDeCarga } from "./deal";
-import { delegateLinkEnabled } from "./flag";
+import { assertQrFase1, delegateLinkEnabled, qrFase1Enabled } from "./flag";
 import { delegadoVigente, emitirQr } from "./handoff";
 import { formatPatente, resolverPatente } from "./patente";
 
@@ -55,6 +55,7 @@ function camionesDe(userId: string) {
 }
 
 export async function vistaQr(loadId: string, user: PublicUser | null, delegadoToken?: string | null, now = new Date()): Promise<VistaQr> {
+  assertQrFase1();
   const deal = tratoDeCarga(loadId);
   if (!deal) throw new AppError("Esta carga no tiene un trato con QR.", 404);
   const load = getDb()
@@ -130,6 +131,7 @@ export async function vistaQr(loadId: string, user: PublicUser | null, delegadoT
 }
 
 export function comprobantesDe(userId: string) {
+  if (!qrFase1Enabled()) return [];
   return getDb()
     .prepare(
       `SELECT d.load_id AS loadId, d.folio, d.status, l.origin, l.destination

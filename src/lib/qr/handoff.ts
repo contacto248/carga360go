@@ -7,7 +7,7 @@ import type { PublicUser } from "../types";
 import { asignacionVigente } from "./assignment";
 import { prepararCadena, escribirEvento } from "./chain";
 import { tratoDeCarga } from "./deal";
-import { delegateLinkEnabled } from "./flag";
+import { assertQrFase1, delegateLinkEnabled, qrFase1Enabled } from "./flag";
 import { archivarComprobante } from "./pdf";
 import { formatPatente } from "./patente";
 import {
@@ -62,6 +62,7 @@ type Handoff = {
 };
 
 function handoffOf(loadId: string): Handoff | null {
+  if (!qrFase1Enabled()) return null;
   const row = getDb()
     .prepare(
       `SELECT id, load_id, epoch, status, locked_until, holder_user_id FROM trip_handoffs WHERE load_id = ? AND kind = 'retiro'`,
@@ -78,6 +79,7 @@ function pickupKey(loadId: string, epoch: number) {
 }
 
 export async function emitirQr(loadId: string, now = new Date()) {
+  assertQrFase1();
   const hand = handoffOf(loadId);
   const assignment = asignacionVigente(loadId);
   if (!hand || !assignment) throw new AppError("Aún no hay chofer asignado para mostrar el QR.", 409);
@@ -146,6 +148,7 @@ function intentosRecientes(handoffId: string, actorId: string, now: Date): numbe
 }
 
 export function validarRetiro(user: PublicUser, loadId: string, input: ValidarInput, now = new Date()) {
+  assertQrFase1();
   const deal = tratoDeCarga(loadId);
   const assignment = asignacionVigente(loadId);
   const hand = handoffOf(loadId);
@@ -245,6 +248,7 @@ export function confirmarPoseedor(
   now = new Date(),
   origen?: { tipo: "delegado"; enlaceId: string },
 ) {
+  assertQrFase1();
   const hand = handoffOf(loadId);
   const assignment = asignacionVigente(loadId);
   if (!hand || !assignment) throw new AppError("No hay un retiro por confirmar.", 409);
@@ -305,6 +309,7 @@ export function confirmarPoseedor(
 }
 
 export function confirmarPorDelegado(token: string, loadId: string, decision: "entrego" | "no_coincide", now = new Date()) {
+  assertQrFase1();
   if (!delegateLinkEnabled()) throw new AppError("No encontrado.", 404);
   const link = delegadoVigente(token, now);
   if (!link || link.load_id !== loadId) throw new AppError("El enlace no sirve.", 403);
@@ -324,6 +329,7 @@ function hashToken(token: string): string {
 }
 
 export function crearDelegado(user: PublicUser, loadId: string, now = new Date()) {
+  assertQrFase1();
   if (!delegateLinkEnabled()) throw new AppError("No encontrado.", 404);
   const deal = tratoDeCarga(loadId);
   const load = getDb().prepare(`SELECT owner_id FROM loads WHERE id = ?`).get(loadId) as { owner_id: string } | undefined;
@@ -343,7 +349,7 @@ export function crearDelegado(user: PublicUser, loadId: string, now = new Date()
 }
 
 export function delegadoVigente(token: string, now = new Date()) {
-  if (!delegateLinkEnabled()) return null;
+  if (!qrFase1Enabled() || !delegateLinkEnabled()) return null;
   if (!token || token.length < 20) return null;
   const row = getDb()
     .prepare(`SELECT id, load_id, expires_at, revoked_at FROM trip_delegate_links WHERE token_hash = ?`)
@@ -356,11 +362,13 @@ export function delegadoVigente(token: string, now = new Date()) {
 
 /** Fase 2: la entrega en destino repite estas verificaciones con kind "e". */
 export function entregaValidar(): never {
+  assertQrFase1();
   // TODO QR-10: tokens de retiro no sirven en destino. No implementar en la fase 1.
   throw new AppError("La entrega en destino queda para la fase 2.", 501, "fase_2");
 }
 
 export function entregaConformidad(): never {
+  assertQrFase1();
   // TODO QR-11: firma, conformidad y disputa. No implementar en la fase 1.
   throw new AppError("La conformidad en destino queda para la fase 2.", 501, "fase_2");
 }

@@ -6,6 +6,7 @@ import { AccreditationPanel } from "@/components/AccreditationPanel";
 import { accreditationOf } from "@/lib/accreditation";
 import { marketplaceViewer } from "@/lib/access";
 import { todayChile } from "@/lib/format";
+import { qrFase1Enabled } from "@/lib/qr/flag";
 
 export const metadata: Metadata = { title: "Publicar camión disponible", description: "Publica tu camión disponible con corredor, fechas y ficha técnica, y encuentra cargas de ida y de retorno.", alternates: { canonical: "/camiones/nuevo" } };
 
@@ -36,6 +37,7 @@ export default async function NuevoCamionPage() {
       <TruckForm
         user={user}
         today={today}
+        pedirPatente={qrFase1Enabled()}
         initial={{
           equipment: "cama_baja",
           origin: "Santiago",

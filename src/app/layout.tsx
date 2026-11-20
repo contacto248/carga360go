@@ -19,6 +19,7 @@ import {
 import { getCurrentUser } from "@/lib/current-user";
 import { hubspotPortalId } from "@/lib/hubspot";
 import { privacyVersion, termsVersion } from "@/lib/privacy";
+import { qrFase1Enabled } from "@/lib/qr/flag";
 import { BRAND } from "@/lib/catalog";
 import "./tokens.css";
 import "./globals.css";
@@ -127,9 +128,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const privacy = privacyGateFor(user);
   const productionAnalytics = await isProductionAnalyticsEnabled();
   const pathname = (await headers()).get("x-pathname") || "";
+  const qrOn = qrFase1Enabled();
   const pathOnly = pathname.replace(/\/$/, "") || "/";
-  const agente360 = pathOnly === "/agente-360go" || pathOnly.startsWith("/agente-360go/");
-  const qrPantalla = /^\/viajes\/[^/]+\/(comprobante|escanear|entrega)$/.test(pathOnly) || /^\/d\/[^/]+$/.test(pathOnly);
+  const agentePath = qrOn ? pathOnly : pathname;
+  const agente360 = agentePath === "/agente-360go" || agentePath.startsWith("/agente-360go/");
+  const qrPantalla =
+    qrOn && (/^\/viajes\/[^/]+\/(comprobante|escanear|entrega)$/.test(pathOnly) || /^\/d\/[^/]+$/.test(pathOnly));
   const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360 && !qrPantalla;
   return (
     <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>

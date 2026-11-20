@@ -32,6 +32,7 @@ import { advanceTrip, tripView } from "../src/lib/viaje";
 import { verifyChain } from "../src/lib/ops/shipments";
 import type { PublicUser } from "../src/lib/types";
 
+process.env.QR_FASE1_ENABLED = "true";
 process.env.QR_MASTER_KEY = "clave-de-prueba-qr-fase-1-no-es-produccion";
 process.env.QR_MASTER_KEY_ID = "k1";
 process.env.QR_DELEGADO_ENABLED = "true";

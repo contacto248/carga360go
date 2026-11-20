@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isEnabled } from "@/lib/ops/flags";
 import { opsPageHidden, opsPageRule } from "@/lib/ops/page-gate";
+import { qrFase1Hidden } from "@/lib/qr/flag";
 import { userFromHeaders } from "@/lib/request-auth";
 import { sistemaPageHidden } from "@/lib/sistema/flag";
 import { SEO_ROUTES } from "@/lib/seo-routes";
@@ -50,6 +51,16 @@ export function middleware(request: NextRequest) {
   // El layout raíz es force-dynamic: notFound() en la página llega a renderizar en HTTP 200.
   // Cortamos aquí, igual que las páginas ops, para devolver 404 real en slugs de /rutas inexistentes.
   if (isUnknownSeoRoute(pathname)) return opsNotFound();
+
+  if (qrFase1Hidden(pathname)) {
+    if (pathname.startsWith("/api")) {
+      return NextResponse.json(
+        { error: "No encontrado." },
+        { status: 404, headers: { ...CORS, "cache-control": "no-store", "x-robots-tag": "noindex" } },
+      );
+    }
+    return opsNotFound();
+  }
 
   // loading.tsx ya abrió el HTML en 200 si la página llega a renderizar. El corte es esta respuesta.
   const rule = opsPageRule(pathname);

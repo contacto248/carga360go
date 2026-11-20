@@ -22,7 +22,17 @@ type Initial = {
   patente?: string;
 };
 
-export function TruckForm({ user, today, initial }: { user: PublicUser | null; today: string; initial: Initial }) {
+export function TruckForm({
+  user,
+  today,
+  initial,
+  pedirPatente = false,
+}: {
+  user: PublicUser | null;
+  today: string;
+  initial: Initial;
+  pedirPatente?: boolean;
+}) {
   const router = useRouter();
   const [equipment, setEquipment] = useState(initial.equipment);
   const [origin, setOrigin] = useState(initial.origin);
@@ -67,7 +77,7 @@ export function TruckForm({ user, today, initial }: { user: PublicUser | null; t
         tonnage: capacity,
         specs,
         notes,
-        patente,
+        ...(pedirPatente ? { patente } : {}),
       }),
     });
     setPending(false);
@@ -114,20 +124,22 @@ export function TruckForm({ user, today, initial }: { user: PublicUser | null; t
             Disponible desde *
             <input type="date" min={today} value={availableFrom} onChange={(event) => setAvailableFrom(event.target.value)} required />
           </label>
-          <label className="f">
-            Patente del camión
-            <input
-              value={patente}
-              onChange={(event) => setPatente(event.target.value.toUpperCase())}
-              placeholder="BBCD12"
-              maxLength={12}
-              autoCapitalize="characters"
-              aria-describedby="patente-ayuda"
-            />
-            <span id="patente-ayuda" className="meta">
-              Si ya está en la ficha o en el padrón, la reutilizamos al asignar el viaje.
-            </span>
-          </label>
+          {pedirPatente ? (
+            <label className="f">
+              Patente del camión
+              <input
+                value={patente}
+                onChange={(event) => setPatente(event.target.value.toUpperCase())}
+                placeholder="BBCD12"
+                maxLength={12}
+                autoCapitalize="characters"
+                aria-describedby="patente-ayuda"
+              />
+              <span id="patente-ayuda" className="meta">
+                Si ya está en la ficha o en el padrón, la reutilizamos al asignar el viaje.
+              </span>
+            </label>
+          ) : null}
           <label className="f">
             Disponible hasta *
             <input type="date" min={availableFrom} value={availableTo} onChange={(event) => setAvailableTo(event.target.value)} required />

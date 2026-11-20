@@ -7,6 +7,7 @@ import { publicVerifiedSeal } from "./public-trust";
 import { offersOpen } from "./offers";
 import { matchLoadsForTruck, matchTrucksForLoad } from "./match";
 import { canPublishLoad, canPublishTruck } from "./roles";
+import { qrFase1Enabled } from "./qr/flag";
 import { cleanClp, normalizePatente } from "./security";
 import { getSettings } from "./settings";
 import { assertNotManualReadonly } from "./manual-readonly";
@@ -572,7 +573,7 @@ export function createTruck(user: PublicUser, input: TruckInput, isDemo = false)
   if (!canPublishTruck(user.role)) {
     throw new AppError("Solo un transportista o un administrador puede publicar camiones.", 403);
   }
-  const patente = patenteInput(input.patente);
+  const patente = qrFase1Enabled() ? patenteInput(input.patente) : null;
   const data = normalizeTruck(input);
   const id = randomUUID();
   const stamp = new Date().toISOString();
@@ -610,7 +611,7 @@ export function updateTruck(user: PublicUser, id: string, input: TruckInput): Tr
   const current = getDb().prepare(`SELECT owner_id FROM trucks WHERE id = ?`).get(id) as { owner_id: string } | undefined;
   if (!current) throw new AppError("Camión no encontrado.", 404);
   assertOwner(current.owner_id, user);
-  const patente = input.patente !== undefined ? patenteInput(input.patente) : undefined;
+  const patente = qrFase1Enabled() && input.patente !== undefined ? patenteInput(input.patente) : undefined;
   const data = normalizeTruck(input);
   getDb()
     .prepare(

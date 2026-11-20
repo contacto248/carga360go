@@ -11,6 +11,8 @@ if (!process.env.DATABASE_PATH?.includes(`${path.sep}c360-`)) {
 
 import { closeDb, getDb, MIGRATION_23_SQL, MIGRATION_26_SQL, MIGRATION_28_SQL, MIGRATION_29_SQL, MIGRATION_30_SQL, MIGRATION_31_SQL } from "../src/lib/db";
 
+process.env.QR_FASE1_ENABLED = "true";
+
 const FIX = path.join(__dirname, "fixtures", "db");
 const ORIGINAL_PATH = process.env.DATABASE_PATH;
 const TABLES_15 = ["agent_conversations", "agent_messages", "agent_leads", "load_tracking_codes", "agent_otp_challenges"];

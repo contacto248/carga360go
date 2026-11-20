@@ -12,6 +12,7 @@ import { cleanClp } from "./security";
 import { getSettings } from "./settings";
 import { assertNotManualReadonly } from "./manual-readonly";
 import { dealMailLines, insertPendingDeal } from "./qr/deal";
+import { qrFase1Enabled } from "./qr/flag";
 import type { PublicUser } from "./types";
 
 /**
@@ -345,6 +346,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
   const db = getDb();
   const stamp = new Date().toISOString();
   const losers = listOffersForLoad(load.id).filter((item) => item.id !== offerId && item.status === "activa");
+  const qrOn = qrFase1Enabled();
   let confirmCode: string | null = null;
   const apply = db.transaction(() => {
     const changed = db
@@ -359,6 +361,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
   apply();
   audit(user, "oferta.aceptada", { type: "carga", id: load.id }, { offerId, carrier: offer.carrierName, priceClp: offer.priceClp });
   const owner = ownerOf(load);
+  const lines = qrOn ? dealMailLines(load.id, confirmCode) : null;
   const send = async () => {
     if (owner) {
       await sendEmail(
@@ -372,7 +375,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
           `Contacto del mandante: ${owner.contact_name} · WhatsApp +${owner.whatsapp} · ${owner.email}`,
           `Detalle: ${appUrl()}/cargas/${load.id}`,
           "",
-          dealMailLines(load.id, confirmCode).carrier,
+          lines ? lines.carrier : "Coordinen el retiro directamente.",
         ].join("\n"),
       );
       await sendEmail(
@@ -384,7 +387,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
           `Elegiste la oferta de ${offer.carrierName} por $${formatClp(offer.priceClp)} CLP (retiro ${formatDateCL(offer.pickupDate)}).`,
           `Contacto del transportista: ${offer.carrierContact} · WhatsApp +${offer.carrierWhatsapp} · ${offer.carrierEmail}`,
           `Detalle: ${appUrl()}/cargas/${load.id}`,
-          dealMailLines(load.id, null).owner,
+          ...(lines ? [lines.owner] : []),
           "",
           "Carga360go",
         ].join("\n"),

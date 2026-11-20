@@ -6,6 +6,7 @@ import { getDb } from "../db";
 import { AppError } from "../errors";
 import { A4, SimplePdf, wrapText } from "../pdf/simple-pdf";
 import { tratoDeCarga } from "./deal";
+import { assertQrFase1, qrFase1Enabled } from "./flag";
 import { asignacionVigente } from "./assignment";
 import { formatPatente } from "./patente";
 
@@ -120,6 +121,7 @@ export function guardarPdf(loadId: string, data: ComprobantePdf): { version: num
 
 /** Devuelve el último PDF archivado, el mismo bytes que corresponden al SHA-256 guardado. */
 export function leerComprobanteArchivado(loadId: string): { bytes: Buffer; filename: string } | null {
+  if (!qrFase1Enabled()) return null;
   const row = getDb()
     .prepare(`SELECT pdf_path AS pdfPath, sha256 FROM trip_receipts WHERE load_id = ? ORDER BY version DESC LIMIT 1`)
     .get(loadId) as { pdfPath: string; sha256: string } | undefined;
@@ -134,6 +136,7 @@ export function leerComprobanteArchivado(loadId: string): { bytes: Buffer; filen
 }
 
 export function entregarPdf(loadId: string): { bytes: Buffer; filename: string } {
+  assertQrFase1();
   const current = leerComprobanteArchivado(loadId);
   if (current) return current;
   archivarComprobante(loadId);

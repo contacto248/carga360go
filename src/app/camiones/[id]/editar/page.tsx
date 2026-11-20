@@ -5,6 +5,7 @@ import { TruckForm } from "@/components/TruckForm";
 import { marketplaceViewer } from "@/lib/access";
 import { todayChile } from "@/lib/format";
 import { getTruck } from "@/lib/listings";
+import { qrFase1Enabled } from "@/lib/qr/flag";
 import { formatPatente, resolverPatente } from "@/lib/qr/patente";
 
 export const metadata: Metadata = { title: "Editar camión", robots: { index: false, follow: false } };
@@ -13,6 +14,7 @@ export default async function EditarCamionPage({ params }: { params: Promise<{ i
   const user = await marketplaceViewer();
   const { id } = await params;
   const truck = getTruck(id);
+  const pedirPatente = qrFase1Enabled();
   if (!truck) notFound();
   if (!user || user.id !== truck.ownerId) {
     return (
@@ -36,6 +38,7 @@ export default async function EditarCamionPage({ params }: { params: Promise<{ i
       <TruckForm
         user={user}
         today={todayChile()}
+        pedirPatente={pedirPatente}
         initial={{
           id: truck.id,
           equipment: truck.equipment,
@@ -46,10 +49,14 @@ export default async function EditarCamionPage({ params }: { params: Promise<{ i
           tonnage: String(truck.tonnage),
           specs: truck.specs,
           notes: truck.notes || "",
-          patente: (() => {
-            const found = resolverPatente(truck.id).patente;
-            return found ? formatPatente(found) : "";
-          })(),
+          ...(pedirPatente
+            ? {
+                patente: (() => {
+                  const found = resolverPatente(truck.id).patente;
+                  return found ? formatPatente(found) : "";
+                })(),
+              }
+            : {}),
         }}
       />
     </div>

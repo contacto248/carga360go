@@ -9,6 +9,7 @@ import { normalizePatente } from "../security";
 import type { PublicUser } from "../types";
 import { prepararCadena, escribirEvento } from "./chain";
 import { nombreCorto, tratoDeCarga } from "./deal";
+import { assertQrFase1, qrFase1Enabled } from "./flag";
 import { guardarPatente, resolverPatente } from "./patente";
 
 const REQUIRED = ["licencia", "padron", "revision", "soap", "permiso"] as const;
@@ -65,6 +66,7 @@ export function asignarChofer(
   input: { nombre: string; truckId: string; patente?: string | null; foto?: string | null },
   now = new Date(),
 ) {
+  assertQrFase1();
   const deal = tratoDeCarga(loadId);
   if (!deal || deal.status !== "cerrado") throw new AppError("Primero hay que cerrar el trato.", 409);
   const load = getDb()
@@ -140,6 +142,7 @@ export function asignarChofer(
 }
 
 export function asignacionVigente(loadId: string) {
+  if (!qrFase1Enabled()) return undefined;
   return (
     getDb()
       .prepare(
@@ -169,6 +172,7 @@ export function asignacionVigente(loadId: string) {
 }
 
 export function fotoChofer(loadId: string): { path: string; mime: string } | null {
+  assertQrFase1();
   const row = asignacionVigente(loadId);
   if (!row?.photoPath || !fs.existsSync(row.photoPath)) return null;
   const root = path.resolve(process.env.UPLOAD_DIR || path.join(process.cwd(), "data", "uploads"));

@@ -22,6 +22,7 @@ import { BackupContactForm } from "@/components/BackupContactForm";
 import { ManualReadonlyBanner } from "@/components/ManualReadonlyBanner";
 import { backupContactOf, needsBackupContact } from "@/lib/backup-contact";
 import { ComprobantesPanel } from "@/components/qr/ComprobantesPanel";
+import { qrFase1Enabled } from "@/lib/qr/flag";
 
 export const metadata: Metadata = { title: "Mi panel", robots: { index: false, follow: false } };
 
@@ -148,7 +149,7 @@ export default async function PanelPage({
           }))}
         />
       ) : null}
-      {user.role === "mandante" || user.role === "admin" ? <ComprobantesPanel userId={user.id} /> : null}
+      {qrFase1Enabled() && (user.role === "mandante" || user.role === "admin") ? <ComprobantesPanel userId={user.id} /> : null}
       {user.role === "transportista" ? <MyOffers userId={user.id} /> : null}
       {canPublishLoad(user.role) || own.loads.length ? <h2 style={{ marginTop: 22 }}>Mis cargas</h2> : null}
       {!canPublishLoad(user.role) && own.loads.length === 0 ? null : own.loads.length === 0 ? (

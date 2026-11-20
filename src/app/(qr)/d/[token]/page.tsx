@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ComprobanteScreen } from "@/components/qr/Pantallas";
 import { AppError } from "@/lib/errors";
+import { qrFase1Enabled } from "@/lib/qr/flag";
 import { delegadoVigente } from "@/lib/qr/handoff";
 import { vistaQr } from "@/lib/qr/vista";
 
@@ -9,6 +10,7 @@ export const metadata: Metadata = { title: "Entrega en bodega", robots: { index:
 export const dynamic = "force-dynamic";
 
 export default async function DelegadoPage({ params }: { params: Promise<{ token: string }> }) {
+  if (!qrFase1Enabled()) notFound();
   const { token } = await params;
   const link = delegadoVigente(token);
   if (!link) notFound();
