@@ -37,6 +37,8 @@ body.public-theme .video-oficial {
   margin: 0 auto;
   padding: 12px 0 80px;
   text-align: center;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
 }
 
 body.public-theme .video-oficial p {

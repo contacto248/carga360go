@@ -308,6 +308,8 @@
   width: min(1040px, calc(100% - 32px));
   margin: 0 auto;
   padding: 28px 0 80px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
 }
 
 .modules ul {
@@ -978,4 +980,8 @@
     transition: none;
     animation: none;
   }
+}
+
+.stage:not(.live) :is(.spin, .spinSlow, .dash, .dashSlow, .mock, .bar, .draw) {
+  animation-play-state: paused;
 }

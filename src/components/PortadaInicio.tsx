@@ -19,23 +19,34 @@ export function PortadaInicio({ sesion }: { sesion: boolean }) {
     const stage = stageRef.current;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
+    let idle = 0;
+    let usedIdle = false;
     const sync = () => {
       if (reduce.matches && stage) stage.style.setProperty("--py", "0px");
     };
     const onScroll = () => {
-      if (!stage || reduce.matches) return;
+      if (!stage || reduce.matches || !stage.classList.contains(styles.live)) return;
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
         frame = 0;
         stage.style.setProperty("--py", `${Math.min(window.scrollY, 800)}px`);
       });
     };
-    sync();
-    onScroll();
+    const arrancar = () => {
+      stage?.classList.add(styles.live);
+      sync();
+      onScroll();
+    };
+    if (reduce.matches) arrancar();
+    else {
+      usedIdle = true;
+      idle = window.requestIdleCallback(arrancar, { timeout: 1600 });
+    }
     reduce.addEventListener("change", sync);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
+      if (usedIdle) window.cancelIdleCallback(idle);
       reduce.removeEventListener("change", sync);
       window.removeEventListener("scroll", onScroll);
     };

@@ -1,8 +1,36 @@
-import { Suspense } from "react";
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { AgenteAcreditacion } from "@/components/AgenteAcreditacion";
-import { VoiceAgentLauncher } from "@/components/VoiceAgent";
 import { BRAND } from "@/lib/catalog";
+
+const AgenteAcreditacion = dynamic(
+  () => import("@/components/AgenteAcreditacion").then((mod) => mod.AgenteAcreditacion),
+  { ssr: false },
+);
+const VoiceAgentLauncher = dynamic(
+  () => import("@/components/VoiceAgent").then((mod) => mod.VoiceAgentLauncher),
+  { ssr: false },
+);
+
+function DockTardio({ waNumber, waText }: { waNumber: string; waText: string }) {
+  const [listo, setListo] = useState(false);
+  useEffect(() => {
+    const mostrar = () => setListo(true);
+    const espera = window.requestIdleCallback(mostrar, { timeout: 2000 });
+    return () => window.cancelIdleCallback(espera);
+  }, []);
+  if (!listo) return null;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <AgenteAcreditacion />
+      </Suspense>
+      <VoiceAgentLauncher waNumber={waNumber} waText={waText} />
+    </>
+  );
+}
 
 export function Footer() {
   const waNumber = BRAND.whatsapp;
@@ -22,10 +50,7 @@ export function Footer() {
           </Link>
         </div>
       </footer>
-      <Suspense fallback={null}>
-        <AgenteAcreditacion />
-      </Suspense>
-      <VoiceAgentLauncher waNumber={waNumber} waText={waText} />
+      <DockTardio waNumber={waNumber} waText={waText} />
     </>
   );
 }

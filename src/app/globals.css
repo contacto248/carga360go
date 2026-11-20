@@ -116,7 +116,8 @@ section.block.alt{background:#fff}
 .eqsel{margin:4px 0}
 .eqsel-track{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .eqsel.carousel .eqsel-track,.eqsel-track{scroll-snap-type:x mandatory}
-.eqsel.carousel .eqsel-track{display:flex;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.eqsel.carousel{min-width:0;max-width:100%}
+.eqsel.carousel .eqsel-track{display:flex;overflow-x:auto;min-width:0;max-width:100%;width:100%;padding:2px 2px 8px;scrollbar-width:thin}
 .eqsel.carousel .eqcard{flex:0 0 150px}
 @media(max-width:640px){.eqsel-track{display:flex;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}.eqcard{flex:0 0 140px}}
 .eqcard{position:relative;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 10px 10px;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,transform .15s}
@@ -188,7 +189,8 @@ nav.links a{white-space:nowrap;padding:8px 10px}
 /* Evita que selects con opciones largas ensanchen la grilla (calculadora y formularios) */
 .form-grid{grid-template-columns:minmax(0,1fr)}@media(min-width:620px){.form-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .calc{grid-template-columns:minmax(0,1fr)}@media(min-width:960px){.calc{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}}
-label.f,.form-grid>*,.calc>*{min-width:0}select{max-width:100%;text-overflow:ellipsis}
+label.f,.form-grid>*,.calc,.calc>*,.shell-content,.wrap{min-width:0;max-width:100%}select{max-width:100%;text-overflow:ellipsis}
+@media(min-width:1280px){.app-shell{max-width:100%;overflow-x:clip}.calc,.eqsel{max-width:100%}}
 /* Ofertas (fase 1) */
 .offers{margin-top:16px}.offer{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;display:grid;gap:6px}
 .offer.best{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}.offer.won{border-color:var(--accent);background:#fff8f1}
