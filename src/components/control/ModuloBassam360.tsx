@@ -29,8 +29,8 @@ export function ModuloBassam360() {
     <section className={`${styles.shell} ${styles.ejecutivo}`} aria-labelledby="bassam360-titulo">
       <img
         className={styles.marca}
-        src="/brand/logo-wordmark.png"
-        srcSet="/brand/logo-wordmark.png 1x, /brand/logo-wordmark@2x.png 2x"
+        src="/brand/logo-wordmark-negro.png"
+        srcSet="/brand/logo-wordmark-negro.png 1x, /brand/logo-wordmark-negro@2x.png 2x"
         alt="Carga360go"
         width={220}
         height={50}

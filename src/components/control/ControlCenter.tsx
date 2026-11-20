@@ -103,7 +103,7 @@ export function ControlCenter({ initial, seccion = null, vista = "resumen", chil
   const moduloActivo = seccion ?? "centro";
   return <div className={styles.shell} data-b360="true" data-seccion={seccion ?? section}>
     <aside className={styles.sidebar} aria-label="Centro de control">
-      <Link className={styles.brand} href={hrefAdmin(data.company, { seccion })}><img className={styles.logo} src="/brand/logo-wordmark.png" srcSet="/brand/logo-wordmark.png 1x, /brand/logo-wordmark@2x.png 2x" alt="Carga360go" width={159} height={36} /><span className={styles.brandName}>Centro de control<small>BASSAM 360</small></span></Link>
+      <Link className={styles.brand} href={hrefAdmin(data.company, { seccion })}><img className={styles.logo} src="/brand/logo-wordmark-negro.png" srcSet="/brand/logo-wordmark-negro.png 1x, /brand/logo-wordmark-negro@2x.png 2x" alt="Carga360go" width={159} height={36} /><span className={styles.brandName}>Centro de control<small>BASSAM 360</small></span></Link>
       <div className={styles.companyLabel}>ESPACIOS DE EMPRESA</div>
       <div className={styles.companies} aria-label="Seleccionar empresa">
         <Link aria-current={!cargo ? "page" : undefined} className={!cargo ? styles.companyActive : ""} href={hrefAdmin("bassam", { seccion })}>BASSAM SPA <span>↗</span></Link>

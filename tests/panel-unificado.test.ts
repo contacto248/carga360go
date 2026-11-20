@@ -49,6 +49,10 @@ test("las rutas viejas redirigen a la sección y el menú externo queda en Admin
   assert.match(bassam360, /\/admin\?seccion=bassam360/);
   assert.match(bassam360, /user\.role !== "admin"/);
   assert.match(control, /redirect\(/);
+  const pintura = fs.readFileSync(new URL("../src/components/control/control.module.css", import.meta.url), "utf8");
+  assert.match(pintura, /#FF5001/);
+  assert.match(pintura, /#000000/);
+  assert.doesNotMatch(pintura, /#79b7e9|#0b111c|#002451|#ffc400/i);
   assert.match(agente, /selectorRolVisible/);
   assert.match(agente, /modo === "conversacion"/);
   assert.match(agente, /Soy transportista/);

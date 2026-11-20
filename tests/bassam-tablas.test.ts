@@ -402,7 +402,7 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(panel, /Documentos/);
   assert.match(panel, />Agente</);
   assert.doesNotMatch(panel + bassam + fs.readFileSync(new URL("../src/components/bassam-panel.module.css", import.meta.url), "utf8"), /127|98\.4%|hace \d+ horas|\b84\b/);
-  assert.match(fs.readFileSync(new URL("../src/components/bassam-panel.module.css", import.meta.url), "utf8"), /#0b1633/i);
+  assert.match(fs.readFileSync(new URL("../src/components/bassam-panel.module.css", import.meta.url), "utf8"), /#000000/i);
   const centroPage = fs.readFileSync(new URL("../src/app/admin/centro-control/page.tsx", import.meta.url), "utf8");
   const centroAgente = fs.readFileSync(new URL("../src/components/CentroAgente.tsx", import.meta.url), "utf8");
   for (const label of ["Vista general", "Operaciones", "Camiones y viajes", "Clientes", "Agentes IA", "Cotizador", "Comunicaciones", "Seguridad", "Tareas y soporte"]) {
