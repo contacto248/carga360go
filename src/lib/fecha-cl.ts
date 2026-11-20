@@ -1,3 +1,10 @@
+/** ISO yyyy-mm-dd a fecha chilena dd-mm-aaaa. Vacío si no es una fecha ISO. */
+export function isoAFechaChilena(iso: string): string {
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match || !fechaChilenaAIso(`${match[3]}-${match[2]}-${match[1]}`)) return "";
+  return `${match[3]}-${match[2]}-${match[1]}`;
+}
+
 /** Fecha chilena dd-mm-aaaa a ISO yyyy-mm-dd. Rechaza barras y meses imposibles. */
 export function fechaChilenaAIso(value: string): string | null {
   const match = value.trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
