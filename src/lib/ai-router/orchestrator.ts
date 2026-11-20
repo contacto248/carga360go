@@ -12,6 +12,8 @@ export type UsageDraft = {
   fallbackUsed: boolean;
   result: "ok" | "error";
   errorCode: ProviderErrorCode | null;
+  /** Código real de OpenAI, ya saneado, cuando el fallo es UpstreamError. */
+  upstreamCode: string | null;
 };
 
 export type SideResult =
@@ -65,6 +67,7 @@ function draftOf(
   fallbackUsed: boolean,
   result: ProviderSuccess | null,
   error: ProviderErrorCode | null,
+  upstreamCode: string | null,
   latencyMs: number,
 ): UsageDraft {
   return {
@@ -78,6 +81,7 @@ function draftOf(
     fallbackUsed,
     result: result ? "ok" : "error",
     errorCode: error,
+    upstreamCode: error ? upstreamCode : null,
   };
 }
 
@@ -91,11 +95,12 @@ async function attempt(
   const model = provider === "openai" ? input.settings.openaiModel : input.settings.xaiModel;
   try {
     const result = await callProvider(provider, input.prompt, input.maxOutputTokens, input.settings, input.fetchImpl, input.now);
-    return { ok: true, result, draft: draftOf(mode, provider, result.model, fallbackUsed, result, null, 0) };
+    return { ok: true, result, draft: draftOf(mode, provider, result.model, fallbackUsed, result, null, null, 0) };
   } catch (error) {
     const code = codeOf(error);
+    const upstream = error instanceof ProviderCallError ? error.upstreamCode : null;
     const latency = Math.max(0, (input.now ?? Date.now)() - started);
-    return { ok: false, error: code, draft: draftOf(mode, provider, model, fallbackUsed, null, code, latency) };
+    return { ok: false, error: code, draft: draftOf(mode, provider, model, fallbackUsed, null, code, upstream, latency) };
   }
 }
 

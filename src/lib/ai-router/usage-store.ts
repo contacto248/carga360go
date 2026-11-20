@@ -2,8 +2,18 @@ import { randomUUID } from "crypto";
 import { getDb } from "../db";
 import { todayChile } from "../format";
 import type { UsageDraft } from "./orchestrator";
+import { sanitizeUpstreamCode } from "./providers";
 
 const ERRORS = new Set(["ProviderDisabled", "Timeout", "UpstreamError", "NetworkError", "InvalidResponse"]);
+
+/** OpenAI 403 o UpstreamError guarda el código real. El mensaje y la clave no entran. */
+function storedErrorCode(row: UsageDraft): string | null {
+  if (row.provider === "openai" && row.errorCode === "UpstreamError") {
+    const upstream = sanitizeUpstreamCode(row.upstreamCode);
+    if (upstream) return upstream;
+  }
+  return row.errorCode && ERRORS.has(row.errorCode) ? row.errorCode : null;
+}
 
 /** La ruta persiste. El orquestador no abre la base. Sin prompt, sin clave y sin texto del modelo. */
 export function persistRouterUsage(traceId: string, userId: string, tenantId: string | null, rows: UsageDraft[], now = new Date()): void {
@@ -39,7 +49,7 @@ export function persistRouterUsage(traceId: string, userId: string, tenantId: st
         latency,
         row.fallbackUsed ? 1 : 0,
         row.result,
-        row.errorCode && ERRORS.has(row.errorCode) ? row.errorCode : null,
+        storedErrorCode(row),
         stamp,
       );
     }

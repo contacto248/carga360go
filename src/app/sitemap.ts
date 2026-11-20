@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next";
 import { LANDING_SLUGS } from "@/lib/seo-landings";
+import { paginasPublicasNuevasEnabled } from "@/lib/paginas-publicas/flag";
 import { SEO_ROUTES } from "@/lib/seo-routes";
 
 const BASE = "https://www.carga360go.cl";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
+  const enabled = paginasPublicasNuevasEnabled();
   const pages = [
     "",
     "/cargas",
@@ -19,6 +21,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/faq",
     "/regiones",
     "/contacto",
+    // Páginas de #63: solo con UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED="true".
+    ...(enabled ? ["/clientes", "/documentos", "/finanzas"] : []),
     "/como-verificamos",
     "/terminos",
     "/privacidad",

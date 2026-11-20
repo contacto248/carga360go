@@ -16,7 +16,7 @@ export const DEFAULT_TIMEOUT_SECONDS = 120;
 /** Tope del prompt. Más bajo que el módulo de referencia (100000). */
 export const MAX_PROMPT_CHARS = 20_000;
 /** Tope diario de gasto en USD si AI_ROUTER_DAILY_USD no trae un número válido. */
-export const DEFAULT_DAILY_USD = 1;
+export const DEFAULT_DAILY_USD = 5;
 /** Peticiones por usuario en la ventana de tasa. */
 export const DEFAULT_USER_RATE = 10;
 /** Peticiones por tenant en la misma ventana. */

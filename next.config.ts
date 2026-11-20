@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["better-sqlite3"],
+  // Flag de /clientes, /documentos y /finanzas. Se fija en el build para que el menú
+  // (cliente) y el servidor vean el mismo valor. Apagado si falta.
+  env: {
+    UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED: process.env.UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED === "true" ? "true" : "false",
+  },
   async headers() {
     // CSP razonable: todo propio; Next necesita scripts y estilos en línea.
     // GTM (GTM-NP2F9GRJ) y GA4 (G-1LWRQYDEKS): script, imagen, connect y el iframe noscript.
