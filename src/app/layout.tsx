@@ -22,6 +22,7 @@ import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
 import "./tokens.css";
 import "./globals.css";
+import "./qr.css";
 
 const display = Sora({
   subsets: ["latin"],
@@ -126,12 +127,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const privacy = privacyGateFor(user);
   const productionAnalytics = await isProductionAnalyticsEnabled();
   const pathname = (await headers()).get("x-pathname") || "";
-  const agente360 = pathname === "/agente-360go" || pathname.startsWith("/agente-360go/");
-  const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360;
+  const pathOnly = pathname.replace(/\/$/, "") || "/";
+  const agente360 = pathOnly === "/agente-360go" || pathOnly.startsWith("/agente-360go/");
+  const qrPantalla = /^\/viajes\/[^/]+\/(comprobante|escanear|entrega)$/.test(pathOnly) || /^\/d\/[^/]+$/.test(pathOnly);
+  const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360 && !qrPantalla;
   return (
     <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
-      <body className={agente360 ? "app-standalone" : undefined}>
-        <CookieConsentBanner />
+      <body className={qrPantalla ? "qr-body" : agente360 ? "app-standalone" : undefined}>
+        {qrPantalla ? null : <CookieConsentBanner />}
         {loadAnalyticsTags ? (
           <>
             <noscript>
@@ -159,9 +162,25 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             </Script>
           </>
         ) : null}
-        {productionAnalytics && !agente360 ? <AnalyticsRouteGuard /> : null}
-        {agente360 ? null : <HubSpotTracking portalId={hubspotPortalId()} />}
-        {agente360 ? (
+        {productionAnalytics && !agente360 && !qrPantalla ? <AnalyticsRouteGuard /> : null}
+        {agente360 || qrPantalla ? null : <HubSpotTracking portalId={hubspotPortalId()} />}
+        {qrPantalla ? (
+          <main className="qr-main" id="contenido">
+            {privacy.required && user ? (
+              <PrivacyGate
+                name={user.contactName || user.razonSocial}
+                version={privacyVersion()}
+                termsVersion={termsVersion()}
+                firstTime={privacy.firstTime}
+                terms={<TermsBody prefix="t-" />}
+              >
+                <PolicyBody prefix="p-" />
+              </PrivacyGate>
+            ) : (
+              children
+            )}
+          </main>
+        ) : agente360 ? (
           <main className="agente-360-main">
             {privacy.required && user ? (
               <PrivacyGate

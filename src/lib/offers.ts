@@ -11,6 +11,7 @@ import { sendEmail } from "./notify";
 import { cleanClp } from "./security";
 import { getSettings } from "./settings";
 import { assertNotManualReadonly } from "./manual-readonly";
+import { dealMailLines, insertPendingDeal } from "./qr/deal";
 import type { PublicUser } from "./types";
 
 /**
@@ -344,6 +345,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
   const db = getDb();
   const stamp = new Date().toISOString();
   const losers = listOffersForLoad(load.id).filter((item) => item.id !== offerId && item.status === "activa");
+  let confirmCode: string | null = null;
   const apply = db.transaction(() => {
     const changed = db
       .prepare(`UPDATE loads SET status = 'adjudicada', awarded_offer_id = ?, trip_status = 'asignado', updated_at = ? WHERE id = ? AND COALESCE(status, 'abierta') = 'abierta'`)
@@ -352,6 +354,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
     if (changed.changes !== 1) throw new AppError("Esta carga ya fue adjudicada.", 409);
     db.prepare(`UPDATE offers SET status = 'aceptada', updated_at = ? WHERE id = ?`).run(stamp, offerId);
     db.prepare(`UPDATE offers SET status = 'rechazada', updated_at = ? WHERE load_id = ? AND id <> ? AND status = 'activa'`).run(stamp, load.id, offerId);
+    confirmCode = insertPendingDeal(load.id, offerId, user.id, stamp)?.code ?? null;
   });
   apply();
   audit(user, "oferta.aceptada", { type: "carga", id: load.id }, { offerId, carrier: offer.carrierName, priceClp: offer.priceClp });
@@ -369,7 +372,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
           `Contacto del mandante: ${owner.contact_name} · WhatsApp +${owner.whatsapp} · ${owner.email}`,
           `Detalle: ${appUrl()}/cargas/${load.id}`,
           "",
-          "Coordinen el retiro directamente.",
+          dealMailLines(load.id, confirmCode).carrier,
         ].join("\n"),
       );
       await sendEmail(
@@ -381,6 +384,7 @@ export async function acceptOffer(user: PublicUser, offerId: string, opts: { not
           `Elegiste la oferta de ${offer.carrierName} por $${formatClp(offer.priceClp)} CLP (retiro ${formatDateCL(offer.pickupDate)}).`,
           `Contacto del transportista: ${offer.carrierContact} · WhatsApp +${offer.carrierWhatsapp} · ${offer.carrierEmail}`,
           `Detalle: ${appUrl()}/cargas/${load.id}`,
+          dealMailLines(load.id, null).owner,
           "",
           "Carga360go",
         ].join("\n"),

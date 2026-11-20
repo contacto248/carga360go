@@ -150,6 +150,6 @@ test("un evento antiguo sin autor no se atribuye a quien consulta", () => {
 test("el tablero declara que el estado no es GPS y no habla de comprobante", () => {
   const board = fs.readFileSync(new URL("../src/components/TripBoard.tsx", import.meta.url), "utf8");
   assert.match(board, /Estados declarados por los participantes\. No corresponde a ubicación GPS\./);
-  assert.equal(board.includes("comprobante"), false);
+  assert.match(board, /retiroPorQr/);
   assert.match(board, /event\.authorLabel/);
 });

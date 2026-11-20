@@ -14,6 +14,7 @@ import { todayChile } from "@/lib/format";
 import { getLoad, listOwn } from "@/lib/listings";
 import { awardedContact, canOffer, effectiveAllowImprove, offersOpen, offersVisibleTo } from "@/lib/offers";
 import { getSettings } from "@/lib/settings";
+import { tratoDeCarga } from "@/lib/qr/deal";
 import { tripView } from "@/lib/viaje";
 import { driverLocationHref } from "@/lib/ops/gps/flag";
 import { trackingCodeFor, trackingCodeVisibleTo } from "@/lib/agent/tracking";
@@ -102,6 +103,11 @@ export default async function CargaDetailPage({ params }: { params: Promise<{ id
       {gpsHref ? (
         <p className="meta">
           <Link href={gpsHref}>Informar ubicación del viaje</Link>
+        </p>
+      ) : null}
+      {viaje && tratoDeCarga(load.id) ? (
+        <p className="notice">
+          <Link href={isOwner ? `/viajes/${load.id}/comprobante` : `/viajes/${load.id}/escanear`}>Abrir el trato y el QR de retiro</Link>
         </p>
       ) : null}
       {viaje ? <TripBoard loadId={load.id} initial={viaje} /> : null}

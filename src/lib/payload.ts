@@ -34,5 +34,6 @@ export function truckFromPayload(body: Record<string, unknown>): TruckInput {
     tonnage: Number(body.tonnage),
     specs: specsOf(body.specs),
     notes: body.notes == null ? null : String(body.notes),
+    patente: body.patente == null ? undefined : String(body.patente),
   };
 }

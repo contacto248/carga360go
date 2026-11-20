@@ -7,7 +7,7 @@ import { publicVerifiedSeal } from "./public-trust";
 import { offersOpen } from "./offers";
 import { matchLoadsForTruck, matchTrucksForLoad } from "./match";
 import { canPublishLoad, canPublishTruck } from "./roles";
-import { cleanClp } from "./security";
+import { cleanClp, normalizePatente } from "./security";
 import { getSettings } from "./settings";
 import { assertNotManualReadonly } from "./manual-readonly";
 import type {
@@ -232,7 +232,15 @@ export type TruckInput = {
   tonnage: number;
   specs: Specs;
   notes?: string | null;
+  patente?: string | null;
 };
+
+function patenteInput(value: string | null | undefined): string | null {
+  if (value == null || value.trim() === "") return null;
+  const patente = normalizePatente(value);
+  if (!patente) throw new AppError("La patente no tiene formato chileno (ej: BBCD12 o AB1234).");
+  return patente;
+}
 
 function normalizeLoad(input: LoadInput) {
   assertRoute(input.origin, input.destination);
@@ -589,6 +597,8 @@ export function createTruck(user: PublicUser, input: TruckInput, isDemo = false)
       stamp,
       stamp,
     );
+  const patente = patenteInput(input.patente);
+  if (patente) getDb().prepare(`UPDATE trucks SET patente = ? WHERE id = ?`).run(patente, id);
   const created = getTruck(id);
   if (!created) throw new AppError("No se pudo publicar el camión.", 500);
   return created;
@@ -618,6 +628,9 @@ export function updateTruck(user: PublicUser, id: string, input: TruckInput): Tr
       new Date().toISOString(),
       id,
     );
+  if (input.patente !== undefined) {
+    getDb().prepare(`UPDATE trucks SET patente = ? WHERE id = ?`).run(patenteInput(input.patente), id);
+  }
   const updated = getTruck(id);
   if (!updated) throw new AppError("Camión no encontrado.", 404);
   return updated;

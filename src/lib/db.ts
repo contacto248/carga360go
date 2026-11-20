@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { MIGRATION_17_SQL, MIGRATION_18_SQL } from "./bassam/schema";
 import { MIGRATION_27_SQL } from "./ops/gps/schema";
+import { migration34Sql } from "./qr/schema";
 import { seedTolls } from "./costos/tolls-seed";
 import Database from "better-sqlite3";
 import { addDaysIso, FREE_DAYS, freeUntilFrom } from "./campaign";
@@ -1343,6 +1344,15 @@ function migrate(db: Database.Database) {
     const apply = db.transaction(() => {
       db.exec(MIGRATION_32_SQL);
       db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (32, ?)`).run(new Date().toISOString());
+    });
+    apply();
+  }
+  // QR del trato (034). La 033 no se usa. La 032 queda intacta.
+  if (!hasMigration(db, 34)) {
+    const apply = db.transaction(() => {
+      if (!hasColumn(db, "trucks", "patente")) db.exec(`ALTER TABLE trucks ADD COLUMN patente TEXT`);
+      db.exec(migration34Sql());
+      db.prepare(`INSERT INTO schema_migrations (version, applied_at) VALUES (34, ?)`).run(new Date().toISOString());
     });
     apply();
   }

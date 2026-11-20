@@ -5,6 +5,7 @@ import { TruckForm } from "@/components/TruckForm";
 import { marketplaceViewer } from "@/lib/access";
 import { todayChile } from "@/lib/format";
 import { getTruck } from "@/lib/listings";
+import { formatPatente, resolverPatente } from "@/lib/qr/patente";
 
 export const metadata: Metadata = { title: "Editar camión", robots: { index: false, follow: false } };
 
@@ -45,6 +46,10 @@ export default async function EditarCamionPage({ params }: { params: Promise<{ i
           tonnage: String(truck.tonnage),
           specs: truck.specs,
           notes: truck.notes || "",
+          patente: (() => {
+            const found = resolverPatente(truck.id).patente;
+            return found ? formatPatente(found) : "";
+          })(),
         }}
       />
     </div>
