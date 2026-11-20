@@ -37,7 +37,11 @@ export function EnlaceSeguimiento({ shipmentId }: { shipmentId: string }) {
         className="btn sm"
         disabled={busy}
         type="button"
-        onClick={() => pedir(`/api/ops/envios/${shipmentId}/seguimiento/rotar`, "No se pudo revocar el enlace.")}
+        onClick={() => {
+          const confirmed = window.confirm("Esto invalida el enlace que el cliente ya tiene. ¿Revocar y emitir uno nuevo?");
+          if (!confirmed) return;
+          pedir(`/api/ops/envios/${shipmentId}/seguimiento/rotar`, "No se pudo revocar el enlace.");
+        }}
       >
         Revocar y emitir
       </button>

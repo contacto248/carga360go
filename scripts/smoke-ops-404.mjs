@@ -45,17 +45,20 @@ function stop(child) {
 const port = await freePort();
 const env = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
 for (const name of ["UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED", "OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED", "OPS_OPERACION_ENABLED"]) {
-  delete env[name];
+  env[name] = "false";
 }
 
-const built = await new Promise((resolve) => {
-  const build = spawn(process.execPath, [nextBin, "build"], { cwd: repo, env, stdio: "inherit" });
-  build.once("exit", (code) => resolve(code));
-});
-if (built !== 0) {
-  console.error(`next build salió ${built}`);
-  process.exit(built === null ? 1 : built);
+let built = 1;
+for (let attempt = 1; attempt <= 3; attempt += 1) {
+  built = await new Promise((resolve) => {
+    const build = spawn(process.execPath, [nextBin, "build"], { cwd: repo, env, stdio: "inherit" });
+    build.once("exit", (code) => resolve(code ?? 1));
+  });
+  if (built === 0) break;
+  console.error(`next build intento ${attempt} salió ${built}`);
+  if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 5_000));
 }
+if (built !== 0) process.exit(built);
 
 const chunks = [];
 const child = spawn(process.execPath, [nextBin, "start", "-H", "127.0.0.1", "-p", String(port)], {
