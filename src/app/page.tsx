@@ -2,6 +2,7 @@ import orbita from "./orbita.module.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HomeTowerBoard } from "@/components/HomeTowerBoard";
+import { PortalPanels } from "@/components/PortalPanels";
 import { WhatsAppChannel } from "@/components/WhatsAppChannel";
 import { QuickSearch } from "@/components/QuickSearch";
 import { BRAND, equipmentById } from "@/lib/catalog";
@@ -245,6 +246,8 @@ export default async function HomePage() {
           <WhatsAppChannel />
         </div>
       </section>
+
+      <PortalPanels />
 
       {/* Puntero a verticales / equipos / tecnología */}
       <section className="block alt" aria-labelledby="mas-titulo">

@@ -251,6 +251,8 @@ test("portada visual: cookie compacta y dos CTA de perfil con el mismo peso", ()
   const css = read("src/app/orbita.module.css");
   assert.match(css, /\.surface :global\(section\.block h2\)/);
   assert.match(css, /color:#f5f5f5/);
+  assert.match(home, /PortalPanels/);
+  assert.doesNotMatch(home, /home-bw|AnalyticsConsent|<AgentCard/);
 });
 
 test("las maquetas Órbita viven en docs y Next no las publica", () => {

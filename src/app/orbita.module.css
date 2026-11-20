@@ -29,4 +29,17 @@
 .surface :global(.audience-grid article){border-top-color:#333}
 .surface :global(.steps-n){background:#222;color:#ddd;border-color:#555}
 .surface a:focus-visible,.surface button:focus-visible{outline:2px solid #fff;outline-offset:4px}
-@media(max-width:800px){.surface :global(.hero-fold){padding:60px 0 45px}.surface :global(.hero-grid){grid-template-columns:1fr;gap:32px}.surface :global(.hero-copy h1){font-size:clamp(2.2rem,8vw,3.5rem);max-width:none}.surface :global(.hero-fold)::before{width:650px;height:650px;top:300px}.surface :global(.hero-fold)::after{top:550px}.surface :global(.block),.surface :global(.benefits-band){padding-top:45px;padding-bottom:45px}}
+.surface :global(.bw-panels){padding:clamp(56px,8vw,112px) 0;background:#000;color:#eee}
+.surface :global(.bw-eyebrow){font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#c8c8c8;margin:0 0 20px}
+.surface :global(.bw-panels h2){font-size:clamp(2rem,4.2vw,3.4rem);line-height:1.06;margin:0 0 44px;color:#f5f5f5}
+.surface :global(.bw-grid){list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:16px}
+.surface :global(.bw-tile){background:#111;border:1px solid #333;border-radius:20px;padding:24px;display:flex;flex-direction:column;min-height:280px}
+.surface :global(.bw-art){width:100%;max-width:320px;height:auto;margin:8px auto;display:block}
+.surface :global(.bw-tile-foot){display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:8px 24px;margin-top:28px}
+.surface :global(.bw-tile h3){font-size:1.5rem;font-weight:500;margin:0;color:#f5f5f5}
+.surface :global(.bw-tile p){grid-column:1/-1;margin:4px 0 0;color:#c8c8c8;font-size:.95rem;max-width:36em}
+.surface :global(.bw-more){color:#fff;text-decoration:none}
+.surface :global(.bw-more-2){grid-column:1/-1;justify-self:start;color:#c8c8c8;font-size:.9rem;text-decoration:none}
+.surface :global(.bw-sr){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(min-width:700px){.surface :global(.bw-grid){grid-template-columns:1fr 1fr}}
+@media(max-width:800px){.surface :global(.hero-fold){padding:60px 0 45px}.surface :global(.hero-grid){grid-template-columns:1fr;gap:32px}.surface :global(.hero-copy h1){font-size:clamp(2.2rem,8vw,3.5rem);max-width:none}.surface :global(.hero-fold)::before{width:650px;height:650px;top:300px}.surface :global(.hero-fold)::after{top:550px}.surface :global(.block),.surface :global(.benefits-band){padding-top:45px;padding-bottom:45px}.surface :global(.cta){display:flex;flex-direction:column;align-items:stretch}.surface :global(.cta .btn){width:100%}}
