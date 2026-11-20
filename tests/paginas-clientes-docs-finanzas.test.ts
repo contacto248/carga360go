@@ -99,9 +99,12 @@ test("Documentos y Finanzas quedan vacíos, con nombre accesible y sin precios",
   }
 });
 
-test("la nav y el sitemap enlazan las tres páginas y no reabren login ni PrivacyGate", () => {
+test("la nav y el sitemap enlazan las tres páginas (detrás del flag) y no reabren login ni PrivacyGate", () => {
   const header = read("src/components/Header.tsx");
   const sitemap = read("src/app/sitemap.ts");
+  assert.match(header, /LINKS_PUBLICOS_NUEVOS/);
+  assert.match(header, /paginasPublicasNuevasEnabled/);
+  assert.match(sitemap, /paginasPublicasNuevasEnabled/);
   for (const href of ["/clientes", "/documentos", "/finanzas"]) {
     assert.match(header, new RegExp(`href: "${href}"`));
     assert.match(sitemap, new RegExp(`"${href}"`));

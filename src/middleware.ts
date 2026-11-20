@@ -3,6 +3,7 @@ import { isEnabled } from "@/lib/ops/flags";
 import { opsPageHidden, opsPageRule } from "@/lib/ops/page-gate";
 import { userFromHeaders } from "@/lib/request-auth";
 import { paginasOpsHidden } from "@/lib/paginas-ops/flag";
+import { paginasPublicasNuevasHidden } from "@/lib/paginas-publicas/flag";
 import { sistemaPageHidden } from "@/lib/sistema/flag";
 import { SEO_ROUTES } from "@/lib/seo-routes";
 import { uiVistaHidden } from "@/lib/vistas/flag";
@@ -62,6 +63,7 @@ export function middleware(request: NextRequest) {
   if (sistemaPageHidden(pathname)) return opsNotFound();
   if (paginasOpsHidden(pathname)) return opsNotFound();
   if (uiVistaHidden(pathname)) return opsNotFound();
+  if (paginasPublicasNuevasHidden(pathname)) return opsNotFound();
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);

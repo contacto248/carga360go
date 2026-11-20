@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { BandejaVacia } from "@/components/paginas/BandejaVacia";
+import { paginasPublicasNuevasHidden } from "@/lib/paginas-publicas/flag";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
 
 export const metadata: Metadata = {
@@ -8,7 +10,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/documentos" },
 };
 
+export const dynamic = "force-dynamic";
+
 export default function DocumentosPage() {
+  if (paginasPublicasNuevasHidden("/documentos")) notFound();
   return (
     <BandejaVacia
       titulo="Documentos"

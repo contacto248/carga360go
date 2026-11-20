@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { ClientesVista } from "@/components/paginas/ClientesVista";
+import { paginasPublicasNuevasHidden } from "@/lib/paginas-publicas/flag";
 import { paymentsLegalPublished } from "@/lib/pagos/config";
 
 export const metadata: Metadata = {
@@ -9,6 +11,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/clientes" },
 };
 
+export const dynamic = "force-dynamic";
+
 export default function ClientesPage() {
+  if (paginasPublicasNuevasHidden("/clientes")) notFound();
   return <ClientesVista pagosLegales={paymentsLegalPublished()} />;
 }

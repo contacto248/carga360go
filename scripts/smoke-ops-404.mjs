@@ -48,7 +48,7 @@ function stop(child) {
 
 const port = await freePort();
 const env = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
-for (const name of ["OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED", "OPS_OPERACION_ENABLED"]) {
+for (const name of ["UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED", "OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED", "OPS_OPERACION_ENABLED"]) {
   delete env[name];
 }
 
@@ -93,7 +93,7 @@ try {
   }
   if (!ready) throw new Error(`next start no respondió\n${logs()}`);
 
-  const pages = ["/admin/ops/asignacion", "/admin/ops/operacion", "/admin/ops/futura", "/viajes/prueba/ubicacion"];
+  const pages = ["/admin/ops/asignacion", "/admin/ops/operacion", "/admin/ops/futura", "/viajes/prueba/ubicacion", "/clientes", "/documentos", "/finanzas"];
   for (const pathname of pages) {
     const response = await fetch(`http://127.0.0.1:${port}${pathname}`, { redirect: "manual" });
     const html = await response.text();
@@ -108,7 +108,17 @@ try {
 
   const contacto = await fetch(`http://127.0.0.1:${port}/contacto`, { redirect: "manual" });
   if (contacto.status !== 200) throw new Error(`/contacto respondió ${contacto.status}`);
-  console.log("humo ok: 404 real en páginas OPS con flags apagados");
+  const contactoHtml = await contacto.text();
+  for (const href of ["/clientes", "/documentos", "/finanzas"]) {
+    if (contactoHtml.includes(`href="${href}"`)) throw new Error(`el menú enlaza ${href} con el flag apagado`);
+  }
+  const sitemap = await fetch(`http://127.0.0.1:${port}/sitemap.xml`);
+  const sitemapXml = await sitemap.text();
+  if (sitemap.status !== 200) throw new Error(`/sitemap.xml respondió ${sitemap.status}`);
+  for (const href of ["/clientes", "/documentos", "/finanzas"]) {
+    if (sitemapXml.includes(`carga360go.cl${href}<`)) throw new Error(`el sitemap incluye ${href} con el flag apagado`);
+  }
+  console.log("humo ok: 404 real en páginas OPS y en /clientes, /documentos y /finanzas con flags apagados; sin enlaces en menú ni sitemap");
 } finally {
   await stop(child);
 }

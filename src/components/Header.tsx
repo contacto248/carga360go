@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { paginasPublicasNuevasEnabled } from "@/lib/paginas-publicas/flag";
 import type { PublicUser } from "@/lib/types";
 
 const LINKS = [
@@ -11,10 +12,18 @@ const LINKS = [
   { href: "/mi-cuenta?rol=mandante", label: "Publicar carga" },
   { href: "/mi-cuenta", label: "Mi cuenta" },
   { href: "/tecnologia", label: "Tecnología" },
+];
+
+/** Páginas de #63. Solo salen en el menú con UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED="true". */
+const LINKS_PUBLICOS_NUEVOS = [
   { href: "/clientes", label: "Clientes" },
   { href: "/documentos", label: "Documentos" },
   { href: "/finanzas", label: "Finanzas" },
 ];
+
+export function enlacesMenu(enabled: boolean = paginasPublicasNuevasEnabled()) {
+  return enabled ? [...LINKS, ...LINKS_PUBLICOS_NUEVOS] : LINKS;
+}
 
 function activo(pathname: string, href: string) {
   if (href.includes("?")) return false;
@@ -58,7 +67,7 @@ export function Header({ user }: { user: PublicUser | null }) {
   function enlaces(compacto: boolean) {
     return (
       <>
-        {LINKS.map((link) => {
+        {enlacesMenu().map((link) => {
           const on = activo(pathname, link.href);
           return (
             <Link key={`${compacto ? "m" : "d"}-${link.href}`} href={link.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
