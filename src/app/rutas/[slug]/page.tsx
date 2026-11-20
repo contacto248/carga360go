@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CITY_LANDINGS, foldCity } from "@/lib/seo-landings";
 import { SEO_ROUTES, routeBySlug } from "@/lib/seo-routes";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -34,6 +35,9 @@ export default async function RoutePage({ params }: Props) {
   const { slug } = await params;
   const route = routeBySlug(slug);
   if (!route) notFound();
+  const cities = CITY_LANDINGS.filter(
+    (city) => foldCity(city.name) === foldCity(route.origin) || foldCity(city.name) === foldCity(route.destination),
+  );
 
   const breadcrumb = {
     "@context": "https://schema.org",
@@ -82,6 +86,18 @@ export default async function RoutePage({ params }: Props) {
         Para coordinar transporte, ingresa a Carga360go e indica las características de tu carga. La
         disponibilidad está sujeta a confirmación.
       </p>
+      {cities.length ? (
+        <p>
+          Esta página es el tramo. La ciudad tiene su página:{" "}
+          {cities.map((city, index) => (
+            <span key={city.href}>
+              {index ? " · " : null}
+              <Link href={city.href}>{city.name}</Link>
+            </span>
+          ))}
+          .
+        </p>
+      ) : null}
       <p>
         <Link href="/rutas">Ver otras rutas de transporte</Link>
       </p>

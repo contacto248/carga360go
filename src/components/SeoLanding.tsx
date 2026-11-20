@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/catalog";
-import type { SeoLandingContent } from "@/lib/seo-landings";
+import { CITY_LANDINGS, foldCity, type SeoLandingContent } from "@/lib/seo-landings";
+import { SEO_ROUTES } from "@/lib/seo-routes";
 
 export function LandingLegalNote() {
   return (
@@ -14,6 +15,10 @@ export function LandingLegalNote() {
 }
 
 export function SeoLanding({ landing }: { landing: SeoLandingContent }) {
+  const city = CITY_LANDINGS.find((item) => item.href === landing.slug);
+  const tramos = city
+    ? SEO_ROUTES.filter((route) => foldCity(route.origin) === foldCity(city.name) || foldCity(route.destination) === foldCity(city.name))
+    : [];
   return (
     <div className="wrap legal" style={{ paddingBottom: 40 }}>
       <div className="page-title">
@@ -22,6 +27,20 @@ export function SeoLanding({ landing }: { landing: SeoLandingContent }) {
       {landing.body.map((paragraph) => (
         <p key={paragraph.slice(0, 48)}>{paragraph}</p>
       ))}
+      {tramos.length ? (
+        <section>
+          <h2>Tramos</h2>
+          <ul>
+            {tramos.map((route) => (
+              <li key={route.slug}>
+                <Link href={`/rutas/${route.slug}`}>
+                  {route.origin} a {route.destination}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       <div className="cta landing-cta">
         {landing.ctas.map((cta) => (
           <Link key={cta.href} className="btn sec" href={cta.href}>

@@ -150,9 +150,14 @@ test("T-066 alias E2E /seguimiento /login /ayuda /registro-transportista; /faq t
   assert.match(conf, /destination:\s*"\/guias"/);
   assert.match(conf, /source:\s*"\/registro-transportista"/);
   assert.match(conf, /destination:\s*"\/registro"/);
-  assert.ok(fs.existsSync(path.join(ROOT, "src/app/faq/page.tsx")));
-  const faqPage = read("src/app/faq/page.tsx");
-  assert.match(faqPage, /canonical:\s*"\/faq"/);
+  assert.equal(fs.existsSync(path.join(ROOT, "src/app/faq/page.tsx")), false);
+  assert.match(conf, /source:\s*"\/faq"/);
+  assert.match(conf, /destination:\s*"\/preguntas-frecuentes"/);
+  assert.match(conf, /statusCode:\s*301/);
+  const faqPage = read("src/app/preguntas-frecuentes/page.tsx");
+  assert.match(faqPage, /canonical:\s*"\/preguntas-frecuentes"/);
+  assert.doesNotMatch(read("src/app/sitemap.ts"), /"\/faq"/);
+  assert.match(read("src/app/sitemap.ts"), /\/preguntas-frecuentes/);
   assert.match(faqPage, /Preguntas frecuentes/);
   assert.match(faqPage, /from "\@\/lib\/faq"/);
   const faqLib = read("src/lib/faq.ts");
@@ -211,6 +216,7 @@ test("T-061 video corporativo permanece en assets públicos (portada corta no lo
   assert.doesNotMatch(home, /home-video-band/);
   assert.doesNotMatch(home + hero, /autoPlay|autoplay/i);
   assert.doesNotMatch(home + hero, /hero-loop|hero-fondo|carga360go-corporativo/);
+  assert.doesNotMatch(home + hero + read("src/components/OrbitaVideo.tsx"), /VideoObject/);
   assert.equal(fs.existsSync(path.join(ROOT, "public/video/hero-loop.mp4")), false);
   assert.equal(fs.existsSync(path.join(ROOT, "public/video/hero-fondo.mp4")), false);
 });

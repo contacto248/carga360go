@@ -92,10 +92,10 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.95fr);
-  gap: 28px 40px;
+  grid-template-columns: minmax(0, 0.86fr) minmax(340px, 1.14fr);
+  gap: 28px 36px;
   align-items: center;
-  width: min(1120px, calc(100% - 40px));
+  width: min(1180px, calc(100% - 40px));
 }
 
 .copy {
@@ -149,35 +149,55 @@
 
 .product {
   position: relative;
-  height: 460px;
+  height: 560px;
+}
+
+.sample {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  margin: 0;
+  color: #c8c8c8;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 .slotMap,
 .slotRoute,
-.slotStep {
+.slotDocs,
+.slotEq {
   position: absolute;
   transform: translate3d(0, calc(var(--py) * var(--depth)), 0);
 }
 
 .slotMap {
-  --depth: -0.06;
-  top: 8px;
+  --depth: -0.05;
+  top: 28px;
   right: 0;
-  width: min(240px, 62%);
+  width: min(250px, 52%);
 }
 
 .slotRoute {
-  --depth: -0.14;
-  top: 148px;
+  --depth: -0.12;
+  top: 78px;
   left: 0;
-  width: min(270px, 70%);
+  width: min(300px, 64%);
 }
 
-.slotStep {
-  --depth: -0.22;
+.slotDocs {
+  --depth: -0.18;
+  left: 18px;
+  bottom: 78px;
+  width: min(280px, 62%);
+}
+
+.slotEq {
+  --depth: -0.1;
   right: 8px;
-  bottom: 18px;
-  width: min(230px, 64%);
+  bottom: 12px;
+  width: min(230px, 52%);
 }
 
 .mock {
@@ -185,7 +205,49 @@
   border: 1px solid #3a3a3a;
   color: #fff;
   padding: 14px 16px 16px;
-  animation: floaty 9s ease-in-out infinite;
+  animation: floaty 12s ease-in-out infinite;
+}
+
+.mock strong {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.mock p {
+  margin: 0;
+  color: #e8e8e8;
+  font-size: 0.95rem;
+  font-weight: 300;
+}
+
+.track {
+  height: 3px;
+  margin-top: 14px;
+  background: #2a2a2a;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  width: 36%;
+  background: #ff5001;
+  animation: advance 7s ease-in-out infinite alternate;
+}
+
+.draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 7s ease-in-out infinite;
+}
+
+.rig {
+  display: block;
+  width: 100%;
+  height: 36px;
+  margin-top: 8px;
 }
 
 .slotRoute .mock {
@@ -222,9 +284,13 @@
 }
 
 .stepMock {
-  display: grid;
-  place-items: center;
-  min-height: 92px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepMock strong {
+  margin: 0;
 }
 
 .mapSvg,
@@ -287,6 +353,23 @@
   }
 }
 
+@keyframes advance {
+  to {
+    width: 78%;
+  }
+}
+
+@keyframes draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+
+  70%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
 .stage .ctaRow {
   flex-direction: column;
   align-items: flex-start;
@@ -311,7 +394,28 @@
   }
 
   .product {
-    height: 360px;
+    height: auto;
+    display: grid;
+    gap: 10px;
+    padding-top: 28px;
+    padding-right: 64px;
+  }
+
+  .sample {
+    position: static;
+  }
+
+  .slotMap,
+  .slotRoute,
+  .slotDocs,
+  .slotEq {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    transform: none;
   }
 
   .modules ul {
@@ -335,7 +439,9 @@
   .dashSlow,
   .geo,
   .motes,
-  .mock {
+  .mock,
+  .bar,
+  .draw {
     animation: none;
   }
 

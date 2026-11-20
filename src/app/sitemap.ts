@@ -16,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/herramientas/calculadora",
     "/tecnologia",
     "/guias",
-    "/faq",
+    "/preguntas-frecuentes",
     "/regiones",
     "/contacto",
     "/como-verificamos",

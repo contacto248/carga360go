@@ -93,6 +93,21 @@ test("las seis landings SEO y Cómo verificamos existen con metas propias, sin c
   assert.match(verify, /permiso de circulación/);
   assert.match(verify, /No es un sello de solvencia/);
   assert.match(verify, /no validamos en línea/);
+  const city = read("src/components/SeoLanding.tsx");
+  assert.match(city, /\/rutas\/\$\{route\.slug\}/);
+  const tramo = read("src/app/rutas/[slug]/page.tsx");
+  assert.match(tramo, /\/rutas\/\$\{route\.slug\}/);
+  assert.match(tramo, /href=\{city\.href\}/);
+  assert.match(tramo, /canonical: `\$\{BASE\}\/rutas\/\$\{route\.slug\}`/);
+  assert.doesNotMatch(tramo + city + read("src/components/OrbitaVideo.tsx"), /VideoObject/);
+  const routes = read("src/data/routes.json");
+  assert.match(routes, /Copiapó/);
+  assert.match(routes, /Concepción/);
+  assert.match(routes, /Valparaíso/);
+  assert.doesNotMatch(routes, /"slug": "[^"]*(Copiapó|Concepción|Valparaíso)/);
+  assert.match(routes, /"slug": "santiago-concepcion"/);
+  assert.match(routes, /"slug": "valparaiso-santiago"/);
+  assert.match(routes, /"slug": "copiapo-antofagasta"/);
 });
 
 test("el sitemap lista landings y cómo verificamos, y ya no indexa filtros ?regionOrigen=", () => {

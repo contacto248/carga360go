@@ -94,7 +94,7 @@ export function VoiceAgentLauncher({ waNumber, waText }: { waNumber: string; waT
           aria-controls="c360-agent-panel"
           aria-label="Abrir AI.CARGA360"
         >
-          <AgentAvatar state="idle" size={28} className="agent-fab-avatar" label="Carga360go" />
+          <AgentAvatar state="idle" size={22} className="agent-fab-avatar" label="Carga360go" />
           <span>AI.CARGA360</span>
         </button>
       ) : (

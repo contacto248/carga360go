@@ -54,7 +54,8 @@ const nextConfig: NextConfig = {
       // T-062: singular → hub de guías (marketing apunta a /guias/).
       { source: "/guia", destination: "/guias", permanent: false },
       // T-066 auditoría E2E: alias públicos esperados (nunca 404).
-      // /faq tiene página propia. /empresas lo aporta el directorio (PR #18); no redirigir.
+      // /empresas lo aporta el directorio (PR #18); no redirigir.
+      { source: "/faq", destination: "/preguntas-frecuentes", statusCode: 301 },
       { source: "/seguimiento", destination: "/tecnologia", permanent: false },
       { source: "/login", destination: "/ingreso", permanent: false },
       { source: "/ayuda", destination: "/guias", permanent: false },

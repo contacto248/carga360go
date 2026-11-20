@@ -12,20 +12,14 @@ const STARS = [
 
 export function PortadaInicio({ sesion }: { sesion: boolean }) {
   const stageRef = useRef<HTMLElement>(null);
-  const motionRef = useRef<SVGSVGElement>(null);
   const carga = sesion ? "/cargas/nueva" : `/ingreso?next=${encodeURIComponent("/cargas/nueva")}`;
   const transporte = sesion ? "/camiones/nuevo" : `/ingreso?next=${encodeURIComponent("/camiones/nuevo")}`;
 
   useEffect(() => {
     const stage = stageRef.current;
-    const motion = motionRef.current;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
     const sync = () => {
-      if (motion) {
-        if (reduce.matches) motion.pauseAnimations();
-        else motion.unpauseAnimations();
-      }
       if (reduce.matches && stage) stage.style.setProperty("--py", "0px");
     };
     const onScroll = () => {
@@ -85,31 +79,44 @@ export function PortadaInicio({ sesion }: { sesion: boolean }) {
             </Link>
           </div>
         </div>
-        <div className={styles.product} aria-hidden="true">
+        <div className={styles.product}>
+          <p className={styles.sample}>Vista de ejemplo</p>
           <div className={styles.slotMap}>
             <article className={styles.mock}>
-              <svg className={styles.mapSvg} viewBox="0 0 80 160">
-                <path d="M40 6 L50 16 L46 34 L54 52 L48 74 L56 98 L50 124 L44 150 L34 136 L38 110 L30 88 L38 66 L32 44 L38 22 Z" fill="none" stroke="#8a8a8a" strokeWidth="1.2" />
-                <path d="M44 30 C 38 58, 52 86, 42 128" fill="none" stroke="#FF5001" strokeWidth="1.2" />
+              <strong>Chile</strong>
+              <svg className={styles.mapSvg} viewBox="0 0 90 200" aria-hidden="true">
+                <path d="M46 8 L58 18 L52 36 L62 54 L54 78 L64 104 L56 132 L50 168 L40 186 L32 168 L38 140 L28 112 L36 86 L30 58 L40 34 Z" fill="none" stroke="#8a8a8a" strokeWidth="1.4" />
+                <path className={styles.draw} d="M48 52 C 44 78, 52 104, 46 136" fill="none" stroke="#FF5001" strokeWidth="1.6" pathLength="100" />
               </svg>
             </article>
           </div>
           <div className={styles.slotRoute}>
             <article className={styles.mock}>
-              <svg ref={motionRef} className={styles.routeSvg} viewBox="0 0 240 64">
-                <path d="M8 40 C 50 8, 90 58, 140 28 S 200 8, 232 36" fill="none" stroke="#3a3a3a" strokeWidth="1.25" />
-                <path className={styles.dash} d="M8 40 C 50 8, 90 58, 140 28 S 200 8, 232 36" fill="none" stroke="#FF5001" strokeWidth="1.25" />
-                <circle r="3" fill="#FF5001">
-                  <animateMotion dur="8s" repeatCount="indefinite" path="M8 40 C 50 8, 90 58, 140 28 S 200 8, 232 36" />
-                </circle>
-              </svg>
+              <strong>Carga en tránsito</strong>
+              <p>La Serena → Santiago</p>
+              <div className={styles.track} aria-hidden="true">
+                <span className={styles.bar} />
+              </div>
             </article>
           </div>
-          <div className={styles.slotStep}>
+          <div className={styles.slotDocs}>
             <article className={`${styles.mock} ${styles.stepMock}`}>
-              <svg width="22" height="22" viewBox="0 0 24 24">
+              <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
                 <circle cx="12" cy="12" r="9" fill="none" stroke="#FF5001" strokeWidth="1.25" />
                 <path d="M7 12.5 L10.5 16 L17 8.5" fill="none" stroke="#FF5001" strokeWidth="1.25" />
+              </svg>
+              <strong>Documentos validados</strong>
+            </article>
+          </div>
+          <div className={styles.slotEq}>
+            <article className={styles.mock}>
+              <strong>Equipo: cama baja</strong>
+              <svg className={styles.rig} viewBox="0 0 120 36" aria-hidden="true">
+                <path d="M8 22 H78 L92 14 H108" fill="none" stroke="#FF5001" strokeWidth="1.4" />
+                <path d="M18 22 V16 H70 V22" fill="none" stroke="#c8c8c8" strokeWidth="1.2" />
+                <circle cx="28" cy="24" r="3" fill="none" stroke="#c8c8c8" strokeWidth="1.2" />
+                <circle cx="64" cy="24" r="3" fill="none" stroke="#c8c8c8" strokeWidth="1.2" />
+                <circle cx="100" cy="24" r="3" fill="none" stroke="#c8c8c8" strokeWidth="1.2" />
               </svg>
             </article>
           </div>

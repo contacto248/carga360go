@@ -109,6 +109,17 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
 ];
 
+/** Páginas de ciudad. El tramo vive en /rutas/<origen>-<destino>, con otro canonical. */
+export const CITY_LANDINGS = [
+  { name: "Calama", href: "/transporte-calama" },
+  { name: "Antofagasta", href: "/transporte-antofagasta" },
+  { name: "Copiapó", href: "/transporte-copiapo" },
+] as const;
+
+export function foldCity(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
 export function landingBySlug(slug: string): SeoLandingContent | undefined {
   return SEO_LANDINGS.find((item) => item.slug === slug);
 }
