@@ -28,6 +28,25 @@ body.public-theme {
   letter-spacing: 0.01em;
 }
 
+body.public-theme .hero-fold h1 {
+  font-weight: 300;
+}
+
+body.public-theme .video-oficial {
+  width: min(720px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 12px 0 80px;
+  text-align: center;
+}
+
+body.public-theme .video-oficial p {
+  margin: 0;
+  color: #e8e8e8;
+  font-size: 1.15rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
 body.public-theme :is(h1, h2, h3, h4, h5, h6) {
   font-family: inherit;
   font-weight: 500;
@@ -109,6 +128,34 @@ body.public-theme .btn.ghost:hover {
   background: #1a1a1a;
   border-color: #ff5001;
   color: #fff;
+}
+
+body.public-theme footer.foot.foot-short {
+  padding: 20px 0 28px;
+}
+
+body.public-theme .foot-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+}
+
+body.public-theme .foot-row nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+
+body.public-theme .foot-row a {
+  color: #e8e8e8;
+  text-decoration: none;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+body.public-theme .foot-row a.foot-legal {
+  color: #ff5001;
 }
 
 body.public-theme :is(.side-nav, header.top, header.portada-top, .demo-banner, footer.foot, .cookie-banner, .tabbar) {

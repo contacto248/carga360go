@@ -1,3 +1,349 @@
+.stage {
+  --py: 0px;
+  position: relative;
+  display: grid;
+  min-height: calc(100svh - 64px);
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+.field,
+.veil {
+  position: absolute;
+  inset: 0;
+}
+
+.field {
+  pointer-events: none;
+}
+
+.mesh,
+.routes {
+  position: absolute;
+  top: -14%;
+  left: 0;
+  width: 100%;
+  height: 128%;
+}
+
+.mesh {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 7%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 7%) 1px, transparent 1px);
+  background-size: 80px 80px;
+  transform: translate3d(0, calc(var(--py) * -0.06), 0);
+}
+
+.routes {
+  transform: translate3d(0, calc(var(--py) * -0.14), 0);
+}
+
+.orbitWrap {
+  position: absolute;
+  inset: -8%;
+  display: grid;
+  place-items: center;
+  transform: translate3d(0, calc(var(--py) * -0.22), 0);
+}
+
+.orbits {
+  width: min(1080px, 140%);
+  height: auto;
+}
+
+.spin,
+.spinSlow {
+  transform-origin: 400px 400px;
+  animation: orbit 56s linear infinite;
+}
+
+.spinSlow {
+  animation-duration: 84s;
+  animation-direction: reverse;
+}
+
+.dash,
+.dashSlow,
+.geo {
+  fill: none;
+  stroke-linecap: square;
+  stroke-dasharray: 72 320;
+  animation: dash 14s linear infinite;
+}
+
+.dashSlow {
+  opacity: 0.7;
+  animation-duration: 22s;
+}
+
+.geo {
+  stroke-dasharray: 36 180;
+  animation-duration: 18s;
+}
+
+.veil {
+  background: rgb(0 0 0 / 28%);
+  pointer-events: none;
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(240px, 0.95fr);
+  gap: 28px 40px;
+  align-items: center;
+  width: min(1120px, calc(100% - 40px));
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: 640px;
+  text-align: left;
+}
+
+.mark {
+  margin: 0 0 18px;
+  color: #e8e8e8;
+  font-size: 0.92rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid #3a3a3a;
+  border-radius: 2px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.secondary:hover {
+  border-color: #fff;
+}
+
+.textLink {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.textLink:hover {
+  color: #ff5001;
+}
+
+.product {
+  position: relative;
+  height: 460px;
+}
+
+.slotMap,
+.slotRoute,
+.slotStep {
+  position: absolute;
+  transform: translate3d(0, calc(var(--py) * var(--depth)), 0);
+}
+
+.slotMap {
+  --depth: -0.06;
+  top: 8px;
+  right: 0;
+  width: min(240px, 62%);
+}
+
+.slotRoute {
+  --depth: -0.14;
+  top: 148px;
+  left: 0;
+  width: min(270px, 70%);
+}
+
+.slotStep {
+  --depth: -0.22;
+  right: 8px;
+  bottom: 18px;
+  width: min(230px, 64%);
+}
+
+.mock {
+  background: #111;
+  border: 1px solid #3a3a3a;
+  color: #fff;
+  padding: 14px 16px 16px;
+  animation: floaty 9s ease-in-out infinite;
+}
+
+.slotRoute .mock {
+  animation-duration: 11s;
+  animation-delay: -2s;
+}
+
+.slotStep .mock {
+  animation-duration: 8s;
+  animation-delay: -4s;
+}
+
+.kicker {
+  margin: 0 0 8px;
+  color: #9a9a9a;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mock strong {
+  display: block;
+  margin: 0 0 4px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.mock p {
+  margin: 0;
+  color: #c8c8c8;
+  font-size: 0.92rem;
+  font-weight: 300;
+}
+
+.stepMock {
+  display: grid;
+  place-items: center;
+  min-height: 92px;
+}
+
+.mapSvg,
+.routeSvg {
+  display: block;
+  width: 100%;
+  height: 148px;
+}
+
+.routeSvg {
+  height: 64px;
+}
+
+.modules {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 80px;
+}
+
+.modules ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modules a {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+  padding: 18px;
+  background: #111;
+  border: 1px solid #3a3a3a;
+  color: #fff;
+  text-decoration: none;
+}
+
+.modules a:hover {
+  border-color: #ff5001;
+}
+
+.modules strong {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.modules span {
+  color: #c8c8c8;
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+@keyframes floaty {
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+.stage .ctaRow {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -392;
+  }
+}
+
+@media (max-width: 800px) {
+  .panel {
+    grid-template-columns: 1fr;
+  }
+
+  .product {
+    height: 360px;
+  }
+
+  .modules ul {
+    grid-template-columns: 1fr;
+  }
+
+  .stage .ctaRow {
+    align-items: stretch;
+  }
+
+  .stage .cta,
+  .stage .secondary {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin,
+  .spinSlow,
+  .dash,
+  .dashSlow,
+  .geo,
+  .motes,
+  .mock {
+    animation: none;
+  }
+
+  .stage {
+    --py: 0px;
+  }
+}
+
 .hero,
 .start,
 .journey,
@@ -38,12 +384,19 @@
 }
 
 .title {
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   color: #fff;
-  font-size: clamp(40px, 10vw, 68px);
-  font-weight: 600;
-  letter-spacing: -0.05em;
-  line-height: 1.02;
+  font-size: clamp(42px, 4.8vw, 72px);
+  font-weight: 300;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.stage h1.title {
+  font-size: clamp(40px, 4.8vw, 72px);
+  font-weight: 300;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
 }
 
 .title span,

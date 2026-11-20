@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/como-verificamos",
     "/terminos",
     "/privacidad",
+    "/legal",
     ...LANDING_SLUGS,
     "/rutas",
     ...SEO_ROUTES.map((route) => `/rutas/${route.slug}`),

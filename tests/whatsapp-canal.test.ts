@@ -11,7 +11,7 @@ function read(rel: string): string {
   return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
-test("el canal de WhatsApp está en BRAND, en la portada y en el pie, con target _blank y rel noopener", () => {
+test("el canal de WhatsApp está en BRAND y en el pie, con target _blank y rel noopener", () => {
   assert.equal(BRAND.whatsappChannel, CHANNEL);
   const block = read("src/components/WhatsAppChannel.tsx");
   assert.match(block, /Sigue nuestro canal de WhatsApp/);
@@ -19,7 +19,7 @@ test("el canal de WhatsApp está en BRAND, en la portada y en el pie, con target
   assert.match(block, /target="_blank"/);
   assert.match(block, /rel="noopener noreferrer"/);
   const home = read("src/app/page.tsx");
-  assert.match(home, /WhatsAppChannel/);
+  assert.doesNotMatch(home, /WhatsAppChannel/);
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /BRAND\.whatsappChannel/);
   assert.match(footer, /Canal de WhatsApp/);

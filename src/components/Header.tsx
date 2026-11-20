@@ -61,11 +61,9 @@ export function Header({ user }: { user: PublicUser | null }) {
         </a>
         <header className="portada-top">
           <div className="wrap">
-            <Link href="/" className="orbita-wordmark" aria-label="ORBITA - CARGA360GO">
-              <strong>ORBITA</strong>
+            <Link href="/" className="orbita-wordmark" aria-label="Carga360go">
               <span>
-                {" "}
-                - CARGA<b>360GO</b>
+                Carga<b>360go</b>
               </span>
             </Link>
             <nav className="portada-nav" aria-label="Portada">
