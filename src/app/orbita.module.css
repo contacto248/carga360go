@@ -1,0 +1,25 @@
+/* Visual layer only. Scoped to the existing home; all routes and handlers preserved. */
+.surface{background:#000;color:#eee;isolation:isolate}
+.surface :global(.hero-fold){position:relative;overflow:hidden;background:#000;color:#eee;padding:110px 0 70px;border-bottom:1px solid #333}
+.surface :global(.hero-fold)::before{content:"";position:absolute;width:900px;height:900px;left:50%;top:210px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at 30% 5%,#333,#070707 30%,#000 65%);border-top:1px solid #aaa;box-shadow:0 -12px 65px -30px #fff;pointer-events:none;opacity:.6}
+.surface :global(.hero-fold)::after{content:"";position:absolute;width:1400px;height:300px;left:50%;top:380px;transform:translateX(-50%) rotate(-17deg);border:1px solid #6667;border-radius:50%;pointer-events:none;z-index:0}
+.surface :global(.hero-grid){position:relative;z-index:1;display:grid;grid-template-columns:1.2fr 1fr;gap:52px;align-items:center}
+.surface :global(.hero-copy h1){font-size:clamp(2.6rem,4.6vw,5rem);font-weight:600;letter-spacing:-.055em;line-height:1.06;color:#fff;max-width:20ch}
+.surface :global(.brand-hero){color:#b9b9b9;letter-spacing:.14em;font-size:.85rem}
+.surface :global(.hero-lead),.surface :global(.hero-legal),.surface :global(.hero-secondary-links){color:#bbb}
+.surface :global(.hero-cost-line){color:#ccc;background:#1119;border:1px solid #444;border-radius:8px;padding:12px}
+.surface :global(.btn){border-radius:999px;background:#eee;color:#111;border:1px solid #eee;min-height:48px;box-shadow:none}
+.surface :global(.btn.ghost),.surface :global(.btn.sec),.surface :global(.btn.wa){background:#111;color:#eee;border-color:#777}
+.surface :global(.hero-secondary-links a){display:inline-block;color:#eee;border-bottom:1px solid #666;padding:8px 0}
+.surface :global(.tower-board){background:#101010ed;color:#eee;border:1px solid #444;box-shadow:0 30px 90px #0009;border-radius:16px}
+.surface :global(.tower-head),.surface :global(.tower-steps li),.surface :global(.tower-step-text){color:#bbb;border-color:#444}
+.surface :global(.tower-steps li strong){color:#fff}.surface :global(.tower-steps li.is-active){background:#292929;border-color:#aaa}
+.surface :global(.tower-n),.surface :global(.tower-tag){background:#222;color:#ddd;border-color:#555}
+.surface :global(.tower-trace-rail){background:#444}.surface :global(.tower-trace-pulse),.surface :global(.dot-live){background:#ddd;box-shadow:none}
+.surface :global(.block),.surface :global(.benefits-band){background:#080808;color:#eee;border-top:1px solid #292929;padding-top:70px;padding-bottom:70px}
+.surface :global(.block.alt){background:#101010}.surface :global(h2){color:#eee;letter-spacing:-.045em;font-weight:600}
+.surface :global(.lead){color:#aaa}.surface :global(.benefits-grid li),.surface :global(.steps-rail li){background:#141414;border:1px solid #333;border-radius:14px;color:#ddd}
+.surface :global(.benefits-grid h3),.surface :global(.steps-rail h3){color:#eee}.surface :global(.benefits-grid p),.surface :global(.steps-rail p){color:#bbb}
+.surface :global(.steps-n){background:#222;color:#ddd;border-color:#555}
+.surface a:focus-visible,.surface button:focus-visible{outline:2px solid #fff;outline-offset:4px}
+@media(max-width:800px){.surface :global(.hero-fold){padding:60px 0 45px}.surface :global(.hero-grid){grid-template-columns:1fr;gap:32px}.surface :global(.hero-copy h1){font-size:clamp(2.2rem,8vw,3.5rem);max-width:none}.surface :global(.hero-fold)::before{width:650px;height:650px;top:300px}.surface :global(.hero-fold)::after{top:550px}.surface :global(.block),.surface :global(.benefits-band){padding-top:45px;padding-bottom:45px}}
