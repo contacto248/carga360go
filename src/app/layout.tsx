@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Sora } from "next/font/google";
+import { Figtree, Sora, Space_Grotesk } from "next/font/google";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { AppFrame } from "@/components/AppFrame";
 import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { HubSpotTracking } from "@/components/HubSpotTracking";
 import { PolicyBody, TermsBody } from "@/components/PolicyBody";
 import { PrivacyGate } from "@/components/PrivacyGate";
@@ -22,6 +22,8 @@ import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
 import "./tokens.css";
 import "./globals.css";
+import "./portada-shell.css";
+import "./public-theme.css";
 
 const display = Sora({
   subsets: ["latin"],
@@ -37,17 +39,24 @@ const bodyFont = Figtree({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+const publicSans = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-public",
+  display: "swap",
+  weight: ["300", "400", "500", "600"],
+});
+
 export const dynamic = "force-dynamic";
 
 const PRODUCTION_ANALYTICS_HOSTS = new Set(["www.carga360go.cl", "carga360go.cl"]);
 
-const title = "Carga360go — Trazabilidad y automatización de cargas y camiones en Chile";
+const title = "Plataforma ÓRBITA · Sistema Carga360go";
 const description =
-  `Carga360go conecta cargas y camiones en Chile con trazabilidad y automatización. Publica tu carga, encuentra camión, sigue la operación en vivo y conserva el comprobante digital. Costo de referencia desglosado del flete: ruta, peajes según ejes, diésel y costos operacionales. ${BRAND.company} · RUT ${BRAND.rut}.`;
+  `Carga360go conecta cargas y camiones en Chile. Publicas tu carga o tu camión, ves el calce y un costo de referencia desglosado. El historial registra publicación, ofertas y adjudicación. No incluye GPS ni telemetría. ${BRAND.company} · RUT ${BRAND.rut}.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.carga360go.cl"),
-  title: { default: title, template: "%s | Carga360go" },
+  title: { default: "Plataforma tecnológica de carga en Chile · ÓRBITA Carga360go", template: "%s · ÓRBITA Carga360go" },
   description,
   keywords: [
     "transporte de carga Chile",
@@ -81,7 +90,7 @@ export const metadata: Metadata = {
         url: "https://www.carga360go.cl/og.jpg",
         width: 1200,
         height: 630,
-        alt: "Carga360go — Cargas y camiones en todo Chile",
+        alt: "Plataforma ÓRBITA · Sistema Carga360go",
       },
     ],
   },
@@ -98,7 +107,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B1633",
+  themeColor: "#000000",
 };
 
 function hostnameFromUrl(value: string | undefined): string {
@@ -127,10 +136,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const productionAnalytics = await isProductionAnalyticsEnabled();
   const pathname = (await headers()).get("x-pathname") || "";
   const agente360 = pathname === "/agente-360go" || pathname.startsWith("/agente-360go/");
+  const portada = pathname === "/";
+  const publico = !pathname.startsWith("/admin");
   const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360;
   return (
-    <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
-      <body className={agente360 ? "app-standalone" : undefined}>
+    <html lang="es-CL" className={`${display.variable} ${bodyFont.variable} ${publicSans.variable}`}>
+      <body
+        className={
+          [agente360 ? "app-standalone" : "", portada ? "portada-body" : "", publico ? "public-theme" : ""]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
+      >
         <CookieConsentBanner />
         {loadAnalyticsTags ? (
           <>
@@ -178,27 +195,24 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             )}
           </main>
         ) : (
-          <div className="app-shell">
-            <Header user={user} />
-            <div className="shell-content">
-              <main id="contenido">
-                {privacy.required && user ? (
-                  <PrivacyGate
-                    name={user.contactName || user.razonSocial}
-                    version={privacyVersion()}
-                    termsVersion={termsVersion()}
-                    firstTime={privacy.firstTime}
-                    terms={<TermsBody prefix="t-" />}
-                  >
-                    <PolicyBody prefix="p-" />
-                  </PrivacyGate>
-                ) : (
-                  children
-                )}
-              </main>
-              <Footer />
-            </div>
-          </div>
+          <AppFrame user={user}>
+            <main id="contenido">
+              {privacy.required && user ? (
+                <PrivacyGate
+                  name={user.contactName || user.razonSocial}
+                  version={privacyVersion()}
+                  termsVersion={termsVersion()}
+                  firstTime={privacy.firstTime}
+                  terms={<TermsBody prefix="t-" />}
+                >
+                  <PolicyBody prefix="p-" />
+                </PrivacyGate>
+              ) : (
+                children
+              )}
+            </main>
+            <Footer />
+          </AppFrame>
         )}
       </body>
     </html>

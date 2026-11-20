@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { equipmentById } from "@/lib/catalog";
+import { olvidarBorrador } from "@/lib/portada-intencion";
 import { formatClp, formatDateCL } from "@/lib/format";
 import { REFERENCE_NOTICE } from "@/lib/costos/notice";
 import { canPublishLoad, roleLabel } from "@/lib/roles";
@@ -37,7 +38,19 @@ function hoursLabel(hours: number) {
   return `${hours} horas`;
 }
 
-export function LoadForm({ user, today, initial, defaults }: { user: PublicUser | null; today: string; initial: Initial; defaults: Defaults }) {
+export function LoadForm({
+  user,
+  today,
+  initial,
+  defaults,
+  resumePath,
+}: {
+  user: PublicUser | null;
+  today: string;
+  initial: Initial;
+  defaults: Defaults;
+  resumePath?: string;
+}) {
   const router = useRouter();
   const [equipment, setEquipment] = useState(initial.equipment);
   const [origin, setOrigin] = useState(initial.origin);
@@ -145,6 +158,7 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
       setError(body?.error || "No se pudo guardar la carga.");
       return;
     }
+    olvidarBorrador();
     router.push("/panel?ok=carga");
     router.refresh();
   }
@@ -157,7 +171,7 @@ export function LoadForm({ user, today, initial, defaults }: { user: PublicUser 
           <Link href="/registro">
             <strong>Registrar ahora →</strong>
           </Link>{" "}
-          · <Link href={`/ingreso?next=/cargas/${initial.id ? `${initial.id}/editar` : "nueva"}`}>Ya tengo cuenta</Link>
+          · <Link href={`/ingreso?next=${encodeURIComponent(resumePath || `/cargas/${initial.id ? `${initial.id}/editar` : "nueva"}`)}`}>Ya tengo cuenta</Link>
         </div>
       ) : null}
       {user && !allowed ? (

@@ -6,9 +6,8 @@ import { BRAND, EQUIPMENT } from "@/lib/catalog";
 import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
 
 export const metadata: Metadata = {
-  title: "Tecnología y automatización",
-  description:
-    "Cómo Carga360go automatiza el costo del flete, el calce técnico y la trazabilidad de cada operación. Controles de seguridad reales de la plataforma.",
+  title: "Tecnología para la logística de carga",
+  description: "La plataforma tecnológica de carga en Chile por dentro.",
   alternates: { canonical: "/tecnologia" },
 };
 

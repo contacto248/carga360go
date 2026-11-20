@@ -116,7 +116,8 @@ section.block.alt{background:#fff}
 .eqsel{margin:4px 0}
 .eqsel-track{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .eqsel.carousel .eqsel-track,.eqsel-track{scroll-snap-type:x mandatory}
-.eqsel.carousel .eqsel-track{display:flex;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin}
+.eqsel.carousel{min-width:0;max-width:100%}
+.eqsel.carousel .eqsel-track{display:flex;overflow-x:auto;min-width:0;max-width:100%;width:100%;padding:2px 2px 8px;scrollbar-width:thin}
 .eqsel.carousel .eqcard{flex:0 0 150px}
 @media(max-width:640px){.eqsel-track{display:flex;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}.eqcard{flex:0 0 140px}}
 .eqcard{position:relative;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 10px 10px;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s,transform .15s}
@@ -188,7 +189,8 @@ nav.links a{white-space:nowrap;padding:8px 10px}
 /* Evita que selects con opciones largas ensanchen la grilla (calculadora y formularios) */
 .form-grid{grid-template-columns:minmax(0,1fr)}@media(min-width:620px){.form-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .calc{grid-template-columns:minmax(0,1fr)}@media(min-width:960px){.calc{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}}
-label.f,.form-grid>*,.calc>*{min-width:0}select{max-width:100%;text-overflow:ellipsis}
+label.f,.form-grid>*,.calc,.calc>*,.shell-content,.wrap{min-width:0;max-width:100%}select{max-width:100%;text-overflow:ellipsis}
+@media(min-width:1280px){.app-shell{max-width:100%;overflow-x:clip}.calc,.eqsel{max-width:100%}}
 /* Ofertas (fase 1) */
 .offers{margin-top:16px}.offer{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;display:grid;gap:6px}
 .offer.best{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}.offer.won{border-color:var(--accent);background:#fff8f1}
@@ -628,24 +630,30 @@ body:has(.cookie-banner) footer.foot{padding-bottom:calc(72px + env(safe-area-in
   body:has(.cookie-banner){padding-bottom:calc(56px + 48px + env(safe-area-inset-bottom,0px))}
   body:has(.cookie-banner) footer.foot{padding-bottom:calc(56px + 56px + env(safe-area-inset-bottom,0px))}
 }
-/* ~390px: la barra va en el flujo, arriba, y no tapa torre, pie ni tabbar. */
+/* La barra sigue fija abajo en pantallas chicas. No vuelve al flujo de la página. */
 @media(max-width:480px){
   .cookie-banner{
-    position:sticky;
-    top:0;
-    bottom:auto;
-    z-index:46;
-    height:36px;
-    max-height:36px;
-    padding:0;
-    overflow:hidden;
-    box-shadow:none;
+    position:fixed;
+    left:0;
+    right:0;
+    top:auto;
+    bottom:0;
+    z-index:50;
+    height:auto;
+    max-height:none;
+    padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px));
+    overflow:visible;
   }
   .cookie-banner-inner{min-height:36px}
   body:has(.cookie-banner){padding-top:0;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
-  body:has(.cookie-banner) header.top{top:36px}
-  body:has(.cookie-banner) footer.foot{padding-bottom:40px}
+  body:has(.cookie-banner) header.top{top:0}
+  body:has(.cookie-banner) footer.foot{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
   body:has(.cookie-banner) .help-dock{bottom:calc(72px + env(safe-area-inset-bottom))}
+}
+.help-fab.agent-fab{min-height:40px;padding:4px 12px 4px 4px;font-size:.75rem;font-weight:500;gap:6px}
+@media(max-width:700px){
+  .help-fab.agent-fab{width:40px;height:40px;min-height:40px;padding:0;border-radius:50%}
+  .help-fab.agent-fab span{display:none}
 }
 /* Google Translate (widget del navegador / GTM): no tapar ni empujar el header */
 .goog-te-banner-frame,.goog-te-balloon-frame,#goog-gt-tt,.goog-te-spinner-pos{display:none!important}

@@ -13,7 +13,7 @@ export type SeoLandingContent = {
 export const SEO_LANDINGS: SeoLandingContent[] = [
   {
     slug: "/transporte-minero-chile",
-    titleTag: "Transporte minero en Chile | Carga360go",
+    titleTag: "Transporte minero en Chile",
     meta: "Publica o encuentra transporte para faenas y proveedores mineros en Chile: cargas, retornos y equipos aptos. Conexión directa y costo de referencia desglosado del flete.",
     h1: "Transporte minero en Chile: carga, retornos y equipos aptos",
     body: [
@@ -29,7 +29,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/cama-baja-y-maquinaria",
-    titleTag: "Camiones cama baja y maquinaria pesada | Carga360go",
+    titleTag: "Camiones cama baja y maquinaria pesada",
     meta: "Encuentra o publica cama baja, ramplas y transporte de maquinaria pesada en Chile. Indica ejes, ancho y medidas antes de coordinar el viaje.",
     h1: "Cama baja y transporte de maquinaria pesada",
     body: [
@@ -45,7 +45,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/cargas-de-retorno-mineras",
-    titleTag: "Cargas de retorno mineras | Carga360go",
+    titleTag: "Cargas de retorno mineras",
     meta: "Reduce viajes en vacío: publica tu retorno o encuentra cargas de vuelta en corredores mineros del norte de Chile. Alertas por correo cuando aparezca un calce.",
     h1: "Cargas de retorno mineras: aprovecha el viaje de vuelta",
     body: [
@@ -61,8 +61,8 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-calama",
-    titleTag: "Transporte de carga en Calama | Carga360go",
-    meta: "Cargas y camiones en Calama y los corredores hacia Antofagasta y Copiapó. Publica tu aviso o guarda una alerta en Carga360go.",
+    titleTag: "Transporte y logística en Calama",
+    meta: "Carga, retornos y transporte desde y hacia Calama.",
     h1: "Transporte de carga en Calama",
     body: [
       "Calama es un nodo del transporte ligado a la minería del norte. En Carga360go puedes publicar cargas con origen o destino en Calama, o un camión y un retorno disponibles en esa zona y en los corredores hacia Antofagasta y Copiapó.",
@@ -77,8 +77,8 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-antofagasta",
-    titleTag: "Transporte de carga en Antofagasta | Carga360go",
-    meta: "Publica o encuentra cargas y camiones en Antofagasta y sus corredores a Calama y Copiapó. Coincidencias por equipo, fecha y ruta.",
+    titleTag: "Transporte y logística en Antofagasta",
+    meta: "Carga, retornos y transporte desde y hacia Antofagasta.",
     h1: "Transporte de carga en Antofagasta",
     body: [
       "Antofagasta concentra carga industrial, portuaria y minera. Carga360go permite a empresas publicar transportes con origen o destino en la ciudad o la región, y a transportistas ofrecer camiones o retornos en esos corredores.",
@@ -93,8 +93,8 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-copiapo",
-    titleTag: "Transporte de carga en Copiapó | Carga360go",
-    meta: "Cargas y camiones en Copiapó y Atacama, con corredores a Calama y Antofagasta. Publica o activa una alerta si aún no hay avisos.",
+    titleTag: "Transporte y logística en Copiapó",
+    meta: "Carga, retornos y transporte desde y hacia Copiapó.",
     h1: "Transporte de carga en Copiapó",
     body: [
       "Copiapó y la Región de Atacama son parte del corredor piloto junto a Calama y Antofagasta. En Carga360go puedes publicar una carga, un camión o un retorno con origen o destino en Copiapó, y recibir sugerencias de calce por equipo, fechas y ruta.",
@@ -108,6 +108,17 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
     ],
   },
 ];
+
+/** Páginas de ciudad. El tramo vive en /rutas/<origen>-<destino>, con otro canonical. */
+export const CITY_LANDINGS = [
+  { name: "Calama", href: "/transporte-calama" },
+  { name: "Antofagasta", href: "/transporte-antofagasta" },
+  { name: "Copiapó", href: "/transporte-copiapo" },
+] as const;
+
+export function foldCity(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
 
 export function landingBySlug(slug: string): SeoLandingContent | undefined {
   return SEO_LANDINGS.find((item) => item.slug === slug);

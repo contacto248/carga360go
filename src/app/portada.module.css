@@ -1,0 +1,987 @@
+.stage {
+  --py: 0px;
+  position: relative;
+  display: grid;
+  min-height: calc(100svh - 64px);
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+}
+
+.field,
+.veil {
+  position: absolute;
+  inset: 0;
+}
+
+.field {
+  pointer-events: none;
+}
+
+.mesh,
+.routes {
+  position: absolute;
+  top: -14%;
+  left: 0;
+  width: 100%;
+  height: 128%;
+}
+
+.mesh {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 7%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 7%) 1px, transparent 1px);
+  background-size: 80px 80px;
+  transform: translate3d(0, calc(var(--py) * -0.06), 0);
+}
+
+.routes {
+  transform: translate3d(0, calc(var(--py) * -0.14), 0);
+}
+
+.orbitWrap {
+  position: absolute;
+  inset: -8%;
+  display: grid;
+  place-items: center;
+  transform: translate3d(0, calc(var(--py) * -0.22), 0);
+}
+
+.orbits {
+  width: min(1080px, 140%);
+  height: auto;
+}
+
+.spin,
+.spinSlow {
+  transform-origin: 400px 400px;
+  animation: orbit 56s linear infinite;
+}
+
+.spinSlow {
+  animation-duration: 84s;
+  animation-direction: reverse;
+}
+
+.dash,
+.dashSlow,
+.geo {
+  fill: none;
+  stroke-linecap: square;
+  stroke-dasharray: 72 320;
+  animation: dash 14s linear infinite;
+}
+
+.dashSlow {
+  opacity: 0.7;
+  animation-duration: 22s;
+}
+
+.geo {
+  stroke-dasharray: 36 180;
+  animation-duration: 18s;
+}
+
+.veil {
+  background: rgb(0 0 0 / 28%);
+  pointer-events: none;
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(340px, 1.14fr);
+  gap: 28px 36px;
+  align-items: center;
+  width: min(1180px, calc(100% - 40px));
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: 640px;
+  text-align: left;
+}
+
+.mark {
+  margin: 0 0 18px;
+  color: #e8e8e8;
+  font-size: 0.92rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid #3a3a3a;
+  border-radius: 2px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.secondary:hover {
+  border-color: #fff;
+}
+
+.textLink {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+.textLink:hover {
+  color: #ff5001;
+}
+
+.product {
+  position: relative;
+  height: 560px;
+}
+
+.sample {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  margin: 0;
+  color: #c8c8c8;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.slotMap,
+.slotRoute,
+.slotDocs,
+.slotEq {
+  position: absolute;
+  transform: translate3d(0, calc(var(--py) * var(--depth)), 0);
+}
+
+.slotMap {
+  --depth: -0.05;
+  top: 28px;
+  right: 0;
+  width: min(250px, 52%);
+}
+
+.slotRoute {
+  --depth: -0.12;
+  top: 78px;
+  left: 0;
+  width: min(300px, 64%);
+}
+
+.slotDocs {
+  --depth: -0.18;
+  left: 18px;
+  bottom: 78px;
+  width: min(280px, 62%);
+}
+
+.slotEq {
+  --depth: -0.1;
+  right: 8px;
+  bottom: 12px;
+  width: min(230px, 52%);
+}
+
+.mock {
+  background: #111;
+  border: 1px solid #3a3a3a;
+  color: #fff;
+  padding: 14px 16px 16px;
+  animation: floaty 12s ease-in-out infinite;
+}
+
+.mock strong {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.mock p {
+  margin: 0;
+  color: #e8e8e8;
+  font-size: 0.95rem;
+  font-weight: 300;
+}
+
+.track {
+  height: 3px;
+  margin-top: 14px;
+  background: #2a2a2a;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  width: 36%;
+  background: #ff5001;
+  animation: advance 7s ease-in-out infinite alternate;
+}
+
+.draw {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw 7s ease-in-out infinite;
+}
+
+.rig {
+  display: block;
+  width: 100%;
+  height: 36px;
+  margin-top: 8px;
+}
+
+.slotRoute .mock {
+  animation-duration: 11s;
+  animation-delay: -2s;
+}
+
+.slotStep .mock {
+  animation-duration: 8s;
+  animation-delay: -4s;
+}
+
+.kicker {
+  margin: 0 0 8px;
+  color: #9a9a9a;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mock strong {
+  display: block;
+  margin: 0 0 4px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.mock p {
+  margin: 0;
+  color: #c8c8c8;
+  font-size: 0.92rem;
+  font-weight: 300;
+}
+
+.stepMock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stepMock strong {
+  margin: 0;
+}
+
+.mapSvg,
+.routeSvg {
+  display: block;
+  width: 100%;
+  height: 148px;
+}
+
+.routeSvg {
+  height: 64px;
+}
+
+.modules {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 80px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}
+
+.modules ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.modules a {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 132px;
+  padding: 18px;
+  background: #111;
+  border: 1px solid #3a3a3a;
+  color: #fff;
+  text-decoration: none;
+}
+
+.modules a:hover {
+  border-color: #ff5001;
+}
+
+.modules strong {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.modules span {
+  color: #c8c8c8;
+  font-size: 0.95rem;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+@keyframes floaty {
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+@keyframes advance {
+  to {
+    width: 78%;
+  }
+}
+
+@keyframes draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+
+  70%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.stage .ctaRow {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -392;
+  }
+}
+
+@media (max-width: 800px) {
+  .panel {
+    grid-template-columns: 1fr;
+  }
+
+  .product {
+    height: auto;
+    display: grid;
+    gap: 10px;
+    padding-top: 28px;
+    padding-right: 64px;
+  }
+
+  .sample {
+    position: static;
+  }
+
+  .slotMap,
+  .slotRoute,
+  .slotDocs,
+  .slotEq {
+    position: relative;
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    transform: none;
+  }
+
+  .modules ul {
+    grid-template-columns: 1fr;
+  }
+
+  .stage .ctaRow {
+    align-items: stretch;
+  }
+
+  .stage .cta,
+  .stage .secondary {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin,
+  .spinSlow,
+  .dash,
+  .dashSlow,
+  .geo,
+  .motes,
+  .mock,
+  .bar,
+  .draw {
+    animation: none;
+  }
+
+  .stage {
+    --py: 0px;
+  }
+}
+
+.hero,
+.start,
+.journey,
+.trust,
+.bolsa,
+.tech,
+.faq,
+.closeNote {
+  color: #fff;
+}
+
+.hero {
+  padding: 28px 0 36px;
+}
+
+.heroGrid,
+.sectionHead,
+.workspace,
+.journeyGrid,
+.trustGrid {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.eyebrow,
+.kicker,
+.demoTag,
+.visualTop {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e8e8e8;
+}
+
+.eyebrow {
+  margin: 0 0 16px;
+}
+
+.title {
+  margin: 0 0 16px;
+  color: #fff;
+  font-size: clamp(42px, 4.8vw, 72px);
+  font-weight: 300;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.stage h1.title {
+  font-size: clamp(40px, 4.8vw, 72px);
+  font-weight: 300;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.title span,
+.mission {
+  color: #FF5001;
+}
+
+.mission {
+  margin: 0 0 14px;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.lead {
+  margin: 0 0 8px;
+  max-width: 36rem;
+  color: #fff;
+  font-size: 1.125rem;
+}
+
+.support,
+.routeNote,
+.privacy,
+.under,
+.estimate span,
+.sectionHead > p,
+.summary p {
+  color: #e4e4e4;
+}
+
+.support {
+  margin: 0;
+  max-width: 36rem;
+}
+
+.ctaRow,
+.fields,
+.fieldsBottom,
+.trustList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid #FF5001;
+  border-radius: 2px;
+  background: #FF5001;
+  color: #111;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cta:hover {
+  background: #fff;
+  border-color: #fff;
+  color: #111;
+}
+
+.ctaRow {
+  margin-top: 22px;
+}
+
+.estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 16px 0 0;
+}
+
+.estimate a {
+  color: #FF5001;
+  font-weight: 500;
+  text-underline-offset: 3px;
+}
+
+.estimate span,
+.under {
+  font-size: 0.875rem;
+}
+
+.under {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 14px 0 0;
+}
+
+.visual {
+  margin-top: 28px;
+  padding: 16px;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  background: #050505;
+}
+
+.visualTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  letter-spacing: 0.08em;
+}
+
+.demoTag {
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 2px 6px;
+  letter-spacing: 0.08em;
+}
+
+.logo {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+  margin: 12px auto;
+  border-radius: 12px;
+}
+
+.diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+}
+
+.routeNote,
+.privacy {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+}
+
+.start,
+.journey,
+.trust,
+.bolsa,
+.tech,
+.faq {
+  padding: 36px 0;
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sectionHead h2,
+.trust h2,
+.tech h2,
+.faq h2,
+.bolsa h2,
+.summary h3,
+.formHead h3 {
+  margin: 0;
+  color: #fff;
+  letter-spacing: -0.04em;
+}
+
+.workspace {
+  display: grid;
+  gap: 0;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+}
+
+.form,
+.summary {
+  padding: 20px 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 18px;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #e4e4e4;
+  padding: 0 0 12px;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected="true"] {
+  color: #fff;
+  border-bottom-color: #FF5001;
+}
+
+.formHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  margin: 18px 0 14px;
+}
+
+.formHead span,
+.kicker {
+  color: #e4e4e4;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fields label,
+.fieldsBottom label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.fields select,
+.fieldsBottom select {
+  min-height: 52px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  color-scheme: dark;
+}
+
+.swap {
+  width: 44px;
+  height: 44px;
+  align-self: center;
+  border: 1px solid #555;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.form > .cta {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.equipos {
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.equipos legend {
+  margin-bottom: 8px;
+  color: #fff;
+  font-weight: 500;
+}
+
+.equipos div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.equipo,
+.equipoOn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 72px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.equipo {
+  border: 1px solid #555;
+}
+
+.equipoOn {
+  border: 2px solid #FF5001;
+}
+
+.icon {
+  width: 64px;
+  height: 36px;
+}
+
+.error {
+  min-height: 1.2em;
+  margin: 10px 0 0;
+  color: #ffb4a2;
+}
+
+.aviso {
+  margin: 8px 0 0;
+  color: #FF5001;
+}
+
+.summary {
+  background: #050505;
+  border-top: 1px solid #3a3a3a;
+}
+
+.routeValue {
+  margin: 14px 0 8px;
+  color: #fff;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.tag {
+  display: inline-block;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #fff;
+}
+
+.summary .cta {
+  margin-top: 16px;
+}
+
+.journeyGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.demoNote {
+  margin: 0 0 12px;
+  color: #e4e4e4;
+}
+
+.trustGrid {
+  display: grid;
+  gap: 18px;
+}
+
+.trustCard,
+.ficha {
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  background: #111;
+  padding: 20px 16px;
+}
+
+.trustCard h2 {
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+}
+
+.trustList {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+}
+
+.trustList li {
+  color: #fff;
+  font-weight: 500;
+}
+
+.trustList li::before {
+  content: "✓ ";
+  color: #FF5001;
+}
+
+.trust a,
+.tech a,
+.faq a,
+.bolsa a,
+.closeNote a {
+  color: #FF5001;
+}
+
+.ficha p {
+  margin: 0 0 8px;
+  color: #e4e4e4;
+}
+
+.ficha strong {
+  color: #fff;
+}
+
+@media (min-width: 800px) {
+  .hero {
+    padding: 56px 0 64px;
+  }
+
+  .heroGrid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 36px;
+    align-items: center;
+  }
+
+  .visual {
+    margin-top: 0;
+  }
+
+  .ctaRow {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .ctaRow .cta {
+    flex: 1 1 0;
+  }
+
+  .sectionHead {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .sectionHead > p {
+    max-width: 280px;
+    margin: 0;
+  }
+
+  .workspace {
+    grid-template-columns: 1.4fr 0.9fr;
+  }
+
+  .summary {
+    border-top: 0;
+    border-left: 1px solid #3a3a3a;
+  }
+
+  .fields {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .fields label {
+    flex: 1;
+  }
+
+  .equipos div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trustGrid {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta,
+  .diagram,
+  .equipo,
+  .equipoOn {
+    transition: none;
+    animation: none;
+  }
+}
+
+.stage:not(.live) :is(.spin, .spinSlow, .dash, .dashSlow, .mock, .bar, .draw) {
+  animation-play-state: paused;
+}

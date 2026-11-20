@@ -43,18 +43,15 @@ function account(role: "transportista" | "mandante", name: string, city = "Santi
 }
 
 test("la portada usa el copy del paquete y no promete acreditación 100% ni auditorías de calidad", () => {
-  const home = read("src/app/page.tsx");
-  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
+  const home = [read("src/app/page.tsx"), read("src/components/PortadaInicio.tsx")].join("\n");
+  assert.match(home, /Tu carga, en el centro\./);
+  assert.match(home, /Menos ruido\. Más claridad\./);
   assert.match(home, /Carga360go/);
-  assert.match(home, /Tengo carga/);
-  assert.match(home, /Tengo camión o retorno/);
-  assert.match(home, /Abrir el cotizador/);
-  assert.match(home, /Carga360go conecta a mandantes y transportistas/);
+  assert.match(home, /Necesito transportar carga/);
+  assert.match(home, /Soy transportista/);
+  assert.match(home, /Perfiles verificados/);
   assert.match(home, /\/como-verificamos/);
-  assert.match(home, /Carga360 Match/);
-  assert.match(home, /Publicar carga/);
-  assert.match(home, /Historial de eventos/);
-  assert.match(home, /Historial en tu panel/);
+  assert.doesNotMatch(home, /Carga360 Match/);
   assert.doesNotMatch(home, /costo real/i);
   assert.doesNotMatch(home, /Seguimiento en vivo|Comprobante digital/);
   assert.doesNotMatch(home, /100% acreditad/);
@@ -96,6 +93,21 @@ test("las seis landings SEO y Cómo verificamos existen con metas propias, sin c
   assert.match(verify, /permiso de circulación/);
   assert.match(verify, /No es un sello de solvencia/);
   assert.match(verify, /no validamos en línea/);
+  const city = read("src/components/SeoLanding.tsx");
+  assert.match(city, /\/rutas\/\$\{route\.slug\}/);
+  const tramo = read("src/app/rutas/[slug]/page.tsx");
+  assert.match(tramo, /\/rutas\/\$\{route\.slug\}/);
+  assert.match(tramo, /href=\{city\.href\}/);
+  assert.match(tramo, /canonical: `\$\{BASE\}\/rutas\/\$\{route\.slug\}`/);
+  assert.doesNotMatch(tramo + city + read("src/components/OrbitaVideo.tsx"), /VideoObject/);
+  const routes = read("src/data/routes.json");
+  assert.match(routes, /Copiapó/);
+  assert.match(routes, /Concepción/);
+  assert.match(routes, /Valparaíso/);
+  assert.doesNotMatch(routes, /"slug": "[^"]*(Copiapó|Concepción|Valparaíso)/);
+  assert.match(routes, /"slug": "santiago-concepcion"/);
+  assert.match(routes, /"slug": "valparaiso-santiago"/);
+  assert.match(routes, /"slug": "copiapo-antofagasta"/);
 });
 
 test("el sitemap lista landings y cómo verificamos, y ya no indexa filtros ?regionOrigen=", () => {

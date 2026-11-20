@@ -9,45 +9,66 @@ function read(rel: string): string {
   return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
-test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones", () => {
-  const home = read("src/app/page.tsx");
-  assert.match(home, /brand-hero/);
-  assert.match(home, /Carga360go/);
-  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
-  assert.match(home, /Publicar carga/);
-  assert.match(home, /Encontrar camión/);
-  assert.match(home, /Historial de eventos/);
-  assert.doesNotMatch(home, /Seguimiento en vivo/);
-  assert.match(home, /registra publicación, ofertas y adjudicación con fecha y hora/);
-  assert.match(home, /HomeTowerBoard/);
-  assert.match(home, /compact/);
+function portada(): string {
+  return [
+    "src/app/page.tsx",
+    "src/components/PortadaInicio.tsx",
+    "src/components/QuickSearch.tsx",
+    "src/components/Header.tsx",
+    "src/app/portada.module.css",
+    "src/app/portada-shell.css",
+    "src/lib/portada-intencion.ts",
+  ]
+    .map(read)
+    .join("\n");
+}
+
+test("T-049/T-065 home: panel del producto sin precios ni comisiones", () => {
+  const home = portada();
+  const page = read("src/app/page.tsx");
+  const hero = read("src/components/PortadaInicio.tsx");
+  assert.match(hero, /brand-hero/);
+  assert.match(hero, /Plataforma ÓRBITA · Sistema Carga360go/);
+  assert.match(hero, /Tu carga, en el centro\./);
+  assert.match(hero, /Plataforma tecnológica de carga y retorno en Chile\. Conectamos carga y camiones en un solo panel, claro y verificado\./);
+  assert.match(hero, /Menos ruido\. Más claridad\./);
+  assert.match(hero, /Ningún camión vuelve vacío\./);
+  assert.match(hero, /Necesito transportar carga/);
+  assert.match(hero, /Soy transportista/);
+  assert.match(hero, /prefers-reduced-motion/);
+  assert.equal((hero.match(/className=\{styles\.cta\}/g) || []).length, 1);
+  assert.doesNotMatch(hero, /<form|<input|autoPlay|autoplay|\.mp4|GPS conectado|Seguimiento en vivo/);
+  assert.doesNotMatch(page, /HomeTowerBoard|QuickSearch|id="faq"|WhatsAppChannel/);
+  assert.match(page, /Publica en minutos/);
+  assert.match(page, /Indica origen, destino y tipo de equipo\. Los transportistas te encuentran\./);
+  assert.match(page, /Elige el equipo justo/);
+  assert.match(page, /Rampla plana, sider, furgón, cama baja, tolva o frigorífico\./);
+  assert.match(page, /Perfiles verificados/);
+  assert.match(page, /Correo, teléfono, cédula y padrón revisados antes de operar\./);
+  assert.match(page, /Retornos con carga/);
+  assert.match(page, /Encuentra viajes de vuelta y deja de rodar vacío\./);
+  assert.match(page, /\/como-verificamos/);
+  assert.match(read("src/components/OrbitaVideo.tsx"), /Mira cómo ÓRBITA ordena la carga de Chile en un solo lugar\./);
+  assert.doesNotMatch(page + hero + read("src/components/OrbitaVideo.tsx"), /ORBYT|ORBYTA|\bORBIT\b/);
   const tower = read("src/components/HomeTowerBoard.tsx");
   assert.match(tower, /Así funciona/);
   assert.match(tower, /tower-board-compact/);
-  assert.doesNotMatch(home, /tower-tag">en vivo/);
+  assert.match(tower, /Demostración/);
   assert.doesNotMatch(tower, /tower-tag">en vivo/);
-  assert.match(home, /Historial en tu panel/);
+  assert.doesNotMatch(home, /Seguimiento en vivo/);
   assert.doesNotMatch(home, /Comprobante digital/);
   assert.doesNotMatch(home, /costo real/i);
-  assert.match(home, /Empresas y mandantes/);
-  assert.match(home, /Transportistas/);
-  assert.match(home, /AI\.CARGA360/);
-  assert.match(home, /Decide mejor y más rápido/);
-  assert.match(home, /Eficiencia operativa/);
-  assert.match(home, /Crece con respaldo/);
-  assert.match(home, /Libera recursos y reduce riesgo/);
-  assert.match(home, /\/tecnologia/);
   assert.doesNotMatch(home, /comisi[oó]n/i);
   assert.doesNotMatch(home, /membres[ií]a/i);
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
-  assert.match(home, /id="faq"/);
-  assert.match(home, /Escribe a AI\.CARGA360/);
+  assert.doesNotMatch(home, /Carga Retorno 360/);
   assert.doesNotMatch(home, /Hablar con el Agente|También puede hablarte/i);
-  // Portada corta: verticales/equipos viven en /tecnologia (no en el fold).
   assert.doesNotMatch(home, /Equipos con ficha técnica/);
   assert.doesNotMatch(home, /Industrias que mueven carga/);
   assert.doesNotMatch(home, /FreeBanner/);
+  assert.doesNotMatch(home, /#0[Bb]1633|#002451|#0[Ee]7490|#22[Bb]8[Cc][Ff]|#3[Dd]4[Cc]63|#b9c8df|#c5d3e8/);
+  assert.doesNotMatch(hero, /\d+\s*%|271\s*K|\+6/);
 });
 
 test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", () => {
@@ -129,9 +150,14 @@ test("T-066 alias E2E /seguimiento /login /ayuda /registro-transportista; /faq t
   assert.match(conf, /destination:\s*"\/guias"/);
   assert.match(conf, /source:\s*"\/registro-transportista"/);
   assert.match(conf, /destination:\s*"\/registro"/);
-  assert.ok(fs.existsSync(path.join(ROOT, "src/app/faq/page.tsx")));
-  const faqPage = read("src/app/faq/page.tsx");
-  assert.match(faqPage, /canonical:\s*"\/faq"/);
+  assert.equal(fs.existsSync(path.join(ROOT, "src/app/faq/page.tsx")), false);
+  assert.match(conf, /source:\s*"\/faq"/);
+  assert.match(conf, /destination:\s*"\/preguntas-frecuentes"/);
+  assert.match(conf, /statusCode:\s*301/);
+  const faqPage = read("src/app/preguntas-frecuentes/page.tsx");
+  assert.match(faqPage, /canonical:\s*"\/preguntas-frecuentes"/);
+  assert.doesNotMatch(read("src/app/sitemap.ts"), /"\/faq"/);
+  assert.match(read("src/app/sitemap.ts"), /\/preguntas-frecuentes/);
   assert.match(faqPage, /Preguntas frecuentes/);
   assert.match(faqPage, /from "\@\/lib\/faq"/);
   const faqLib = read("src/lib/faq.ts");
@@ -152,8 +178,7 @@ test("T-062 página /guias existe (hub marketing; nunca 404)", () => {
   assert.match(conf, /destination:\s*"\/guias"/);
   const sitemap = read("src/app/sitemap.ts");
   assert.match(sitemap, /\/guias/);
-  const footer = read("src/components/Footer.tsx");
-  assert.match(footer, /href="\/guias"/);
+  assert.doesNotMatch(read("src/components/Footer.tsx"), /href="\/guias"|Canal de WhatsApp|mailto:/);
 });
 
 test("T-060 página /tecnologia con demos marcadas y controles reales (sin sellos falsos)", () => {
@@ -176,8 +201,8 @@ test("T-060 página /tecnologia con demos marcadas y controles reales (sin sello
   assert.match(demo, /DEMO-SEG/);
   assert.match(demo, /No corresponden a cargas/);
   const home = read("src/app/page.tsx");
-  assert.match(home, /\/tecnologia/);
   assert.doesNotMatch(home, /TraceAutomationDemo/);
+  assert.doesNotMatch(read("src/components/Footer.tsx"), /href="\/tecnologia"/);
   const sitemap = read("src/app/sitemap.ts");
   assert.match(sitemap, /\/tecnologia/);
 });
@@ -186,8 +211,13 @@ test("T-061 video corporativo permanece en assets públicos (portada corta no lo
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo.mp4")));
   assert.ok(fs.existsSync(path.join(ROOT, "public/video/carga360go-corporativo-poster.jpg")));
   const home = read("src/app/page.tsx");
+  const hero = read("src/components/PortadaInicio.tsx");
   assert.doesNotMatch(home, /home-video-band/);
-  assert.doesNotMatch(home, /autoPlay|autoplay/i);
+  assert.doesNotMatch(home + hero, /autoPlay|autoplay/i);
+  assert.doesNotMatch(home + hero, /hero-loop|hero-fondo|carga360go-corporativo/);
+  assert.doesNotMatch(home + hero + read("src/components/OrbitaVideo.tsx"), /VideoObject/);
+  assert.equal(fs.existsSync(path.join(ROOT, "public/video/hero-loop.mp4")), false);
+  assert.equal(fs.existsSync(path.join(ROOT, "public/video/hero-fondo.mp4")), false);
 });
 
 test("T-065 torre animada y CTA del agente sin segundo FAB", () => {
@@ -200,7 +230,7 @@ test("T-065 torre animada y CTA del agente sin segundo FAB", () => {
   assert.doesNotMatch(cta, /help-wa|btn wa fab|FAB WhatsApp/i);
 });
 
-test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; un CTA principal", () => {
+test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; dos accesos de igual peso", () => {
   const css = read("src/app/globals.css");
   assert.match(css, /hero-v3 \.cta/);
   assert.match(css, /padding-right:calc\(60px/);
@@ -210,15 +240,26 @@ test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; un CT
   assert.match(css, /hero-fold/);
   assert.match(css, /tower-board-compact/);
   assert.match(css, /mobile-cta/);
-  const home = read("src/app/page.tsx");
-  assert.match(home, /Tengo camión o retorno/);
-  assert.match(home, /Abrir el cotizador/);
-  assert.match(home, /home-live-band/);
+  const home = portada();
+  assert.match(home, /Necesito transportar carga/);
+  assert.match(home, /Soy transportista/);
+  assert.match(home, /Tu carga, en el centro\./);
+  assert.match(home, /Soy transportista/);
   assert.match(home, /hero-fold/);
-  assert.match(home, /href="\/cargas\/nueva"/);
+  assert.doesNotMatch(read("src/app/page.tsx"), /home-live-band|HomeTowerBoard|QuickSearch/);
+  assert.match(home, /inicioDePerfil|\/cargas\/nueva/);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
+  assert.match(home, /qsearch \.qeq-toggle \{\s*color: #f3f3f3/);
+  assert.match(home, /dd-mm-aaaa/);
+  assert.match(home, /lang="es-CL"/);
+  assert.doesNotMatch(read("src/components/QuickSearch.tsx"), /type="date"/);
+  assert.doesNotMatch(read("src/app/page.tsx"), /Todavía no hay avisos activos/);
+  assert.doesNotMatch(read("src/app/page.tsx"), /Publicar carga<\/Link>|Publicar camión/);
   const header = read("src/components/Header.tsx");
   assert.match(header, /mobile-cta/);
+  assert.match(header, /Soluciones/);
+  assert.match(header, /Ingresar/);
+  assert.match(header, /Mi panel/);
 });
 
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {
@@ -239,9 +280,19 @@ test("portada visual: cookie compacta y un solo CTA primario naranja en el hero"
   assert.match(banner, /cookie-banner-compact/);
   assert.match(banner, /Solo necesarias/);
   assert.match(banner, /Aceptar/);
-  const home = read("src/app/page.tsx");
-  const hero = home.match(/hero-fold[\s\S]*?<\/section>/)?.[0] || "";
-  assert.match(hero, /className="btn"[^>]*>\s*Tengo carga/);
-  assert.doesNotMatch(hero, /className="btn"[^>]*>\s*Soy transportista/);
-  assert.match(hero, /hero-secondary-links/);
+  const hero = read("src/components/PortadaInicio.tsx");
+  assert.match(hero, /Necesito transportar carga/);
+  assert.match(hero, /Soy transportista/);
+  assert.equal((hero.match(/className=\{styles\.cta\}/g) || []).length, 1);
+  assert.match(hero, /className=\{styles\.secondary\}/);
+  assert.doesNotMatch(hero, /Abrir el cotizador/);
+  assert.match(hero, /Plataforma ÓRBITA · Sistema Carga360go/);
+  const footer = read("src/components/Footer.tsx");
+  assert.match(footer, /Legal y privacidad/);
+  assert.match(footer, /href="\/legal"/);
+  assert.doesNotMatch(footer, /Esta plataforma conecta partes|Bolsa|Tecnología|Guías|mailto:/);
+  const legal = read("src/app/legal/page.tsx");
+  assert.match(legal, /\/privacidad#cookies/);
+  assert.match(legal, /\/terminos/);
+  assert.doesNotMatch(legal, /PolicyBody/);
 });

@@ -5,16 +5,15 @@ import { useMemo, useState } from "react";
 import { MAP_H, MAP_PANELS, MAP_W, REGION_SHAPES } from "@/lib/chile-map-data";
 import type { RegionIndicators } from "@/lib/stats";
 
-const NAVY = "#0B1633";
-const CYAN = "#67E8F9";
+const NAVY = "#111111";
+const CYAN = "#FF5001";
 /**
- * Escala pensada para el panel oscuro del mapa: "sin avisos" es un azul pizarra visible sobre el fondo,
- * y la actividad sube hasta el naranjo del logo (#FF5001). Las etiquetas usan azul marino sobre los tramos
- * con actividad (≥ 6,8:1) y texto claro sobre el tramo vacío (7,4:1).
+ * Sin avisos: gris sobre negro. Si hay avisos reales, la escala sube hasta #FF5001.
+ * Cero es un conteo real. No se pintan cifras de ejemplo.
  */
-const SCALE = ["#2A3C64", "#FFD3B3", "#FFA466", "#FF7A2E", "#FF5001"];
-const BORDER = "#7F95C4";
-const LABEL_ON_EMPTY = "#C9D6EE";
+const SCALE = ["#1A1A1A", "#FFD3B3", "#FFA466", "#FF7A2E", "#FF5001"];
+const BORDER = "#3A3A3A";
+const LABEL_ON_EMPTY = "#C8C8C8";
 
 /** Escala de 5 tramos: 0 = sin avisos; el resto se reparte según el máximo real. */
 function level(value: number, max: number): number {

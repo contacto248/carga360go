@@ -1,11 +1,11 @@
 /**
  * Ilustraciones propias (SVG, línea plana) de cada tipo de equipo, vista lateral.
- * Paleta de marca: azul marino (#0B1633), naranjo (#F26B1D) y cian (#22B8CF).
+ * Paleta pública: trazo del texto, naranjo #FF5001 y gris. Sin azul.
  */
-const NAVY = "#0B1633";
-const ORANGE = "#F26B1D";
-const CYAN = "#22B8CF";
-const SOFT = "#E6F7FA";
+const NAVY = "currentColor";
+const ORANGE = "#FF5001";
+const CYAN = "#3A3A3A";
+const SOFT = "#1A1A1A";
 const W = 2;
 
 function Wheel({ x }: { x: number }) {

@@ -34,11 +34,11 @@ export function HomeTowerBoard({ steps, compact = false }: Props) {
   return (
     <aside
       className={`tower-board tower-board-live${compact ? " tower-board-compact" : ""}`}
-      aria-label="Torre de control Carga360go"
+      aria-label="Así funciona. Demostración de la torre de control Carga360go"
     >
       <div className="tower-head">
         <span className="dot-live" /> Torre de control
-        <span className="tower-tag">Así funciona</span>
+        <span className="tower-tag">Demostración</span>
       </div>
       <ol className="tower-steps">
         {steps.map((step, index) => {

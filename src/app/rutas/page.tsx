@@ -3,8 +3,8 @@ import Link from "next/link";
 import { SEO_ROUTES } from "@/lib/seo-routes";
 
 export const metadata: Metadata = {
-  title: { absolute: "Rutas de transporte de carga en Chile | Carga360go" },
-  description: "Información logística de rutas nacionales de transporte de carga en Chile.",
+  title: "Rutas de transporte Chile · Retornos",
+  description: "Rutas de carga y retorno entre las principales ciudades de Chile.",
   alternates: { canonical: "https://www.carga360go.cl/rutas" },
 };
 

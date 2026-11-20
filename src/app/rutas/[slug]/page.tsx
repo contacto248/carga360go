@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CITY_LANDINGS, foldCity } from "@/lib/seo-landings";
 import { SEO_ROUTES, routeBySlug } from "@/lib/seo-routes";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -17,13 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const route = routeBySlug(slug);
   if (!route) notFound();
+  const title = `Transporte ${route.origin} – ${route.destination} · Carga y retorno`;
+  const description = `Carga disponible y retorno de camiones entre ${route.origin} y ${route.destination}.`;
   return {
-    title: { absolute: route.title },
-    description: route.description,
+    title,
+    description,
     alternates: { canonical: `${BASE}/rutas/${route.slug}` },
     openGraph: {
-      title: route.title,
-      description: route.description,
+      title: `${title} · ÓRBITA Carga360go`,
+      description,
       url: `${BASE}/rutas/${route.slug}`,
       type: "website",
     },
@@ -34,6 +37,9 @@ export default async function RoutePage({ params }: Props) {
   const { slug } = await params;
   const route = routeBySlug(slug);
   if (!route) notFound();
+  const cities = CITY_LANDINGS.filter(
+    (city) => foldCity(city.name) === foldCity(route.origin) || foldCity(city.name) === foldCity(route.destination),
+  );
 
   const breadcrumb = {
     "@context": "https://schema.org",
@@ -82,6 +88,18 @@ export default async function RoutePage({ params }: Props) {
         Para coordinar transporte, ingresa a Carga360go e indica las características de tu carga. La
         disponibilidad está sujeta a confirmación.
       </p>
+      {cities.length ? (
+        <p>
+          Esta página es el tramo. La ciudad tiene su página:{" "}
+          {cities.map((city, index) => (
+            <span key={city.href}>
+              {index ? " · " : null}
+              <Link href={city.href}>{city.name}</Link>
+            </span>
+          ))}
+          .
+        </p>
+      ) : null}
       <p>
         <Link href="/rutas">Ver otras rutas de transporte</Link>
       </p>

@@ -14,8 +14,8 @@ import { listLoads } from "@/lib/listings";
 import { marketplaceViewer, redactLoad } from "@/lib/access";
 
 const BASE: Metadata = {
-  title: "Cargas disponibles por región",
-  description: "Cargas de transporte publicadas por mandantes y empresas en las 16 regiones de Chile. Filtra por región, ciudad, equipo y fecha de retiro.",
+  title: "Carga disponible en Chile",
+  description: "Encuentra carga en Chile para tu camión y aprovecha tus retornos.",
   alternates: { canonical: "/cargas" },
 };
 

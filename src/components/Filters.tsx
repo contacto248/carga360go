@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { EquipmentSelector } from "./EquipmentSelector";
 import { CITIES, REGIONS, citiesInRegion, isEquipmentId } from "@/lib/catalog";
+import { fechaChilenaAIso, isoAFechaChilena } from "@/lib/fecha-cl";
 
 type RouteFilter = { regionOrigen: string; origen: string; regionDestino: string; destino: string };
 type LoadFilter = RouteFilter & { equipo: string; desde: string; pesoMin: string; q: string; verificados: string; orden: string };
@@ -86,6 +88,61 @@ export function TruckFilters({ value, counts }: { value: TruckFilter; counts?: R
   );
 }
 
+function FechaFiltro({
+  name,
+  value,
+  label,
+  onCommit,
+}: {
+  name: string;
+  value: string;
+  label: string;
+  onCommit: (name: string, next: string) => void;
+}) {
+  const [texto, setTexto] = useState(isoAFechaChilena(value));
+  const [error, setError] = useState("");
+  useEffect(() => {
+    setTexto(isoAFechaChilena(value));
+  }, [value]);
+
+  function commit(next: string) {
+    const trimmed = next.trim();
+    if (!trimmed) {
+      setError("");
+      if (value) onCommit(name, "");
+      return;
+    }
+    const iso = fechaChilenaAIso(trimmed);
+    if (!iso) {
+      setError("Usa dd-mm-aaaa.");
+      return;
+    }
+    setError("");
+    if (iso !== value) onCommit(name, iso);
+  }
+
+  return (
+    <input
+      type="text"
+      lang="es-CL"
+      inputMode="numeric"
+      autoComplete="off"
+      placeholder="dd-mm-aaaa"
+      aria-label={`${label} (dd-mm-aaaa)`}
+      title={error || "Fecha en formato dd-mm-aaaa"}
+      value={texto}
+      onChange={(event) => {
+        const next = event.target.value;
+        setTexto(next);
+        const iso = fechaChilenaAIso(next.trim());
+        if (!next.trim()) commit("");
+        else if (iso) commit(next);
+      }}
+      onBlur={(event) => commit(event.target.value)}
+    />
+  );
+}
+
 function FilterBar({ fields }: { fields: Field[] }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -154,10 +211,13 @@ function FilterBar({ fields }: { fields: Field[] }) {
             </select>
           );
         }
+        if (field.kind === "date") {
+          return <FechaFiltro key={field.name} name={field.name} value={field.value} label={field.label} onCommit={update} />;
+        }
         return (
           <input
             key={field.name}
-            type={field.kind === "date" ? "date" : field.kind === "number" ? "number" : "text"}
+            type={field.kind === "number" ? "number" : "text"}
             min={field.kind === "number" ? 0 : undefined}
             placeholder={field.placeholder}
             aria-label={field.label}
