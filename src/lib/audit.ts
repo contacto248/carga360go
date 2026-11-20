@@ -83,6 +83,7 @@ export const AUDIT_LABELS: Record<string, string> = {
   "ops.alerta_abierta": "Alerta de torre abierta",
   "ops.alerta_umbral": "Umbral de alerta actualizado",
   "ops.seguimiento_emitido": "Enlace de seguimiento emitido",
+  "ops.seguimiento_revocado": "Enlace de seguimiento revocado",
   "ops.operacion_creada": "Operación creada",
 };
 

@@ -45,14 +45,43 @@ function codeFromPayload(data: unknown, secrets: string[]): string | null {
   return null;
 }
 
+const UPSTREAM_BODY_LIMIT = 4096;
+
+/** Lee como máximo `limit` bytes y cancela el resto. No acumula el cuerpo completo. */
+async function readCapped(response: Response, limit: number): Promise<string> {
+  const body = response.body;
+  if (!body) return "";
+  const reader = body.getReader();
+  const parts: Uint8Array[] = [];
+  let received = 0;
+  try {
+    while (received < limit) {
+      const { done, value } = await reader.read();
+      if (done || !value) break;
+      const room = limit - received;
+      const slice = value.byteLength > room ? value.subarray(0, room) : value;
+      parts.push(slice);
+      received += slice.byteLength;
+    }
+  } finally {
+    await reader.cancel().catch(() => undefined);
+  }
+  const bytes = new Uint8Array(received);
+  let offset = 0;
+  for (const part of parts) {
+    bytes.set(part, offset);
+    offset += part.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 async function openAiUpstreamCode(response: Response, secrets: string[]): Promise<string | null> {
   let raw = "";
   try {
-    raw = await response.text();
+    raw = await readCapped(response, UPSTREAM_BODY_LIMIT);
   } catch {
     return null;
   }
-  if (raw.length > 4096) raw = raw.slice(0, 4096);
   try {
     return codeFromPayload(JSON.parse(raw), secrets);
   } catch {

@@ -8,7 +8,7 @@ import { AppError } from "../src/lib/errors";
 import { todayChile, rutDv } from "../src/lib/format";
 import { createLoad } from "../src/lib/listings";
 import { ensureShipmentForLoad } from "../src/lib/ops/shipments";
-import { issueTrackingLink, readTracking } from "../src/lib/ops/tracking";
+import { issueTrackingLink, readTracking, rotateTrackingLink } from "../src/lib/ops/tracking";
 import { ENLACE_YA_EMITIDO, textoReemision } from "../src/lib/ops/tracking-message";
 import type { PublicUser } from "../src/lib/types";
 
@@ -178,4 +178,58 @@ test("TWR-12: no hay token en claro en la base ni en la auditoría, y un token d
   assert.deepEqual(JSON.parse(rewritten.detail ?? "{}"), { prefijo: legacy.slice(0, 6) });
   assert.deepEqual(JSON.parse(rewrittenIssued.detail ?? "{}"), { prefijo: token.slice(0, 6) });
   assert.equal(rewritten.action, "ops.seguimiento_emitido");
+});
+
+test("TWR-12: rotar el enlace invalida el anterior y devuelve uno nuevo", () => {
+  const owner = person("duena-rota");
+  const admin = upsertAdmin({
+    email: `admin-rota-${seq}@twr-12.test`,
+    password: "Camino-Largo-2026",
+    razonSocial: "Admin rotación",
+    rut: nextRut(),
+    contactName: "Admin",
+    whatsapp: `+56 9 ${String(48200000 + seq).padStart(8, "0")}`,
+    city: "Santiago",
+  });
+  const load = createLoad(owner, {
+    origin: "Calama",
+    destination: "Antofagasta",
+    pickupDate: addDays(3),
+    equipment: "rampla_plana",
+    description: "Carga para rotar el enlace",
+    weightT: 6,
+    specs: {},
+  });
+  const shipment = ensureShipmentForLoad(load.id, admin);
+  const issued = issueTrackingLink(admin, shipment.id);
+  if (!issued.created) throw new Error("no se emitió el enlace");
+  const rotated = rotateTrackingLink(admin, shipment.id);
+  assert.equal(rotated.created, true);
+  assert.notEqual(rotated.token, issued.token);
+  assert.equal(rotated.path, `/seguimiento/${rotated.token}`);
+  assert.throws(() => readTracking(issued.token), notFound);
+  assert.equal(readTracking(rotated.token).origin, "Calama");
+
+  const db = getDb();
+  const row = db.prepare(`SELECT token, token_hash FROM ops_tracking_links WHERE shipment_id = ?`).get(shipment.id) as {
+    token: string;
+    token_hash: string;
+  };
+  assert.equal(row.token_hash, tokenHash(rotated.token));
+  assert.equal(row.token, tokenHash(rotated.token));
+  const stored = JSON.stringify(row);
+  assert.equal(stored.includes(issued.token), false);
+  assert.equal(stored.includes(rotated.token), false);
+  const audits = db.prepare(`SELECT action, detail FROM audit_log WHERE target_id = ? AND action LIKE 'ops.seguimiento_%'`).all(shipment.id) as {
+    action: string;
+    detail: string | null;
+  }[];
+  assert.deepEqual(
+    audits.map((row) => row.action),
+    ["ops.seguimiento_emitido", "ops.seguimiento_revocado", "ops.seguimiento_emitido"],
+  );
+  const dumped = JSON.stringify(audits);
+  assert.equal(dumped.includes(issued.token), false);
+  assert.equal(dumped.includes(rotated.token), false);
+  assert.equal(JSON.parse(audits[1].detail ?? "{}").reemplazo, true);
 });

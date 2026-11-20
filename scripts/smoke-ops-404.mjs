@@ -1,19 +1,15 @@
 /**
  * Humo contra `next start`: con los flags OPS apagados, las páginas OPS
- * responden 404 antes de renderizar. Requiere un `next build` previo.
+ * responden 404 antes de renderizar. Reconstruye con esos flags apagados,
+ * porque Next deja UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED fijo en el artefacto.
  */
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
-import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const buildId = path.join(repo, ".next", "BUILD_ID");
-if (!fs.existsSync(buildId)) {
-  console.error("Falta el build. Corre npm run build antes de este humo.");
-  process.exit(1);
-}
+const nextBin = path.join(repo, "node_modules/next/dist/bin/next");
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -49,11 +45,23 @@ function stop(child) {
 const port = await freePort();
 const env = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
 for (const name of ["UI_PAGINAS_PUBLICAS_NUEVAS_ENABLED", "OPS_FEATURE_ENABLED", "OPS_ALLOCATION_ENABLED", "OPS_PROCUREMENT_ENABLED", "OPS_ALLOCATION_AUTO", "OPS_API_V1_ENABLED", "OPS_OPERACION_ENABLED"]) {
-  delete env[name];
+  env[name] = "false";
 }
 
+let built = 1;
+for (let attempt = 1; attempt <= 3; attempt += 1) {
+  built = await new Promise((resolve) => {
+    const build = spawn(process.execPath, [nextBin, "build"], { cwd: repo, env, stdio: "inherit" });
+    build.once("exit", (code) => resolve(code ?? 1));
+  });
+  if (built === 0) break;
+  console.error(`next build intento ${attempt} salió ${built}`);
+  if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 5_000));
+}
+if (built !== 0) process.exit(built);
+
 const chunks = [];
-const child = spawn(process.execPath, [path.join(repo, "node_modules/next/dist/bin/next"), "start", "-H", "127.0.0.1", "-p", String(port)], {
+const child = spawn(process.execPath, [nextBin, "start", "-H", "127.0.0.1", "-p", String(port)], {
   cwd: repo,
   env,
   detached: true,
