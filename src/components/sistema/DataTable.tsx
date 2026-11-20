@@ -3,11 +3,19 @@ import React from "react";
 export type DataColumn = { id: string; label: string };
 export type DataRow = { id: string; cells: string[] };
 
-export function DataTable({ columns, rows }: { columns: DataColumn[]; rows: DataRow[] }) {
+export function DataTable({
+  columns,
+  rows,
+  caption = "Tabla",
+}: {
+  columns: DataColumn[];
+  rows: DataRow[];
+  caption?: string;
+}) {
   return (
     <div className="ds-table-wrap">
       <table className="ds-table">
-        <caption>Tabla</caption>
+        <caption>{caption}</caption>
         <thead>
           <tr>
             {columns.length === 0 ? (

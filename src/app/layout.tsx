@@ -22,6 +22,7 @@ import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
 import "./tokens.css";
 import "./globals.css";
+import "./visual-2026.css";
 
 const display = Sora({
   subsets: ["latin"],
@@ -98,7 +99,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B1633",
+  themeColor: "#08090b",
 };
 
 function hostnameFromUrl(value: string | undefined): string {

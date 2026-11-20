@@ -50,8 +50,8 @@ function hasTable(db: Database.Database, name: string) {
 
 function assertFinalSchema(db: Database.Database) {
   const v = versions(db);
-  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
-  assert.equal(Math.max(...v), 32);
+  for (const n of [14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]) assert.ok(v.includes(n), `falta la migración ${n}: ${v.join(",")}`);
+  assert.equal(Math.max(...v), 33);
   for (const t of [...TABLES_15, ...TABLES_16, "solicitudes_carga", "transportistas", "documentos_acreditacion", "admin_bassam_360", "ops_organizations", "ops_org_members", "ops_shipments", "ops_events", "ops_zones", "ops_lanes", "ops_contracts", "ops_rate_cards", "ops_rate_card_lines", "ops_commercial_terms", "ops_slas", "ops_versions", "ops_carrier_scores", "ops_score_events", "ops_allocation_rules", "ops_allocation_runs", "ops_allocation_candidates", "ops_allocation_decisions", "ops_jobs", "ops_allocation_traces", "ops_telematics_sources", "ops_gps_receipts", "ops_geofences", "ops_eta_snapshots", "ops_alert_rules", "ops_alerts", "ops_tracking_links", "ops_operations", "ops_operation_keys", "ops_operation_counters", "ai_router_usage"]) assert.ok(hasTable(db, t), t);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_organizations`).get() as { n: number }).n, 0);
   assert.equal((db.prepare(`SELECT COUNT(*) AS n FROM ops_org_members`).get() as { n: number }).n, 0);
@@ -118,7 +118,7 @@ test("copia en versión 14 (verificación manual) sube a 16 sin perder datos ni 
   const file = process.env.DATABASE_PATH!;
   closeDb();
   const after = snapshot(file);
-  assert.deepEqual(after, { ...before, version: 32 });
+  assert.deepEqual(after, { ...before, version: 33 });
   const mandante = (after.users as Record<string, unknown>[]).find((u) => u.email === "mandante@demo.local")!;
   assert.equal(mandante.backup_contact, "respaldo@demo.local");
   assert.equal(mandante.manual_readonly_until, "2026-12-14T00:00:00.000Z");
@@ -193,7 +193,7 @@ test("reversa 022 borra solo organizaciones y deja la 023 y la 027", () => {
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(versions(db).includes(23));
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 32);
+    assert.equal(Math.max(...versions(db)), 33);
     assert.equal(hasTable(db, "ops_telematics_sources"), true);
     assert.equal(hasTable(db, "ops_gps_receipts"), true);
     assert.deepEqual(db.prepare(`SELECT * FROM users ORDER BY id`).all(), before.users);
@@ -294,14 +294,14 @@ test("023 sobre base vacía y sobre producción v14 no altera tablas previas; la
       assert.equal(afterVersions.includes(23), false);
       assert.ok(afterVersions.includes(22));
       assert.ok(afterVersions.includes(27));
-      assert.equal(Math.max(...afterVersions), 32);
+      assert.equal(Math.max(...afterVersions), 33);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_telematics_sources'`).get()), true);
       assert.deepEqual(protectedCols(raw), colsBefore);
       raw.exec(rollback22);
       const unwound = (raw.prepare(`SELECT version FROM schema_migrations ORDER BY version`).all() as { version: number }[]).map((row) => row.version);
       assert.equal(unwound.includes(22), false);
       assert.ok(unwound.includes(27));
-      assert.equal(Math.max(...unwound), 32);
+      assert.equal(Math.max(...unwound), 33);
       assert.equal(Boolean(raw.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'ops_organizations'`).get()), false);
       assert.equal((raw.prepare(`PRAGMA foreign_key_check`).all() as unknown[]).length, 0);
       assert.equal((raw.prepare(`PRAGMA integrity_check`).get() as { integrity_check: string }).integrity_check, "ok");
@@ -339,7 +339,7 @@ test("reversa 024 borra solo procurement y deja la 023", () => {
     assert.equal(versions(db).includes(24), false);
     assert.equal(versions(db).includes(23), true);
     assert.equal(versions(db).includes(27), true);
-    assert.equal(Math.max(...versions(db)), 32);
+    assert.equal(Math.max(...versions(db)), 33);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_telematics_sources"));
@@ -375,7 +375,7 @@ test("reversa 025 borra puntajes y conserva 022, 023, 024 y 027", () => {
     assert.equal(hasTable(db, "ops_score_events"), false);
     assert.equal(versions(db).includes(25), false);
     for (const n of [22, 23, 24, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 32);
+    assert.equal(Math.max(...versions(db)), 33);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
@@ -466,7 +466,7 @@ test("reversa 026 borra la asignación y conserva 022, 023, 024, 025 y 027", () 
     }
     assert.equal(versions(db).includes(26), false);
     for (const n of [22, 23, 24, 25, 27]) assert.ok(versions(db).includes(n), String(n));
-    assert.equal(Math.max(...versions(db)), 32);
+    assert.equal(Math.max(...versions(db)), 33);
     assert.ok(hasTable(db, "ops_organizations"));
     assert.ok(hasTable(db, "ops_shipments"));
     assert.ok(hasTable(db, "ops_zones"));
