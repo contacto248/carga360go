@@ -127,6 +127,27 @@ export function issueTrackingLink(user: PublicUser, shipmentId: string): IssuedT
   return { token, path: `/seguimiento/${token}`, created: true };
 }
 
+/**
+ * Reemplaza el enlace que ya no se puede mostrar. El token anterior deja de servir.
+ * La auditoría guarda solo el prefijo del nuevo; el secreto vuelve una sola vez.
+ */
+export function rotateTrackingLink(user: PublicUser, shipmentId: string): { token: string; path: string; created: true } {
+  const shipment = requireShipment(user, shipmentId);
+  const db = getDb();
+  const token = randomBytes(24).toString("base64url");
+  const hash = tokenHash(token);
+  const now = new Date().toISOString();
+  db.transaction(() => {
+    const removed = db.prepare(`DELETE FROM ops_tracking_links WHERE shipment_id = ?`).run(shipment.id);
+    if (removed.changes > 0) {
+      auditStrict(user, "ops.seguimiento_revocado", { type: "envio", id: shipment.id }, { reemplazo: true });
+    }
+    db.prepare(`INSERT INTO ops_tracking_links (token, token_hash, shipment_id, created_at) VALUES (?, ?, ?, ?)`).run(hash, hash, shipment.id, now);
+    auditStrict(user, "ops.seguimiento_emitido", { type: "envio", id: shipment.id }, { prefijo: token.slice(0, 6) });
+  })();
+  return { token, path: `/seguimiento/${token}`, created: true };
+}
+
 /** Estado, posición y ETA para el cliente. No lee ni devuelve ops_alerts. */
 export function readTracking(token: string): TrackingView {
   if (!/^[A-Za-z0-9_-]{16,80}$/.test(token)) throw new AppError("No encontrado.", 404);

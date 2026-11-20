@@ -8,33 +8,38 @@ export function EnlaceSeguimiento({ shipmentId }: { shipmentId: string }) {
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState<string | null>(null);
 
+  function pedir(ruta: string, fallo: string) {
+    setBusy(true);
+    void fetch(ruta, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { accept: "application/json", "content-type": "application/json" },
+    })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => null)) as {
+          created?: boolean;
+          path?: string;
+          token?: string;
+          error?: string;
+        } | null;
+        setText(textoReemision(data, response.ok));
+      })
+      .catch(() => setText(fallo))
+      .finally(() => setBusy(false));
+  }
+
   return (
     <div>
+      <button className="btn sm" disabled={busy} type="button" onClick={() => pedir(`/api/ops/envios/${shipmentId}/seguimiento`, "No se pudo emitir el enlace.")}>
+        Enlace
+      </button>
       <button
         className="btn sm"
         disabled={busy}
         type="button"
-        onClick={() => {
-          setBusy(true);
-          void fetch(`/api/ops/envios/${shipmentId}/seguimiento`, {
-            method: "POST",
-            credentials: "same-origin",
-            headers: { accept: "application/json", "content-type": "application/json" },
-          })
-            .then(async (response) => {
-              const data = (await response.json().catch(() => null)) as {
-                created?: boolean;
-                path?: string;
-                token?: string;
-                error?: string;
-              } | null;
-              setText(textoReemision(data, response.ok));
-            })
-            .catch(() => setText("No se pudo emitir el enlace."))
-            .finally(() => setBusy(false));
-        }}
+        onClick={() => pedir(`/api/ops/envios/${shipmentId}/seguimiento/rotar`, "No se pudo revocar el enlace.")}
       >
-        Enlace
+        Revocar y emitir
       </button>
       {text ? <small>{text}</small> : null}
     </div>
