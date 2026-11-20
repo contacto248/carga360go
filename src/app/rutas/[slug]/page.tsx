@@ -18,13 +18,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const route = routeBySlug(slug);
   if (!route) notFound();
+  const title = `Transporte ${route.origin} – ${route.destination} · Carga y retorno · Carga360go`;
+  const description = `Carga disponible y retorno de camiones entre ${route.origin} y ${route.destination}.`;
   return {
-    title: { absolute: route.title },
-    description: route.description,
+    title: { absolute: title },
+    description,
     alternates: { canonical: `${BASE}/rutas/${route.slug}` },
     openGraph: {
-      title: route.title,
-      description: route.description,
+      title,
+      description,
       url: `${BASE}/rutas/${route.slug}`,
       type: "website",
     },

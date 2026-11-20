@@ -30,7 +30,7 @@ test("T-049/T-065 home: panel del producto sin precios ni comisiones", () => {
   assert.match(hero, /brand-hero/);
   assert.match(hero, /Plataforma ÓRBITA · Sistema Carga360go/);
   assert.match(hero, /Tu carga, en el centro\./);
-  assert.match(hero, /Conectamos carga y camiones de todo Chile en un solo panel, claro y verificado\./);
+  assert.match(hero, /Plataforma tecnológica de carga y retorno en Chile\. Conectamos carga y camiones en un solo panel, claro y verificado\./);
   assert.match(hero, /Menos ruido\. Más claridad\./);
   assert.match(hero, /Ningún camión vuelve vacío\./);
   assert.match(hero, /Necesito transportar carga/);
@@ -178,8 +178,7 @@ test("T-062 página /guias existe (hub marketing; nunca 404)", () => {
   assert.match(conf, /destination:\s*"\/guias"/);
   const sitemap = read("src/app/sitemap.ts");
   assert.match(sitemap, /\/guias/);
-  const footer = read("src/components/Footer.tsx");
-  assert.match(footer, /href="\/guias"/);
+  assert.doesNotMatch(read("src/components/Footer.tsx"), /href="\/guias"|Canal de WhatsApp|mailto:/);
 });
 
 test("T-060 página /tecnologia con demos marcadas y controles reales (sin sellos falsos)", () => {
@@ -203,7 +202,7 @@ test("T-060 página /tecnologia con demos marcadas y controles reales (sin sello
   assert.match(demo, /No corresponden a cargas/);
   const home = read("src/app/page.tsx");
   assert.doesNotMatch(home, /TraceAutomationDemo/);
-  assert.match(read("src/components/Footer.tsx"), /href="\/tecnologia"/);
+  assert.doesNotMatch(read("src/components/Footer.tsx"), /href="\/tecnologia"/);
   const sitemap = read("src/app/sitemap.ts");
   assert.match(sitemap, /\/tecnologia/);
 });
@@ -291,7 +290,7 @@ test("portada visual: cookie compacta y un solo CTA primario naranja en el hero"
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /Legal y privacidad/);
   assert.match(footer, /href="\/legal"/);
-  assert.doesNotMatch(footer, /Esta plataforma conecta partes/);
+  assert.doesNotMatch(footer, /Esta plataforma conecta partes|Bolsa|Tecnología|Guías|mailto:/);
   const legal = read("src/app/legal/page.tsx");
   assert.match(legal, /\/privacidad#cookies/);
   assert.match(legal, /\/terminos/);

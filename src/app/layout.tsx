@@ -50,7 +50,7 @@ export const dynamic = "force-dynamic";
 
 const PRODUCTION_ANALYTICS_HOSTS = new Set(["www.carga360go.cl", "carga360go.cl"]);
 
-const title = "ORBITA - CARGA360GO — Trazabilidad y automatización de cargas y camiones en Chile";
+const title = "Plataforma ÓRBITA · Sistema Carga360go";
 const description =
   `Carga360go conecta cargas y camiones en Chile. Publicas tu carga o tu camión, ves el calce y un costo de referencia desglosado. El historial registra publicación, ofertas y adjudicación. No incluye GPS ni telemetría. ${BRAND.company} · RUT ${BRAND.rut}.`;
 
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
         url: "https://www.carga360go.cl/og.jpg",
         width: 1200,
         height: 630,
-        alt: "ORBITA - CARGA360GO",
+        alt: "Plataforma ÓRBITA · Sistema Carga360go",
       },
     ],
   },

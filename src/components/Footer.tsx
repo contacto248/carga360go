@@ -16,15 +16,7 @@ export function Footer() {
               Carga<b>360go</b>
             </span>
           </Link>
-          <nav aria-label="Pie">
-            <Link href="/cargas">Bolsa</Link>
-            <Link href="/tecnologia">Tecnología</Link>
-            <Link href="/guias">Guías</Link>
-            <a href={BRAND.whatsappChannel} target="_blank" rel="noopener noreferrer">
-              Canal de WhatsApp
-            </a>
-          </nav>
-          <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a>
+          <span>© {new Date().getFullYear()} Carga360go</span>
           <Link className="foot-legal" href="/legal">
             Legal y privacidad
           </Link>

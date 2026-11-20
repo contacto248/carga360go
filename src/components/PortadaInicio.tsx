@@ -69,7 +69,9 @@ export function PortadaInicio({ sesion }: { sesion: boolean }) {
           {/* Titular en uso: "Tu carga, en el centro." Alternativas: "Menos ruido. Más claridad." y "Ningún camión vuelve vacío." */}
           <p className={styles.mark}>Plataforma ÓRBITA · Sistema Carga360go</p>
           <h1 className={`brand-hero ${styles.title}`}>Tu carga, en el centro.</h1>
-          <p className={styles.lead}>Conectamos carga y camiones de todo Chile en un solo panel, claro y verificado.</p>
+          <p className={styles.lead}>
+            Plataforma tecnológica de carga y retorno en Chile. Conectamos carga y camiones en un solo panel, claro y verificado.
+          </p>
           <div className={styles.ctaRow}>
             <Link className={styles.cta} href={carga}>
               Necesito transportar carga

@@ -8,7 +8,7 @@ const LINKS = [
   { href: "/", label: "Inicio" },
   { href: "/cargas", label: "Cargas" },
   { href: "/camiones", label: "Camiones" },
-  { href: "/mi-cuenta?rol=mandante", label: "Publicar carga" },
+  { href: "/cargas/nueva", label: "Publicar carga" },
   { href: "/mi-cuenta", label: "Mi cuenta" },
   { href: "/tecnologia", label: "Tecnología" },
 ];

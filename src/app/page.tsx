@@ -6,9 +6,9 @@ import { getCurrentUser } from "@/lib/current-user";
 import styles from "./portada.module.css";
 
 export const metadata: Metadata = {
-  title: { absolute: "ORBITA - CARGA360GO — Trazabilidad y automatización de cargas y camiones en Chile" },
+  title: { absolute: "Plataforma tecnológica de carga en Chile · ÓRBITA Carga360go" },
   description:
-    "Carga360go conecta cargas y camiones en Chile. Dos accesos: necesito transportar carga o soy transportista. El historial registra publicación, ofertas y adjudicación. Sin GPS ni telemetría.",
+    "Carga disponible en Chile y retorno de camiones en una plataforma tecnológica de carga y retorno.",
   alternates: { canonical: "/" },
 };
 

@@ -12,8 +12,8 @@ import { listTrucks } from "@/lib/listings";
 import { marketplaceViewer, redactTruck } from "@/lib/access";
 
 const BASE: Metadata = {
-  title: "Camiones disponibles por región",
-  description: "Camiones y transportistas disponibles de Arica a Punta Arenas. Filtra por región de origen y destino, equipo y fecha.",
+  title: { absolute: "Retorno de camiones en Chile · Carga360go" },
+  description: "Camiones de retorno y transporte en Chile con perfiles verificados.",
   alternates: { canonical: "/camiones" },
 };
 

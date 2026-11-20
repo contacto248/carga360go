@@ -61,8 +61,8 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-calama",
-    titleTag: "Transporte de carga en Calama | Carga360go",
-    meta: "Cargas y camiones en Calama y los corredores hacia Antofagasta y Copiapó. Publica tu aviso o guarda una alerta en Carga360go.",
+    titleTag: "Transporte y logística en Calama · Carga360go",
+    meta: "Carga, retornos y transporte desde y hacia Calama.",
     h1: "Transporte de carga en Calama",
     body: [
       "Calama es un nodo del transporte ligado a la minería del norte. En Carga360go puedes publicar cargas con origen o destino en Calama, o un camión y un retorno disponibles en esa zona y en los corredores hacia Antofagasta y Copiapó.",
@@ -77,8 +77,8 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-antofagasta",
-    titleTag: "Transporte de carga en Antofagasta | Carga360go",
-    meta: "Publica o encuentra cargas y camiones en Antofagasta y sus corredores a Calama y Copiapó. Coincidencias por equipo, fecha y ruta.",
+    titleTag: "Transporte y logística en Antofagasta · Carga360go",
+    meta: "Carga, retornos y transporte desde y hacia Antofagasta.",
     h1: "Transporte de carga en Antofagasta",
     body: [
       "Antofagasta concentra carga industrial, portuaria y minera. Carga360go permite a empresas publicar transportes con origen o destino en la ciudad o la región, y a transportistas ofrecer camiones o retornos en esos corredores.",
@@ -93,8 +93,8 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-copiapo",
-    titleTag: "Transporte de carga en Copiapó | Carga360go",
-    meta: "Cargas y camiones en Copiapó y Atacama, con corredores a Calama y Antofagasta. Publica o activa una alerta si aún no hay avisos.",
+    titleTag: "Transporte y logística en Copiapó · Carga360go",
+    meta: "Carga, retornos y transporte desde y hacia Copiapó.",
     h1: "Transporte de carga en Copiapó",
     body: [
       "Copiapó y la Región de Atacama son parte del corredor piloto junto a Calama y Antofagasta. En Carga360go puedes publicar una carga, un camión o un retorno con origen o destino en Copiapó, y recibir sugerencias de calce por equipo, fechas y ruta.",
