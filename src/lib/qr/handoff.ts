@@ -198,7 +198,7 @@ export function validarRetiro(user: PublicUser, loadId: string, input: ValidarIn
       if (recent >= QR_MAX_ATTEMPTS) {
         db.prepare(`UPDATE trip_handoffs SET locked_until = ? WHERE id = ?`).run(new Date(now.getTime() + QR_LOCK_MS).toISOString(), hand.id);
       }
-      if (input.sinSenal && (failure === "codigo_invalido" || failure === "vencido")) {
+      if (input.sinSenal && failure === "codigo_invalido") {
         db.prepare(`UPDATE loads SET trip_status = 'incidencia', updated_at = ? WHERE id = ?`).run(stamp, loadId);
         db.prepare(`INSERT INTO trip_events (id, load_id, actor_id, status, note, created_at) VALUES (?, ?, ?, 'incidencia', ?, ?)`).run(
           randomUUID(),
@@ -243,14 +243,20 @@ export function confirmarPoseedor(
   loadId: string,
   decision: "entrego" | "no_coincide",
   now = new Date(),
+  origen?: { tipo: "delegado"; enlaceId: string },
 ) {
   const hand = handoffOf(loadId);
   const assignment = asignacionVigente(loadId);
   if (!hand || !assignment) throw new AppError("No hay un retiro por confirmar.", 409);
-  if (!user || hand.holder_user_id !== user.id) throw new AppError("Solo quien entrega la carga puede confirmar.", 403);
+  const delegado = origen?.tipo === "delegado";
+  if (!delegado && (!user || hand.holder_user_id !== user.id)) throw new AppError("Solo quien entrega la carga puede confirmar.", 403);
   if (hand.status !== "escaneado") throw new AppError("El chofer todavía no escanea el QR.", 409);
   const stamp = now.toISOString();
-  const shipment = prepararCadena(loadId, user);
+  const actorId = delegado ? null : (user?.id ?? null);
+  const shipment = prepararCadena(loadId, delegado ? null : user);
+  const metodo = delegado ? "delegado" : "confirmacion";
+  const notaOk = delegado ? "Retiro validado por enlace de bodega" : "Retiro validado con QR";
+  const notaNo = delegado ? "El enlace de bodega reportó que no coincide" : "Quien entrega reportó que no coincide";
   const db = getDb();
   db.transaction(() => {
     if (decision === "entrego") {
@@ -259,27 +265,43 @@ export function confirmarPoseedor(
       db.prepare(`INSERT INTO trip_events (id, load_id, actor_id, status, note, created_at) VALUES (?, ?, ?, 'retirado', ?, ?)`).run(
         randomUUID(),
         loadId,
-        user.id,
-        "Retiro validado con QR",
+        actorId,
+        notaOk,
         stamp,
       );
-      escribirEvento(db, shipment.id, "qr.retiro_validado", { metodo: "confirmacion", resultado: "ok", patente: assignment.patente, epoch: assignment.epoch }, user.id, stamp);
+      escribirEvento(
+        db,
+        shipment.id,
+        "qr.retiro_validado",
+        { metodo, resultado: "ok", patente: assignment.patente, epoch: assignment.epoch, enlaceId: origen?.enlaceId ?? null },
+        actorId,
+        stamp,
+      );
     } else {
       db.prepare(`UPDATE trip_handoffs SET status = 'rechazado', holder_confirmed_at = ? WHERE id = ?`).run(stamp, hand.id);
       db.prepare(`UPDATE loads SET trip_status = 'incidencia', updated_at = ? WHERE id = ?`).run(stamp, loadId);
       db.prepare(`INSERT INTO trip_events (id, load_id, actor_id, status, note, created_at) VALUES (?, ?, ?, 'incidencia', ?, ?)`).run(
         randomUUID(),
         loadId,
-        user.id,
-        "Quien entrega reportó que no coincide",
+        actorId,
+        notaNo,
         stamp,
       );
-      escribirEvento(db, shipment.id, "qr.retiro_rechazado", { metodo: "confirmacion", resultado: "no_coincide", patente: assignment.patente, epoch: assignment.epoch }, user.id, stamp);
+      escribirEvento(
+        db,
+        shipment.id,
+        "qr.retiro_rechazado",
+        { metodo, resultado: "no_coincide", patente: assignment.patente, epoch: assignment.epoch, enlaceId: origen?.enlaceId ?? null },
+        actorId,
+        stamp,
+      );
     }
   })();
-  audit(user, decision === "entrego" ? "trato.retiro_confirmado" : "trato.retiro_rechazado", { type: "carga", id: loadId });
+  audit(delegado ? null : user, decision === "entrego" ? "trato.retiro_confirmado" : "trato.retiro_rechazado", { type: "carga", id: loadId }, {
+    enlaceId: origen?.enlaceId ?? null,
+  });
   if (decision === "entrego") archivarComprobante(loadId, now);
-  return { ok: true as const, decision };
+  return { ok: true as const, decision, delegado };
 }
 
 export function confirmarPorDelegado(token: string, loadId: string, decision: "entrego" | "no_coincide", now = new Date()) {
@@ -290,11 +312,7 @@ export function confirmarPorDelegado(token: string, loadId: string, decision: "e
     | { holder_user_id: string }
     | undefined;
   if (!holder?.holder_user_id) throw new AppError("No hay un retiro por confirmar.", 409);
-  const user = getDb().prepare(`SELECT id, email FROM users WHERE id = ?`).get(holder.holder_user_id) as
-    | { id: string; email: string }
-    | undefined;
-  if (!user) throw new AppError("No hay un retiro por confirmar.", 409);
-  const result = confirmarPoseedor(user, loadId, decision, now);
+  const result = confirmarPoseedor(null, loadId, decision, now, { tipo: "delegado", enlaceId: link.id });
   if (decision === "entrego") {
     getDb().prepare(`UPDATE trip_delegate_links SET revoked_at = ? WHERE id = ?`).run(now.toISOString(), link.id);
   }

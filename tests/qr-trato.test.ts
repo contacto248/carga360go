@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { test } from "node:test";
 import { REQUIRED_CARRIER_DOCS } from "../src/lib/carrier";
 import { getDb } from "../src/lib/db";
@@ -12,7 +12,7 @@ import { PRIVACY_VERSION, TERMS_VERSION } from "../src/lib/privacy";
 import { asignarChofer } from "../src/lib/qr/assignment";
 import { confirmarTrato, emitirCodigoTrato, tratoExigeQr } from "../src/lib/qr/deal";
 import { delegateLinkEnabled } from "../src/lib/qr/flag";
-import { confirmarPoseedor, crearDelegado, entregaConformidad, entregaValidar, validarRetiro } from "../src/lib/qr/handoff";
+import { confirmarPorDelegado, crearDelegado, entregaConformidad, entregaValidar, validarRetiro } from "../src/lib/qr/handoff";
 import { buildComprobantePdf, datosComprobante } from "../src/lib/qr/pdf";
 import { resolverPatente } from "../src/lib/qr/patente";
 import {
@@ -164,9 +164,15 @@ test("flujo: cierre, patente reutilizada, QR, reuso, intentos, reasignación y P
   const offer = await submitOffer(carrier, load.id, { priceClp: 1500000, pickupDate: addDays(2), truckId: truck.id }, { notify: false });
   await acceptOffer(owner, offer.offer.id, { notify: false });
   assert.equal(tratoExigeQr(load.id), false);
+  const frozen = getDb().prepare(`SELECT terms_json FROM trip_deals WHERE load_id = ?`).get(load.id) as { terms_json: string };
+  assert.match(frozen.terms_json, /Quilicura/);
+  getDb().prepare(`UPDATE loads SET origin = 'Arica' WHERE id = ?`).run(load.id);
   const code = emitirCodigoTrato(carrier, load.id);
   const now = new Date();
   const closed = confirmarTrato(carrier, load.id, code, now);
+  const sealed = getDb().prepare(`SELECT terms_json, terms_hash FROM trip_deals WHERE load_id = ?`).get(load.id) as { terms_json: string; terms_hash: string };
+  assert.equal(sealed.terms_json, frozen.terms_json);
+  assert.equal(sealed.terms_hash, createHash("sha256").update(frozen.terms_json).digest("hex"));
   assert.match(closed.folio, /^360-\d{4}-\d{4}$/);
   assert.equal(tratoExigeQr(load.id), true);
   advanceTrip(carrier, load.id, "en_camino");
@@ -183,13 +189,25 @@ test("flujo: cierre, patente reutilizada, QR, reuso, intentos, reasignación y P
   };
   const key = tripKey(masterKey().key, load.id, "r", deal.terms_hash, assigned.epoch);
   const clock = now.getTime();
+  assert.throws(() => validarRetiro(carrier, load.id, { token: "basura", patente: "KJTR42" }, now), /leer/);
+  assert.equal((getDb().prepare(`SELECT result FROM trip_handoff_attempts WHERE result = 'mal_formado' LIMIT 1`).get() as { result: string }).result, "mal_formado");
+  assert.throws(
+    () => validarRetiro(carrier, load.id, { codigo: "000000", patente: "KJTR42", sinSenal: true, deviceTime: new Date(now.getTime() - 30 * 60 * 1000).toISOString() }, now),
+    /venció/,
+  );
+  assert.equal((getDb().prepare(`SELECT trip_status FROM loads WHERE id = ?`).get(load.id) as { trip_status: string }).trip_status, "en_camino");
   const stale = signToken(key, { v: 1, k: "r", j: deal.public_ref, w: timeWindow(clock) - 2, n: "vencido1" });
   assert.throws(() => validarRetiro(carrier, load.id, { token: stale, patente: "KJTR42" }, now), /venció/);
   const live = issuePickupToken(key, deal.public_ref, clock);
   const first = validarRetiro(carrier, load.id, { token: live.token, patente: "KJTR-42" }, now);
   assert.equal(first.ok, true);
   assert.throws(() => validarRetiro(carrier, load.id, { token: live.token, patente: "KJTR42" }, now), /ya se usó/);
-  confirmarPoseedor(owner, load.id, "entrego", now);
+  const link = crearDelegado(owner, load.id, now);
+  confirmarPorDelegado(link.path.replace(/^\/d\//, ""), load.id, "entrego", now);
+  const audited = getDb()
+    .prepare(`SELECT actor_id FROM audit_log WHERE action = 'trato.retiro_confirmado' AND target_id = ? ORDER BY created_at DESC LIMIT 1`)
+    .get(load.id) as { actor_id: string | null };
+  assert.equal(audited.actor_id, null);
   const seen = tripView(load.id, owner);
   assert.equal(seen?.status, "retirado");
   assert.equal(seen?.label, "Retiro validado");
@@ -293,6 +311,41 @@ test("la patente del documento se reutiliza si la columna y la ficha están vac�
   const found = resolverPatente(truck.id);
   assert.equal(found.origen, "documento");
   assert.equal(found.patente, "BBCD12");
+  getDb()
+    .prepare(`INSERT INTO documents (id, user_id, audience, type, holder_name, expiry, verification_status, created_at) VALUES (?, ?, 'camion', 'revision', 'Patente ZZCD12', '2099-01-01', 'verificado', ?)`)
+    .run(randomUUID(), carrier.id, new Date().toISOString());
+  const otro = createTruck(carrier, {
+    origin: "Iquique",
+    destination: "Arica",
+    availableFrom: todayChile(),
+    availableTo: addDays(4),
+    equipment: "rampla_plana",
+    tonnage: 10,
+    specs: {},
+  });
+  assert.equal(resolverPatente(truck.id).patente, "BBCD12");
+  assert.equal(resolverPatente(otro.id).patente, null);
+});
+
+test("una patente mal escrita no deja un camión publicado", () => {
+  const carrier = person("transportista", "placa-mala");
+  const before = (getDb().prepare(`SELECT COUNT(*) AS n FROM trucks WHERE owner_id = ?`).get(carrier.id) as { n: number }).n;
+  assert.throws(
+    () =>
+      createTruck(carrier, {
+        origin: "Calama",
+        destination: "Antofagasta",
+        availableFrom: todayChile(),
+        availableTo: addDays(4),
+        equipment: "rampla_plana",
+        tonnage: 15,
+        specs: {},
+        patente: "12",
+      }),
+    /patente/,
+  );
+  const after = (getDb().prepare(`SELECT COUNT(*) AS n FROM trucks WHERE owner_id = ?`).get(carrier.id) as { n: number }).n;
+  assert.equal(after, before);
 });
 
 test("las pantallas QR no usan azul", () => {

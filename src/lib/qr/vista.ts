@@ -120,7 +120,8 @@ export async function vistaQr(loadId: string, user: PublicUser | null, delegadoT
     retiroValidado: retiroValidado(loadId),
     puedeConfirmarTrato: rol === "transportista" && deal.status === "pendiente_confirmacion",
     puedeAsignar: rol === "transportista" && deal.status === "cerrado" && !assignment && hand?.status !== "confirmado",
-    puedeReasignar: rol === "transportista" && deal.status === "cerrado" && Boolean(assignment) && hand?.status === "pendiente",
+    puedeReasignar:
+      rol === "transportista" && deal.status === "cerrado" && Boolean(assignment) && (hand?.status === "pendiente" || hand?.status === "rechazado"),
     puedeEscanear: rol === "transportista" && Boolean(assignment) && load.trip_status === "en_camino" && hand?.status === "pendiente",
     delegadoHabilitado: holder && delegateLinkEnabled() && deal.status === "cerrado",
     camiones: rol === "transportista" ? camionesDe(user!.id) : [],

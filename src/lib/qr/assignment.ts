@@ -112,7 +112,7 @@ export function asignarChofer(
     const photo = input.foto ? savePhoto(driverId, input.foto) : null;
     db.prepare(
       `INSERT INTO drivers (id, carrier_id, user_id, display_name, photo_path, status, created_at)
-       VALUES (?, ?, ?, ?, ?, 'verificado', ?)`,
+       VALUES (?, ?, ?, ?, ?, 'pendiente', ?)`,
     ).run(driverId, user.id, user.id, nombre, photo, stamp);
     const assignmentId = randomUUID();
     db.prepare(

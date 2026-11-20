@@ -30,14 +30,24 @@ export type VistaCliente = {
   enlace?: string | null;
 };
 
+class ApiError extends Error {
+  code?: string;
+}
+
+const SYNC_TERMINAL = new Set(["vencido", "ya_usado", "codigo_invalido", "limite_intentos", "estado_invalido", "mal_formado", "firma_invalida", "patente_distinta", "chofer_no_asignado"]);
+
 async function postJson(url: string, body: unknown) {
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const data = (await response.json().catch(() => null)) as { error?: string } | null;
-  if (!response.ok) throw new Error(data?.error || "No se pudo completar.");
+  const data = (await response.json().catch(() => null)) as { error?: string; code?: string } | null;
+  if (!response.ok) {
+    const error = new ApiError(data?.error || "No se pudo completar.");
+    error.code = data?.code;
+    throw error;
+  }
   return data;
 }
 
@@ -76,17 +86,18 @@ function Chofer(props: { chofer: NonNullable<VistaCliente["chofer"]>; loadId: st
       </div>
       <div className="qr-row">
         <span className="qr-muted">Documentos</span>
-        <span>Revisados por Carga360go</span>
+        <span>Documentos de la empresa vigentes</span>
       </div>
     </div>
   );
 }
 
-export function ComprobanteScreen(props: { initial: VistaCliente; pollUrl: string; confirmarUrl: string; fotoSrc?: string }) {
+export function ComprobanteScreen(props: { initial: VistaCliente; pollUrl: string; confirmarUrl: string; fotoSrc?: string; pdfHref?: string }) {
   const [vista, setVista] = useState(props.initial);
   const [segundos, setSegundos] = useState(props.initial.segundos);
   const [codigoVisible, setCodigoVisible] = useState(false);
   const [error, setError] = useState("");
+  const [listo, setListo] = useState("");
   const [pending, setPending] = useState(false);
   const [enlace, setEnlace] = useState(props.initial.enlace || "");
 
@@ -118,8 +129,13 @@ export function ComprobanteScreen(props: { initial: VistaCliente; pollUrl: strin
     setError("");
     try {
       await postJson(props.confirmarUrl, { decision });
+      if (props.pollUrl.startsWith("/api/d/")) {
+        setVista({ ...vista, esperandoConfirmacion: false, retiroValidado: decision === "entrego", qrSvg: null, codigo: null });
+        setListo(decision === "entrego" ? "Retiro confirmado. Este enlace ya no sirve." : "Quedó reportado. El transportista puede reasignar.");
+        return;
+      }
       const fresh = (await fetch(props.pollUrl, { cache: "no-store" }).then((response) => response.json())) as VistaCliente;
-      setVista(fresh);
+      if (fresh.estado) setVista(fresh);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo confirmar.");
     } finally {
@@ -194,7 +210,7 @@ export function ComprobanteScreen(props: { initial: VistaCliente; pollUrl: strin
         </button>
       ) : null}
       {vista.folio ? (
-        <a className="qr-btn sec" href={`/api/viajes/${vista.loadId}/comprobante/pdf`}>
+        <a className="qr-btn sec" href={props.pdfHref || `/api/viajes/${vista.loadId}/comprobante/pdf`}>
           Descargar comprobante PDF
         </a>
       ) : null}
@@ -205,6 +221,7 @@ export function ComprobanteScreen(props: { initial: VistaCliente; pollUrl: strin
       ) : null}
       {enlace ? <p className="qr-muted">Enlace de un solo uso: {enlace}. Deja de servir cuando se confirma el retiro.</p> : null}
       <p className="qr-muted">Este comprobante no reemplaza la guía de despacho del SII. El QR no lleva nombres, RUT, teléfonos ni montos.</p>
+      {listo ? <p>{listo}</p> : null}
       {error ? (
         <p className="qr-alert" role="alert">
           {error}
@@ -310,7 +327,10 @@ export function EscanerScreen(props: { initial: VistaCliente }) {
       if (!saved) return;
       postJson(`/api/viajes/${vista.loadId}/sync`, JSON.parse(saved) as unknown)
         .then(() => window.localStorage.removeItem(`c360-qr-${vista.loadId}`))
-        .catch(() => undefined);
+        .catch((err: unknown) => {
+          const code = err instanceof ApiError ? err.code : "";
+          if (code && SYNC_TERMINAL.has(code)) window.localStorage.removeItem(`c360-qr-${vista.loadId}`);
+        });
     };
     window.addEventListener("online", flush);
     flush();

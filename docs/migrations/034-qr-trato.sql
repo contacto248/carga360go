@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS trip_deals (
   offer_id TEXT NOT NULL REFERENCES offers(id),
   public_ref TEXT NOT NULL UNIQUE,
   folio TEXT UNIQUE,
+  terms_json TEXT,
   terms_hash TEXT,
   status TEXT NOT NULL CHECK (status IN ('pendiente_confirmacion', 'cerrado', 'anulado', 'expirado')),
   accepted_by TEXT NOT NULL,
@@ -80,7 +81,7 @@ CREATE TABLE IF NOT EXISTS trip_handoff_attempts (
   nonce TEXT,
   result TEXT NOT NULL CHECK (result IN (
     'ok', 'firma_invalida', 'vencido', 'ya_usado', 'chofer_no_asignado', 'patente_distinta',
-    'fuera_de_geocerca', 'limite_intentos', 'estado_invalido', 'codigo_invalido'
+    'fuera_de_geocerca', 'limite_intentos', 'estado_invalido', 'codigo_invalido', 'mal_formado'
   )),
   lat REAL,
   lng REAL,

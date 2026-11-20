@@ -48,11 +48,10 @@ export function resolverPatente(truckId: string): PatenteResuelta {
   const docs = db
     .prepare(
       `SELECT holder_name FROM documents
-       WHERE user_id = ? AND type IN ('padron', 'revision', 'permiso', 'soap')
-         AND (truck_id = ? OR truck_id IS NULL)
-       ORDER BY CASE WHEN truck_id = ? THEN 0 ELSE 1 END, created_at DESC`,
+       WHERE user_id = ? AND truck_id = ? AND type IN ('padron', 'revision', 'permiso', 'soap')
+       ORDER BY created_at DESC`,
     )
-    .all(truck.owner_id, truckId, truckId) as { holder_name: string | null }[];
+    .all(truck.owner_id, truckId) as { holder_name: string | null }[];
   for (const doc of docs) {
     const patente = fromHolder(doc.holder_name);
     if (patente) return { patente, origen: "documento" };

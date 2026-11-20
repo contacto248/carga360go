@@ -21,6 +21,7 @@ type DealRow = {
   offer_id: string;
   public_ref: string;
   folio: string | null;
+  terms_json: string | null;
   terms_hash: string | null;
   status: DealStatus;
   accepted_by: string;
@@ -83,21 +84,20 @@ function loadOffer(loadId: string) {
     | undefined;
 }
 
-function termsHash(row: NonNullable<ReturnType<typeof loadOffer>>): string {
-  return createHash("sha256")
-    .update(
-      JSON.stringify({
-        carga: row.id,
-        oferta: row.offer_id,
-        origen: row.origin,
-        destino: row.destination,
-        retiro: row.offer_pickup,
-        equipo: row.equipment,
-        pesoT: row.weight_t,
-        precioClp: row.price_clp,
-      }),
-    )
-    .digest("hex");
+/** Foto de los términos en el momento en que el mandante acepta. No se vuelve a leer la carga al confirmar. */
+export function termsSnapshot(loadId: string): string {
+  const row = loadOffer(loadId);
+  if (!row) throw new AppError("No hay una oferta aceptada para congelar el trato.", 409);
+  return JSON.stringify({
+    carga: row.id,
+    oferta: row.offer_id,
+    origen: row.origin,
+    destino: row.destination,
+    retiro: row.offer_pickup,
+    equipo: row.equipment,
+    pesoT: row.weight_t,
+    precioClp: row.price_clp,
+  });
 }
 
 /** Se llama dentro de la transacción de acceptOffer. No exige la clave del QR. */
@@ -105,15 +105,16 @@ export function insertPendingDeal(loadId: string, offerId: string, acceptedBy: s
   const db = getDb();
   const existing = db.prepare(`SELECT id FROM trip_deals WHERE load_id = ?`).get(loadId);
   if (existing) return null;
+  const terms = termsSnapshot(loadId);
   const code = newOtpCode();
   const id = randomUUID();
   const deadline = new Date(Date.parse(stamp) + CONFIRM_MS).toISOString();
   db.prepare(
     `INSERT INTO trip_deals (
-      id, load_id, offer_id, public_ref, status, accepted_by, accepted_at, confirm_deadline,
+      id, load_id, offer_id, public_ref, terms_json, status, accepted_by, accepted_at, confirm_deadline,
       confirm_code_hash, confirm_attempts, confirm_code_expires, created_at
-    ) VALUES (?, ?, ?, ?, 'pendiente_confirmacion', ?, ?, ?, ?, 0, ?, ?)`,
-  ).run(id, loadId, offerId, randomBytes(6).toString("base64url"), acceptedBy, stamp, deadline, hashOtp(id, code), deadline, stamp);
+    ) VALUES (?, ?, ?, ?, ?, 'pendiente_confirmacion', ?, ?, ?, ?, 0, ?, ?)`,
+  ).run(id, loadId, offerId, randomBytes(6).toString("base64url"), terms, acceptedBy, stamp, deadline, hashOtp(id, code), deadline, stamp);
   return { code };
 }
 
@@ -196,7 +197,8 @@ export function confirmarTrato(user: PublicUser, loadId: string, code: string, n
     throw new AppError("El código no coincide.", 400, "codigo_invalido");
   }
 
-  const hash = termsHash(row);
+  if (!deal.terms_json) throw new AppError("El trato no tiene los términos congelados.", 409);
+  const hash = createHash("sha256").update(deal.terms_json).digest("hex");
   const periodo = periodoOperacion(now);
   const stamp = now.toISOString();
   const shipment = prepararCadena(loadId, user);

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { BRAND } from "../catalog";
 import { getDb } from "../db";
+import { AppError } from "../errors";
 import { A4, SimplePdf, wrapText } from "../pdf/simple-pdf";
 import { tratoDeCarga } from "./deal";
 import { asignacionVigente } from "./assignment";
@@ -115,4 +116,28 @@ export function guardarPdf(loadId: string, data: ComprobantePdf): { version: num
     new Date().toISOString(),
   );
   return { version, sha256, filename };
+}
+
+/** Devuelve el último PDF archivado, el mismo bytes que corresponden al SHA-256 guardado. */
+export function leerComprobanteArchivado(loadId: string): { bytes: Buffer; filename: string } | null {
+  const row = getDb()
+    .prepare(`SELECT pdf_path AS pdfPath, sha256 FROM trip_receipts WHERE load_id = ? ORDER BY version DESC LIMIT 1`)
+    .get(loadId) as { pdfPath: string; sha256: string } | undefined;
+  if (!row) return null;
+  const root = path.resolve(process.env.UPLOAD_DIR || path.join(process.cwd(), "data", "uploads"));
+  const file = path.resolve(row.pdfPath);
+  if (!file.startsWith(`${root}${path.sep}`) || !fs.existsSync(file)) return null;
+  const bytes = fs.readFileSync(file);
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  if (hash !== row.sha256) return null;
+  return { bytes, filename: path.basename(file) };
+}
+
+export function entregarPdf(loadId: string): { bytes: Buffer; filename: string } {
+  const current = leerComprobanteArchivado(loadId);
+  if (current) return current;
+  archivarComprobante(loadId);
+  const archived = leerComprobanteArchivado(loadId);
+  if (!archived) throw new AppError("El comprobante se emite cuando el transportista confirma el trato.", 409);
+  return archived;
 }

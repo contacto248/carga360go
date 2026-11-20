@@ -20,6 +20,7 @@ export default async function DelegadoPage({ params }: { params: Promise<{ token
         pollUrl={`/api/d/${token}`}
         confirmarUrl={`/api/d/${token}/confirmar`}
         fotoSrc={`/api/d/${token}/foto`}
+        pdfHref={`/api/d/${token}/pdf`}
       />
     );
   } catch (error) {
