@@ -14,7 +14,7 @@ import { listLoads } from "@/lib/listings";
 import { marketplaceViewer, redactLoad } from "@/lib/access";
 
 const BASE: Metadata = {
-  title: { absolute: "Carga disponible en Chile · Carga360go" },
+  title: "Carga disponible en Chile",
   description: "Encuentra carga en Chile para tu camión y aprovecha tus retornos.",
   alternates: { canonical: "/cargas" },
 };

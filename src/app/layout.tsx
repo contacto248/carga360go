@@ -56,7 +56,7 @@ const description =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.carga360go.cl"),
-  title: { default: title, template: "%s | Carga360go" },
+  title: { default: "Plataforma tecnológica de carga en Chile · ÓRBITA Carga360go", template: "%s · ÓRBITA Carga360go" },
   description,
   keywords: [
     "transporte de carga Chile",

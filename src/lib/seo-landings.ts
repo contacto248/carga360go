@@ -13,7 +13,7 @@ export type SeoLandingContent = {
 export const SEO_LANDINGS: SeoLandingContent[] = [
   {
     slug: "/transporte-minero-chile",
-    titleTag: "Transporte minero en Chile | Carga360go",
+    titleTag: "Transporte minero en Chile",
     meta: "Publica o encuentra transporte para faenas y proveedores mineros en Chile: cargas, retornos y equipos aptos. Conexión directa y costo de referencia desglosado del flete.",
     h1: "Transporte minero en Chile: carga, retornos y equipos aptos",
     body: [
@@ -29,7 +29,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/cama-baja-y-maquinaria",
-    titleTag: "Camiones cama baja y maquinaria pesada | Carga360go",
+    titleTag: "Camiones cama baja y maquinaria pesada",
     meta: "Encuentra o publica cama baja, ramplas y transporte de maquinaria pesada en Chile. Indica ejes, ancho y medidas antes de coordinar el viaje.",
     h1: "Cama baja y transporte de maquinaria pesada",
     body: [
@@ -45,7 +45,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/cargas-de-retorno-mineras",
-    titleTag: "Cargas de retorno mineras | Carga360go",
+    titleTag: "Cargas de retorno mineras",
     meta: "Reduce viajes en vacío: publica tu retorno o encuentra cargas de vuelta en corredores mineros del norte de Chile. Alertas por correo cuando aparezca un calce.",
     h1: "Cargas de retorno mineras: aprovecha el viaje de vuelta",
     body: [
@@ -61,7 +61,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-calama",
-    titleTag: "Transporte y logística en Calama · Carga360go",
+    titleTag: "Transporte y logística en Calama",
     meta: "Carga, retornos y transporte desde y hacia Calama.",
     h1: "Transporte de carga en Calama",
     body: [
@@ -77,7 +77,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-antofagasta",
-    titleTag: "Transporte y logística en Antofagasta · Carga360go",
+    titleTag: "Transporte y logística en Antofagasta",
     meta: "Carga, retornos y transporte desde y hacia Antofagasta.",
     h1: "Transporte de carga en Antofagasta",
     body: [
@@ -93,7 +93,7 @@ export const SEO_LANDINGS: SeoLandingContent[] = [
   },
   {
     slug: "/transporte-copiapo",
-    titleTag: "Transporte y logística en Copiapó · Carga360go",
+    titleTag: "Transporte y logística en Copiapó",
     meta: "Carga, retornos y transporte desde y hacia Copiapó.",
     h1: "Transporte de carga en Copiapó",
     body: [

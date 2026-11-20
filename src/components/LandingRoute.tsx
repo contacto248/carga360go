@@ -7,7 +7,7 @@ export function landingMetadata(slug: string): Metadata {
   const landing = landingBySlug(slug);
   if (!landing) throw new Error(`Landing desconocida: ${slug}`);
   return {
-    title: { absolute: landing.titleTag },
+    title: landing.titleTag,
     description: landing.meta,
     alternates: { canonical: landing.slug },
   };

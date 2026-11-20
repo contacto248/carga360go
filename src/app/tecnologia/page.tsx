@@ -6,7 +6,7 @@ import { BRAND, EQUIPMENT } from "@/lib/catalog";
 import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
 
 export const metadata: Metadata = {
-  title: { absolute: "Tecnología para la logística de carga · ÓRBITA" },
+  title: "Tecnología para la logística de carga",
   description: "La plataforma tecnológica de carga en Chile por dentro.",
   alternates: { canonical: "/tecnologia" },
 };

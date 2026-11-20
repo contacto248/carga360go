@@ -12,7 +12,7 @@ import { listTrucks } from "@/lib/listings";
 import { marketplaceViewer, redactTruck } from "@/lib/access";
 
 const BASE: Metadata = {
-  title: { absolute: "Retorno de camiones en Chile · Carga360go" },
+  title: "Retorno de camiones en Chile",
   description: "Camiones de retorno y transporte en Chile con perfiles verificados.",
   alternates: { canonical: "/camiones" },
 };
