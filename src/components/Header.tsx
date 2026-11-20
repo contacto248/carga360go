@@ -40,7 +40,7 @@ function Marca() {
   );
 }
 
-export function Header({ user }: { user: PublicUser | null }) {
+export function Header({ user, portada = false }: { user: PublicUser | null; portada?: boolean }) {
   const pathname = usePathname() || "/";
   const router = useRouter();
   // Decisión Gerencia 16-11: el Agente BASSAM 360 solo se abre desde /admin/* y /mi-cuenta.
@@ -50,6 +50,49 @@ export function Header({ user }: { user: PublicUser | null }) {
     await fetch("/api/auth/salir", { method: "POST" });
     router.push("/");
     router.refresh();
+  }
+
+  if (portada) {
+    return (
+      <>
+        <a className="skip-link" href="#contenido">
+          Saltar al contenido
+        </a>
+        <header className="portada-top">
+          <div className="wrap">
+            <Link href="/" className="orbita-wordmark" aria-label="ORBITA - CARGA360GO">
+              <strong>ORBITA</strong>
+              <span>
+                {" "}
+                - CARGA<b>360GO</b>
+              </span>
+            </Link>
+            <nav className="portada-nav" aria-label="Portada">
+              <a href="#soluciones">Soluciones</a>
+              <Link href="/tecnologia">Tecnología</Link>
+              <Link href="/cargas" className="bolsa">
+                Bolsa
+              </Link>
+              {user ? (
+                <Link href="/panel" className="sesion">
+                  Mi panel
+                </Link>
+              ) : (
+                <Link href="/ingreso" className="sesion">
+                  Ingresar
+                </Link>
+              )}
+              {user?.role === "admin" ? <Link href="/admin">Administración</Link> : null}
+              {user ? (
+                <button type="button" onClick={salir}>
+                  Salir
+                </button>
+              ) : null}
+            </nav>
+          </div>
+        </header>
+      </>
+    );
   }
 
   function enlaces(compacto: boolean) {

@@ -22,6 +22,7 @@ import { privacyVersion, termsVersion } from "@/lib/privacy";
 import { BRAND } from "@/lib/catalog";
 import "./tokens.css";
 import "./globals.css";
+import "./portada-shell.css";
 
 const display = Sora({
   subsets: ["latin"],
@@ -41,9 +42,9 @@ export const dynamic = "force-dynamic";
 
 const PRODUCTION_ANALYTICS_HOSTS = new Set(["www.carga360go.cl", "carga360go.cl"]);
 
-const title = "Carga360go — Trazabilidad y automatización de cargas y camiones en Chile";
+const title = "ORBITA - CARGA360GO — Trazabilidad y automatización de cargas y camiones en Chile";
 const description =
-  `Carga360go conecta cargas y camiones en Chile con trazabilidad y automatización. Publica tu carga, encuentra camión, sigue la operación en vivo y conserva el comprobante digital. Costo de referencia desglosado del flete: ruta, peajes según ejes, diésel y costos operacionales. ${BRAND.company} · RUT ${BRAND.rut}.`;
+  `Carga360go conecta cargas y camiones en Chile. Publicas tu carga o tu camión, ves el calce y un costo de referencia desglosado. El historial registra publicación, ofertas y adjudicación. No incluye GPS ni telemetría. ${BRAND.company} · RUT ${BRAND.rut}.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.carga360go.cl"),
@@ -81,7 +82,7 @@ export const metadata: Metadata = {
         url: "https://www.carga360go.cl/og.jpg",
         width: 1200,
         height: 630,
-        alt: "Carga360go — Cargas y camiones en todo Chile",
+        alt: "ORBITA - CARGA360GO",
       },
     ],
   },
@@ -127,10 +128,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const productionAnalytics = await isProductionAnalyticsEnabled();
   const pathname = (await headers()).get("x-pathname") || "";
   const agente360 = pathname === "/agente-360go" || pathname.startsWith("/agente-360go/");
+  const portada = pathname === "/";
   const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360;
   return (
     <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
-      <body className={agente360 ? "app-standalone" : undefined}>
+      <body className={agente360 ? "app-standalone" : portada ? "portada-body" : undefined}>
         <CookieConsentBanner />
         {loadAnalyticsTags ? (
           <>
@@ -178,8 +180,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             )}
           </main>
         ) : (
-          <div className="app-shell">
-            <Header user={user} />
+          <div className={portada ? "app-shell portada-shell" : "app-shell"}>
+            <Header user={user} portada={portada} />
             <div className="shell-content">
               <main id="contenido">
                 {privacy.required && user ? (

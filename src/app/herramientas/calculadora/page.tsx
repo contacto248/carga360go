@@ -17,8 +17,8 @@ export default function CalculadoraPage() {
         <h1>Calculadora de flete</h1>
         <p>
           {showReferencePrice
-            ? "Sin registro. Origen y destino, kilómetros de la ruta, peajes de las plazas que cruza, diésel y viático. Es un costo de referencia desglosado."
-            : "Sin registro. Origen, destino y kilómetros de la ruta. El desglose de costos no se muestra."}
+            ? "Sin registro. Origen y destino, kilómetros de la ruta, peajes de las plazas que cruza, diésel y viático. Es un costo de referencia desglosado. No es una tarifa ni una contratación."
+            : "Sin registro. Origen, destino y kilómetros de la ruta. El desglose de costos no se muestra. No es una tarifa ni una contratación."}
         </p>
       </div>
       <Calculator referencePriceVisible={showReferencePrice} />

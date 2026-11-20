@@ -1,0 +1,522 @@
+.hero,
+.start,
+.journey,
+.trust,
+.bolsa,
+.tech,
+.faq,
+.closeNote {
+  color: #fff;
+}
+
+.hero {
+  padding: 28px 0 36px;
+}
+
+.heroGrid,
+.sectionHead,
+.workspace,
+.journeyGrid,
+.trustGrid {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.eyebrow,
+.kicker,
+.demoTag,
+.visualTop {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e8e8e8;
+}
+
+.eyebrow {
+  margin: 0 0 16px;
+}
+
+.title {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(40px, 10vw, 68px);
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.title span,
+.mission {
+  color: #ff7822;
+}
+
+.mission {
+  margin: 0 0 14px;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.lead {
+  margin: 0 0 8px;
+  max-width: 36rem;
+  color: #fff;
+  font-size: 1.125rem;
+}
+
+.support,
+.routeNote,
+.privacy,
+.under,
+.estimate span,
+.sectionHead > p,
+.summary p {
+  color: #e4e4e4;
+}
+
+.support {
+  margin: 0;
+  max-width: 36rem;
+}
+
+.ctaRow,
+.fields,
+.fieldsBottom,
+.trustList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid #fff;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cta:hover {
+  background: #ff7822;
+  border-color: #ff7822;
+  color: #111;
+}
+
+.ctaRow {
+  margin-top: 22px;
+}
+
+.estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 16px 0 0;
+}
+
+.estimate a {
+  color: #ff7822;
+  font-weight: 800;
+  text-underline-offset: 3px;
+}
+
+.estimate span,
+.under {
+  font-size: 0.875rem;
+}
+
+.under {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 14px 0 0;
+}
+
+.visual {
+  margin-top: 28px;
+  padding: 16px;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  background: #050505;
+}
+
+.visualTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  letter-spacing: 0.08em;
+}
+
+.demoTag {
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 2px 6px;
+  letter-spacing: 0.08em;
+}
+
+.logo {
+  display: block;
+  width: min(100%, 280px);
+  height: auto;
+  margin: 12px auto;
+  border-radius: 12px;
+}
+
+.diagram {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 8px;
+}
+
+.routeNote,
+.privacy {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+}
+
+.start,
+.journey,
+.trust,
+.bolsa,
+.tech,
+.faq {
+  padding: 36px 0;
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sectionHead h2,
+.trust h2,
+.tech h2,
+.faq h2,
+.bolsa h2,
+.summary h3,
+.formHead h3 {
+  margin: 0;
+  color: #fff;
+  letter-spacing: -0.04em;
+}
+
+.workspace {
+  display: grid;
+  gap: 0;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+}
+
+.form,
+.summary {
+  padding: 20px 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 18px;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #e4e4e4;
+  padding: 0 0 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected="true"] {
+  color: #fff;
+  border-bottom-color: #ff7822;
+}
+
+.formHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+  margin: 18px 0 14px;
+}
+
+.formHead span,
+.kicker {
+  color: #e4e4e4;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fields label,
+.fieldsBottom label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.fields select,
+.fieldsBottom select {
+  min-height: 52px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  color-scheme: dark;
+}
+
+.swap {
+  width: 44px;
+  height: 44px;
+  align-self: center;
+  border: 1px solid #555;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.form > .cta {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.equipos {
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.equipos legend {
+  margin-bottom: 8px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.equipos div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.equipo,
+.equipoOn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-height: 72px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.equipo {
+  border: 1px solid #555;
+}
+
+.equipoOn {
+  border: 2px solid #ff7822;
+}
+
+.icon {
+  width: 64px;
+  height: 36px;
+}
+
+.error {
+  min-height: 1.2em;
+  margin: 10px 0 0;
+  color: #ffb4a2;
+}
+
+.aviso {
+  margin: 8px 0 0;
+  color: #ff7822;
+}
+
+.summary {
+  background: #050505;
+  border-top: 1px solid #3a3a3a;
+}
+
+.routeValue {
+  margin: 14px 0 8px;
+  color: #fff;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.tag {
+  display: inline-block;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #fff;
+}
+
+.summary .cta {
+  margin-top: 16px;
+}
+
+.journeyGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.demoNote {
+  margin: 0 0 12px;
+  color: #e4e4e4;
+}
+
+.trustGrid {
+  display: grid;
+  gap: 18px;
+}
+
+.trustCard,
+.ficha {
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  background: #111;
+  padding: 20px 16px;
+}
+
+.trustCard h2 {
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+}
+
+.trustList {
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+}
+
+.trustList li {
+  color: #fff;
+  font-weight: 700;
+}
+
+.trustList li::before {
+  content: "✓ ";
+  color: #22c55e;
+}
+
+.trust a,
+.tech a,
+.faq a,
+.bolsa a,
+.closeNote a {
+  color: #ff7822;
+}
+
+.ficha p {
+  margin: 0 0 8px;
+  color: #e4e4e4;
+}
+
+.ficha strong {
+  color: #fff;
+}
+
+@media (min-width: 800px) {
+  .hero {
+    padding: 56px 0 64px;
+  }
+
+  .heroGrid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 36px;
+    align-items: center;
+  }
+
+  .visual {
+    margin-top: 0;
+  }
+
+  .ctaRow {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .ctaRow .cta {
+    flex: 1 1 0;
+  }
+
+  .sectionHead {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .sectionHead > p {
+    max-width: 280px;
+    margin: 0;
+  }
+
+  .workspace {
+    grid-template-columns: 1.4fr 0.9fr;
+  }
+
+  .summary {
+    border-top: 0;
+    border-left: 1px solid #3a3a3a;
+  }
+
+  .fields {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .fields label {
+    flex: 1;
+  }
+
+  .equipos div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trustGrid {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta,
+  .diagram,
+  .equipo,
+  .equipoOn {
+    transition: none;
+    animation: none;
+  }
+}

@@ -21,7 +21,17 @@ type Initial = {
   notes: string;
 };
 
-export function TruckForm({ user, today, initial }: { user: PublicUser | null; today: string; initial: Initial }) {
+export function TruckForm({
+  user,
+  today,
+  initial,
+  resumePath,
+}: {
+  user: PublicUser | null;
+  today: string;
+  initial: Initial;
+  resumePath?: string;
+}) {
   const router = useRouter();
   const [equipment, setEquipment] = useState(initial.equipment);
   const [origin, setOrigin] = useState(initial.origin);
@@ -85,7 +95,7 @@ export function TruckForm({ user, today, initial }: { user: PublicUser | null; t
           <Link href="/registro">
             <strong>Registrar ahora →</strong>
           </Link>{" "}
-          · <Link href={`/ingreso?next=/camiones/${initial.id ? `${initial.id}/editar` : "nuevo"}`}>Ya tengo cuenta</Link>
+          · <Link href={`/ingreso?next=${encodeURIComponent(resumePath || `/camiones/${initial.id ? `${initial.id}/editar` : "nuevo"}`)}`}>Ya tengo cuenta</Link>
         </div>
       ) : null}
       {user && !allowed ? (

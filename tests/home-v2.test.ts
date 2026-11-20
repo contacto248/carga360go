@@ -9,11 +9,30 @@ function read(rel: string): string {
   return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
+function portada(): string {
+  return [
+    "src/app/page.tsx",
+    "src/components/PortadaInicio.tsx",
+    "src/components/QuickSearch.tsx",
+    "src/components/Header.tsx",
+    "src/app/portada.module.css",
+    "src/app/portada-shell.css",
+    "src/lib/portada-intencion.ts",
+  ]
+    .map(read)
+    .join("\n");
+}
+
 test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones", () => {
-  const home = read("src/app/page.tsx");
+  const home = portada();
   assert.match(home, /brand-hero/);
   assert.match(home, /Carga360go/);
-  assert.match(home, /Cargas, camiones y retornos en una sola torre de control, de Arica a Punta Arenas\./);
+  assert.match(home, /Menos ruido\./);
+  assert.match(home, /Que ningún camión vuelva vacío en Chile/);
+  assert.match(home, /Rampla plana/);
+  assert.match(home, /Frigorífico/);
+  assert.match(home, /Necesito transportar carga/);
+  assert.match(home, /Soy transportista/);
   assert.match(home, /Publicar carga/);
   assert.match(home, /Encontrar camión/);
   assert.match(home, /Historial de eventos/);
@@ -24,30 +43,32 @@ test("T-049/T-065 home: marca, torre de control y flujos sin precios/comisiones"
   const tower = read("src/components/HomeTowerBoard.tsx");
   assert.match(tower, /Así funciona/);
   assert.match(tower, /tower-board-compact/);
+  assert.match(tower, /Demostración/);
   assert.doesNotMatch(home, /tower-tag">en vivo/);
   assert.doesNotMatch(tower, /tower-tag">en vivo/);
   assert.match(home, /Historial en tu panel/);
   assert.doesNotMatch(home, /Comprobante digital/);
   assert.doesNotMatch(home, /costo real/i);
   assert.match(home, /Empresas y mandantes/);
-  assert.match(home, /Transportistas/);
+  assert.match(home, /Transportistas verificados/);
+  assert.match(home, /Correo confirmado/);
+  assert.match(home, /Teléfono confirmado/);
+  assert.match(home, /Cédula de identidad/);
+  assert.match(home, /Padrón/);
   assert.match(home, /AI\.CARGA360/);
-  assert.match(home, /Decide mejor y más rápido/);
-  assert.match(home, /Eficiencia operativa/);
-  assert.match(home, /Crece con respaldo/);
-  assert.match(home, /Libera recursos y reduce riesgo/);
   assert.match(home, /\/tecnologia/);
   assert.doesNotMatch(home, /comisi[oó]n/i);
   assert.doesNotMatch(home, /membres[ií]a/i);
   assert.doesNotMatch(home, /%\s*fee|marketplace fee/i);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
+  assert.doesNotMatch(home, /Carga Retorno 360/);
   assert.match(home, /id="faq"/);
   assert.match(home, /Escribe a AI\.CARGA360/);
   assert.doesNotMatch(home, /Hablar con el Agente|También puede hablarte/i);
-  // Portada corta: verticales/equipos viven en /tecnologia (no en el fold).
   assert.doesNotMatch(home, /Equipos con ficha técnica/);
   assert.doesNotMatch(home, /Industrias que mueven carga/);
   assert.doesNotMatch(home, /FreeBanner/);
+  assert.doesNotMatch(home, /#0[Bb]1633|#002451|#0[Ee]7490|#22[Bb]8[Cc][Ff]|#3[Dd]4[Cc]63|#b9c8df|#c5d3e8/);
 });
 
 test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", () => {
@@ -200,7 +221,7 @@ test("T-065 torre animada y CTA del agente sin segundo FAB", () => {
   assert.doesNotMatch(cta, /help-wa|btn wa fab|FAB WhatsApp/i);
 });
 
-test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; un CTA principal", () => {
+test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; dos accesos de igual peso", () => {
   const css = read("src/app/globals.css");
   assert.match(css, /hero-v3 \.cta/);
   assert.match(css, /padding-right:calc\(60px/);
@@ -210,15 +231,26 @@ test("T-066 móvil: FAB no tapa CTA hero; Bolsa reciente con contraste AA; un CT
   assert.match(css, /hero-fold/);
   assert.match(css, /tower-board-compact/);
   assert.match(css, /mobile-cta/);
-  const home = read("src/app/page.tsx");
-  assert.match(home, /Tengo camión o retorno/);
-  assert.match(home, /Abrir el cotizador/);
+  const home = portada();
+  assert.match(home, /Necesito transportar carga/);
+  assert.match(home, /Soy transportista/);
+  assert.match(home, /Estimar un flete/);
+  assert.match(home, /Es una referencia de costo, no una tarifa ni una contratación/);
   assert.match(home, /home-live-band/);
   assert.match(home, /hero-fold/);
-  assert.match(home, /href="\/cargas\/nueva"/);
+  assert.match(home, /inicioDePerfil|\/cargas\/nueva/);
   assert.doesNotMatch(home, /TrackChain|trackchain|chain\.io/i);
+  assert.match(home, /qsearch \.qeq-toggle \{\s*color: #f3f3f3/);
+  assert.match(home, /dd-mm-aaaa/);
+  assert.match(home, /lang="es-CL"/);
+  assert.doesNotMatch(read("src/components/QuickSearch.tsx"), /type="date"/);
+  assert.doesNotMatch(read("src/app/page.tsx"), /Todavía no hay avisos activos/);
+  assert.doesNotMatch(read("src/app/page.tsx"), /Publicar carga<\/Link>|Publicar camión/);
   const header = read("src/components/Header.tsx");
   assert.match(header, /mobile-cta/);
+  assert.match(header, /Soluciones/);
+  assert.match(header, /Ingresar/);
+  assert.match(header, /Mi panel/);
 });
 
 test("franja superior y FreeBanner no hablan de precios ni comisiones", () => {
@@ -239,9 +271,12 @@ test("portada visual: cookie compacta y un solo CTA primario naranja en el hero"
   assert.match(banner, /cookie-banner-compact/);
   assert.match(banner, /Solo necesarias/);
   assert.match(banner, /Aceptar/);
-  const home = read("src/app/page.tsx");
-  const hero = home.match(/hero-fold[\s\S]*?<\/section>/)?.[0] || "";
-  assert.match(hero, /className="btn"[^>]*>\s*Tengo carga/);
-  assert.doesNotMatch(hero, /className="btn"[^>]*>\s*Soy transportista/);
-  assert.match(hero, /hero-secondary-links/);
+  const hero = read("src/components/PortadaInicio.tsx");
+  const carga = hero.match(/Necesito transportar carga/)?.[0] || "";
+  const transporte = hero.match(/Soy transportista/)?.[0] || "";
+  assert.ok(carga && transporte);
+  assert.equal(hero.split("styles.cta").length > 3, true);
+  assert.match(hero, /Estimar un flete/);
+  assert.doesNotMatch(hero, /Abrir el cotizador/);
+  assert.match(hero, /Visualización ilustrativa, no es GPS real/);
 });
