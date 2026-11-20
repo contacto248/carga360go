@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { equipmentById } from "@/lib/catalog";
+import { olvidarBorrador } from "@/lib/portada-intencion";
 import { canPublishTruck, roleLabel } from "@/lib/roles";
 import type { PublicUser, Specs } from "@/lib/types";
 import { PlacePicker } from "./PlacePicker";
@@ -83,6 +84,7 @@ export function TruckForm({
       setError(body?.error || "No se pudo guardar el camión.");
       return;
     }
+    olvidarBorrador();
     router.push("/panel?ok=camion");
     router.refresh();
   }

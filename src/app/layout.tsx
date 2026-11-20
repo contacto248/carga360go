@@ -4,8 +4,8 @@ import { headers } from "next/headers";
 import Script from "next/script";
 import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { AppFrame } from "@/components/AppFrame";
 import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { HubSpotTracking } from "@/components/HubSpotTracking";
 import { PolicyBody, TermsBody } from "@/components/PolicyBody";
 import { PrivacyGate } from "@/components/PrivacyGate";
@@ -180,27 +180,24 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             )}
           </main>
         ) : (
-          <div className={portada ? "app-shell portada-shell" : "app-shell"}>
-            <Header user={user} portada={portada} />
-            <div className="shell-content">
-              <main id="contenido">
-                {privacy.required && user ? (
-                  <PrivacyGate
-                    name={user.contactName || user.razonSocial}
-                    version={privacyVersion()}
-                    termsVersion={termsVersion()}
-                    firstTime={privacy.firstTime}
-                    terms={<TermsBody prefix="t-" />}
-                  >
-                    <PolicyBody prefix="p-" />
-                  </PrivacyGate>
-                ) : (
-                  children
-                )}
-              </main>
-              <Footer />
-            </div>
-          </div>
+          <AppFrame user={user}>
+            <main id="contenido">
+              {privacy.required && user ? (
+                <PrivacyGate
+                  name={user.contactName || user.razonSocial}
+                  version={privacyVersion()}
+                  termsVersion={termsVersion()}
+                  firstTime={privacy.firstTime}
+                  terms={<TermsBody prefix="t-" />}
+                >
+                  <PolicyBody prefix="p-" />
+                </PrivacyGate>
+              ) : (
+                children
+              )}
+            </main>
+            <Footer />
+          </AppFrame>
         )}
       </body>
     </html>

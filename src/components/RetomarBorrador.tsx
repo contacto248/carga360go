@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import {
   LLAVE_BORRADOR,
   inicioDePerfil,
+  olvidarBorrador,
   parsearBorrador,
   rutaConBorrador,
   type RolPortada,
@@ -15,7 +16,6 @@ export function RetomarBorrador({ rol }: { rol: RolPortada }) {
   const router = useRouter();
   const params = useSearchParams();
   useEffect(() => {
-    if (params.get("origen") || params.get("destino") || params.get("equipo")) return;
     let raw = "";
     try {
       raw = window.sessionStorage.getItem(LLAVE_BORRADOR) || "";
@@ -24,8 +24,14 @@ export function RetomarBorrador({ rol }: { rol: RolPortada }) {
     }
     const borrador = raw ? parsearBorrador(raw) : null;
     if (!borrador || borrador.rol !== rol) return;
+    const yaEnLaUrl = Boolean(params.get("origen") || params.get("destino") || params.get("equipo"));
+    if (yaEnLaUrl) {
+      olvidarBorrador();
+      return;
+    }
     const next = rutaConBorrador(borrador);
     if (!next.startsWith(inicioDePerfil(rol))) return;
+    olvidarBorrador();
     router.replace(next);
   }, [params, rol, router]);
   return null;

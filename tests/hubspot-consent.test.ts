@@ -125,7 +125,9 @@ test("privacidad: HubSpot opcional y sin periodo gratis ni membresía vigente", 
   assert.match(css, /\.cookie-banner\{[\s\S]*position:sticky/);
   assert.match(css, /height:36px/);
   const layout = read("src/app/layout.tsx");
+  const frame = read("src/components/AppFrame.tsx");
   const bannerAt = layout.indexOf("<CookieConsentBanner");
-  const headerAt = layout.indexOf("<Header");
-  assert.ok(bannerAt > 0 && bannerAt < headerAt, "la barra debe ir antes del encabezado para no tapar el contenido");
+  const frameAt = layout.indexOf("<AppFrame");
+  assert.ok(bannerAt > 0 && frameAt > bannerAt, "la barra debe ir antes del cascarón para no tapar el contenido");
+  assert.match(frame, /<Header/);
 });

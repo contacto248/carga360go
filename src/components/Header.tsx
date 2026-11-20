@@ -40,8 +40,9 @@ function Marca() {
   );
 }
 
-export function Header({ user, portada = false }: { user: PublicUser | null; portada?: boolean }) {
+export function Header({ user }: { user: PublicUser | null }) {
   const pathname = usePathname() || "/";
+  const portada = pathname === "/";
   const router = useRouter();
   // Decisión Gerencia 16-11: el Agente BASSAM 360 solo se abre desde /admin/* y /mi-cuenta.
   const agenteBassam = Boolean(pathname && (pathname.startsWith("/admin") || pathname.startsWith("/mi-cuenta")));

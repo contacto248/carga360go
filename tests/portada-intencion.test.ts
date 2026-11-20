@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { test } from "node:test";
 import {
   ingresoRetomando,
@@ -36,4 +37,18 @@ test("origen y destino iguales, o un equipo de otro perfil, no arman borrador", 
   assert.equal(ok?.destino, "Puerto Montt");
   const camion = ok ? rutaConBorrador(ok) : "";
   assert.match(camion, /^\/camiones\/nuevo\?/);
+});
+
+test("el cascarón sigue la ruta del cliente y el borrador se olvida al usarse", () => {
+  const frame = fs.readFileSync(new URL("../src/components/AppFrame.tsx", import.meta.url), "utf8");
+  const header = fs.readFileSync(new URL("../src/components/Header.tsx", import.meta.url), "utf8");
+  const retomar = fs.readFileSync(new URL("../src/components/RetomarBorrador.tsx", import.meta.url), "utf8");
+  const carga = fs.readFileSync(new URL("../src/components/LoadForm.tsx", import.meta.url), "utf8");
+  const camion = fs.readFileSync(new URL("../src/components/TruckForm.tsx", import.meta.url), "utf8");
+  assert.match(frame, /usePathname/);
+  assert.match(frame, /portada-body/);
+  assert.match(header, /pathname === "\/"/);
+  assert.match(retomar, /olvidarBorrador/);
+  assert.match(carga, /olvidarBorrador/);
+  assert.match(camion, /olvidarBorrador/);
 });

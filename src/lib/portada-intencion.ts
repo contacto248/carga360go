@@ -112,6 +112,16 @@ export function serializarBorrador(borrador: BorradorPortada): string {
   return JSON.stringify(borrador);
 }
 
+/** El borrador de la portada ya se usó: no debe volver a precargar un aviso nuevo. */
+export function olvidarBorrador(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(LLAVE_BORRADOR);
+  } catch {
+    /* navegador privado */
+  }
+}
+
 export function parsearBorrador(raw: string): BorradorPortada | null {
   try {
     const data = JSON.parse(raw) as Partial<BorradorPortada>;

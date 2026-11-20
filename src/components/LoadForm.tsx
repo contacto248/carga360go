@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { equipmentById } from "@/lib/catalog";
+import { olvidarBorrador } from "@/lib/portada-intencion";
 import { formatClp, formatDateCL } from "@/lib/format";
 import { REFERENCE_NOTICE } from "@/lib/costos/notice";
 import { canPublishLoad, roleLabel } from "@/lib/roles";
@@ -157,6 +158,7 @@ export function LoadForm({
       setError(body?.error || "No se pudo guardar la carga.");
       return;
     }
+    olvidarBorrador();
     router.push("/panel?ok=carga");
     router.refresh();
   }
