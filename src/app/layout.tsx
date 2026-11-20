@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Sora } from "next/font/google";
+import { Figtree, Sora, Space_Grotesk } from "next/font/google";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
@@ -23,6 +23,7 @@ import { BRAND } from "@/lib/catalog";
 import "./tokens.css";
 import "./globals.css";
 import "./portada-shell.css";
+import "./public-theme.css";
 
 const display = Sora({
   subsets: ["latin"],
@@ -36,6 +37,13 @@ const bodyFont = Figtree({
   variable: "--font-body",
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
+});
+
+const publicSans = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-public",
+  display: "swap",
+  weight: ["300", "400", "500", "600"],
 });
 
 export const dynamic = "force-dynamic";
@@ -99,7 +107,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B1633",
+  themeColor: "#000000",
 };
 
 function hostnameFromUrl(value: string | undefined): string {
@@ -129,10 +137,17 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const pathname = (await headers()).get("x-pathname") || "";
   const agente360 = pathname === "/agente-360go" || pathname.startsWith("/agente-360go/");
   const portada = pathname === "/";
+  const publico = !pathname.startsWith("/admin");
   const loadAnalyticsTags = productionAnalytics && !isAdminPathname(pathname) && !agente360;
   return (
-    <html lang="es-CL" className={`${display.variable} ${bodyFont.variable}`}>
-      <body className={agente360 ? "app-standalone" : portada ? "portada-body" : undefined}>
+    <html lang="es-CL" className={`${display.variable} ${bodyFont.variable} ${publicSans.variable}`}>
+      <body
+        className={
+          [agente360 ? "app-standalone" : "", portada ? "portada-body" : "", publico ? "public-theme" : ""]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
+      >
         <CookieConsentBanner />
         {loadAnalyticsTags ? (
           <>

@@ -1,4 +1,4 @@
-/* Portada ÓRBITA: base negra, texto blanco, acento #ff7822. Sin azul. */
+/* Portada ÓRBITA: base negra, texto blanco, acento #FF5001. Sin azul. */
 
 body.portada-body {
   background: #000;
@@ -7,7 +7,7 @@ body.portada-body {
 }
 
 body.portada-body ::selection {
-  background: #ff7822;
+  background: #FF5001;
   color: #111;
 }
 
@@ -53,14 +53,14 @@ body.portada-body ::selection {
   align-items: baseline;
   gap: 0.28em;
   color: #fff;
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: -0.04em;
   text-decoration: none;
   font-size: 0.95rem;
 }
 
 .orbita-wordmark b {
-  color: #ff7822;
+  color: #FF5001;
 }
 
 footer .orbita-wordmark {
@@ -82,7 +82,7 @@ footer .orbita-wordmark {
   align-items: center;
   text-decoration: none;
   font: inherit;
-  font-weight: 650;
+  font-weight: 500;
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -99,31 +99,31 @@ footer .orbita-wordmark {
   padding: 0 14px;
   background: #fff;
   color: #111;
-  font-weight: 800;
+  font-weight: 500;
 }
 
 .portada-nav a.sesion:hover,
 .portada-top a:hover,
 body.portada-body footer.foot a:hover {
-  color: #ff7822;
+  color: #FF5001;
 }
 
 .portada-nav a.sesion:hover {
-  background: #ff7822;
-  border-color: #ff7822;
+  background: #FF5001;
+  border-color: #FF5001;
   color: #111;
 }
 
 body.portada-body :focus-visible {
-  outline: 3px solid #ff7822;
+  outline: 3px solid #FF5001;
   outline-offset: 3px;
 }
 
 body.portada-body input:focus,
 body.portada-body select:focus,
 body.portada-body textarea:focus {
-  border-color: #ff7822;
-  box-shadow: 0 0 0 3px #ff782233;
+  border-color: #FF5001;
+  box-shadow: none;
 }
 
 body.portada-body footer.foot {
@@ -149,7 +149,7 @@ body.portada-body .cookie-banner-copy p {
 }
 
 body.portada-body .cookie-banner-copy a {
-  color: #ff7822;
+  color: #FF5001;
 }
 
 body.portada-body .tower-board {
@@ -164,8 +164,8 @@ body.portada-body .tower-step-text {
 }
 
 body.portada-body .dot-live {
-  background: #ff7822;
-  box-shadow: 0 0 0 4px #ff782233;
+  background: #FF5001;
+  box-shadow: none;
 }
 
 body.portada-body .home-live-band .tower-live {
@@ -203,7 +203,7 @@ body.portada-body .qsearch {
 
 body.portada-body .qsearch .qeq-toggle {
   color: #f3f3f3;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 body.portada-body .qtabs button {
@@ -212,7 +212,7 @@ body.portada-body .qtabs button {
 }
 
 body.portada-body .qtabs button.on {
-  background: #ff7822;
+  background: #FF5001;
   color: #111;
 }
 
@@ -243,7 +243,7 @@ body.portada-body .qsearch .eqcap {
 }
 
 body.portada-body .qsearch .eqcard:focus-visible {
-  outline: 3px solid #ff7822;
+  outline: 3px solid #FF5001;
 }
 
 body.portada-body .qsearch .fecha-error {
@@ -254,7 +254,7 @@ body.portada-body .wa-channel {
   background: #111;
   color: #fff;
   border-color: #3a3a3a;
-  border-left-color: #ff7822;
+  border-left-color: #FF5001;
 }
 
 body.portada-body .wa-channel strong {

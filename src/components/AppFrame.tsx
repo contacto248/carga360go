@@ -12,10 +12,12 @@ import type { PublicUser } from "@/lib/types";
 export function AppFrame({ user, children }: { user: PublicUser | null; children: React.ReactNode }) {
   const pathname = usePathname() || "/";
   const portada = pathname === "/";
+  const publico = !pathname.startsWith("/admin");
 
   useEffect(() => {
     document.body.classList.toggle("portada-body", portada);
-  }, [portada]);
+    document.body.classList.toggle("public-theme", publico);
+  }, [portada, publico]);
 
   return (
     <div className={portada ? "app-shell portada-shell" : "app-shell"}>
