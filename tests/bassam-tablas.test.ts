@@ -363,8 +363,8 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   assert.match(header, /Mi cuenta/);
   assert.match(header, /Agente de acreditación/);
   assert.doesNotMatch(header, /Agente BASSAM 360/);
-  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin\/bassam"[\s\S]*Panel de control/);
-  assert.doesNotMatch(header, /Panel BASSAM|BASSAM 360/);
+  assert.match(header, /href="\/admin"/);
+  assert.doesNotMatch(header, /Panel de control|Centro ÓRBITA|Panel BASSAM|href="\/admin\/bassam"/);
   assert.doesNotMatch(header, /Publicar camión|Buscar camión|Regiones/);
   assert.doesNotMatch(footer, /HelpLauncher|FleteButton|ChatWidget/);
   assert.match(footer, /VoiceAgentLauncher/);
