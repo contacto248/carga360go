@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Inter, Sora } from "next/font/google";
+import { Figtree, Sora } from "next/font/google";
+import localFont from "next/font/local";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
@@ -39,11 +40,13 @@ const bodyFont = Figtree({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const publicSans = Inter({
-  subsets: ["latin"],
+const publicSans = localFont({
+  src: [
+    { path: "../fonts/inter-latin-300.woff2", weight: "300", style: "normal" },
+    { path: "../fonts/inter-latin-400.woff2", weight: "400", style: "normal" },
+  ],
   variable: "--font-public",
   display: "swap",
-  weight: ["300", "400"],
 });
 
 export const dynamic = "force-dynamic";
