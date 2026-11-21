@@ -25,7 +25,7 @@ const KPI = [
   ["viajes", "Viajes"],
   ["camiones", "Camiones"],
   ["clientes", "Clientes"],
-  ["docs", "Docs BASSAM"],
+  ["docs", "Documentos"],
 ] as const;
 
 export default async function CentroControlPage() {

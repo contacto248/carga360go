@@ -2,10 +2,10 @@
  * Ilustraciones propias (SVG, línea plana) de cada tipo de equipo, vista lateral.
  * Paleta pública: trazo del texto, naranjo #FF5001 y gris. Sin azul.
  */
-const NAVY = "currentColor";
+const NAVY = "#f4f4f4";
 const ORANGE = "#FF5001";
-const CYAN = "#3A3A3A";
-const SOFT = "#1A1A1A";
+const CYAN = "#8a8a8a";
+const SOFT = "none";
 const W = 2;
 
 function Wheel({ x }: { x: number }) {
@@ -206,7 +206,7 @@ export function TruckArt({ id, className, title }: { id: string; className?: str
   return (
     <svg viewBox="0 0 120 56" className={className ?? "truck-art"} role={title ? "img" : undefined} aria-hidden={title ? undefined : true}>
       {title ? <title>{title}</title> : null}
-      <line x1={2} y1={53} x2={118} y2={53} stroke="#d6dde8" strokeWidth={1.5} strokeLinecap="round" />
+      <line x1={2} y1={53} x2={118} y2={53} stroke="#3a3a3a" strokeWidth={1.5} strokeLinecap="round" />
       {art}
     </svg>
   );

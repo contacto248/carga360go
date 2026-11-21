@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { GeometriaSitio } from "@/components/GeometriaSitio";
 import { Header } from "@/components/Header";
 import type { PublicUser } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export function AppFrame({ user, children }: { user: PublicUser | null; children
 
   return (
     <div className={portada ? "app-shell portada-shell" : "app-shell"}>
+      {publico ? <GeometriaSitio /> : null}
       <Header user={user} />
       <div className="shell-content">{children}</div>
     </div>

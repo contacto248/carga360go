@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: "AI.CARGA360",
-  description: "AI.CARGA360 opera cargas, camiones, retornos y la torre de control de Carga360go, de Arica a Punta Arenas.",
-  applicationName: "AI.CARGA360",
+  title: "Asistente ÓRBITA",
+  description: "Asistente ÓRBITA opera cargas, camiones, retornos y la torre de control de ÓRBITA · Sistema Carga360go, de Arica a Punta Arenas.",
+  applicationName: "Asistente ÓRBITA",
   manifest: "/agente-360go/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "AI.CARGA360",
+    title: "Asistente ÓRBITA",
     statusBarStyle: "black-translucent",
   },
   icons: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B1633",
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

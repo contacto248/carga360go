@@ -13,7 +13,7 @@ export function CentroAgente({ estado }: { estado: "--" }) {
       <div>
         {ACCESOS.map((etiqueta) => (
           <button key={etiqueta} type="button" onClick={abrir}>
-            Agente BASSAM 360 · {etiqueta}
+            Agente de acreditación · {etiqueta}
           </button>
         ))}
       </div>

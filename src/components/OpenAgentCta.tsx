@@ -6,11 +6,11 @@ type Props = {
 };
 
 /**
- * Abre el único FAB «AI.CARGA360» del pie. No crea un segundo FAB.
+ * Abre el único FAB «Asistente ÓRBITA» del pie. No crea un segundo FAB.
  */
 export function OpenAgentCta({
   className = "btn home-video-agent-btn",
-  label = "Hablar con AI.CARGA360",
+  label = "Hablar con Asistente ÓRBITA",
 }: Props) {
   return (
     <button

@@ -2,11 +2,27 @@
   --py: 0px;
   position: relative;
   display: grid;
-  min-height: calc(100svh - 64px);
+  min-height: 100svh;
   place-items: center;
   overflow: hidden;
   background: #000;
   color: #fff;
+}
+
+.fondo,
+.poster,
+.lienzo,
+.veil {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.lienzo,
+.poster {
+  display: block;
+  object-fit: cover;
 }
 
 .field,
@@ -92,10 +108,142 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 0.86fr) minmax(340px, 1.14fr);
-  gap: 28px 36px;
+  place-items: center;
+  width: min(760px, calc(100% - 40px));
+}
+
+.marca {
+  display: flex;
   align-items: center;
-  width: min(1180px, calc(100% - 40px));
+  gap: 14px;
+  margin: 0 0 16px;
+}
+
+.isotipo {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  animation: giro-suave 28s linear infinite;
+}
+
+.anillo {
+  stroke-dasharray: 164;
+  stroke-dashoffset: 164;
+  animation: trazo-anillo 1.8s ease forwards;
+}
+
+.contenedor {
+  opacity: 0;
+  animation: aparece-caja 0.5s ease 1.2s forwards;
+}
+
+.separador {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.wordmark {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(12px, 1.6vw, 15px);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+}
+
+.wordmark span {
+  color: #ff5001;
+}
+
+@keyframes trazo-anillo {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes aparece-caja {
+  to { opacity: 1; }
+}
+
+@keyframes giro-suave {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .isotipo,
+  .anillo,
+  .contenedor {
+    animation: none;
+  }
+
+  .anillo {
+    stroke-dashoffset: 0;
+  }
+
+  .contenedor {
+    opacity: 1;
+  }
+}
+
+.tagline {
+  margin: 0 0 10px;
+  color: #ff5001;
+  font-size: 0.95rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+}
+
+.ejemplo {
+  position: relative;
+  z-index: 1;
+  padding: 20px 20px 40px;
+  background: #000;
+}
+
+.fragmento {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 18px;
+  align-items: center;
+  width: min(560px, 100%);
+  margin: 0 auto;
+  padding: 14px 16px;
+  background: #0b0b0c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fragmento .sample {
+  position: static;
+  grid-column: 1 / -1;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.esquema {
+  width: 100%;
+  height: auto;
+}
+
+.fragmento dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.fragmento dt {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fragmento dd {
+  margin: 2px 0 0;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 300;
 }
 
 .copy {
@@ -107,11 +255,12 @@
 }
 
 .mark {
-  margin: 0 0 18px;
-  color: #e8e8e8;
-  font-size: 0.92rem;
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 11px;
   font-weight: 400;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .secondary {
@@ -494,14 +643,14 @@
 .title {
   margin: 0 0 16px;
   color: #fff;
-  font-size: clamp(42px, 4.8vw, 72px);
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
   font-weight: 300;
   letter-spacing: -0.045em;
   line-height: 0.98;
 }
 
 .stage h1.title {
-  font-size: clamp(40px, 4.8vw, 72px);
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
   font-weight: 300;
   line-height: 0.98;
   letter-spacing: -0.045em;

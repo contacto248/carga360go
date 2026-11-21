@@ -5,7 +5,7 @@ import { FAQ } from "@/lib/faq";
 export const metadata: Metadata = {
   title: "Preguntas frecuentes",
   description:
-    "Preguntas frecuentes de Carga360go: costo del flete, contacto protegido, verificación, Carga360 Match, alertas y seguimiento de la operación.",
+    "Preguntas frecuentes de Carga360go: costo del flete, contacto protegido, verificación, Match ÓRBITA, alertas y seguimiento de la operación.",
   alternates: { canonical: "/preguntas-frecuentes" },
 };
 

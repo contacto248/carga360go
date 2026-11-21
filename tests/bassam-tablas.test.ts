@@ -353,20 +353,22 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   const copia = fs.readFileSync(new URL("../src/lib/bassam/agente-copia.ts", import.meta.url), "utf8");
   const respuesta = fs.readFileSync(new URL("../src/lib/bassam/agente-respuesta.ts", import.meta.url), "utf8");
   assert.match(agente, /\/api\/bassam\/agente/);
-  assert.match(agente, /Agente BASSAM 360/);
+  assert.match(agente, /Agente de acreditación/);
+  assert.doesNotMatch(agente, /Agente BASSAM 360/);
   const header = fs.readFileSync(new URL("../src/components/Header.tsx", import.meta.url), "utf8");
   const footer = fs.readFileSync(new URL("../src/components/Footer.tsx", import.meta.url), "utf8");
   const cuenta = fs.readFileSync(new URL("../src/app/mi-cuenta/page.tsx", import.meta.url), "utf8");
   assert.match(header, /Publicar carga/);
   assert.match(header, /Camiones/);
   assert.match(header, /Mi cuenta/);
-  assert.match(header, /Agente BASSAM 360/);
-  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin\/bassam"[\s\S]*Panel BASSAM/);
+  assert.match(header, /Agente de acreditación/);
+  assert.doesNotMatch(header, /Agente BASSAM 360/);
+  assert.match(header, /user\?\.role === "admin"[\s\S]*href="\/admin\/bassam"[\s\S]*Panel de control/);
+  assert.doesNotMatch(header, /Panel BASSAM|BASSAM 360/);
   assert.doesNotMatch(header, /Publicar camión|Buscar camión|Regiones/);
   assert.doesNotMatch(footer, /HelpLauncher|FleteButton|ChatWidget/);
   assert.match(footer, /VoiceAgentLauncher/);
-  // Decisión Gerencia 16-11: Carga360 es el único botón flotante público y siempre se muestra;
-  // el Agente BASSAM 360 solo aparece en /admin/* y /mi-cuenta.
+  // El flotante de documentos no sale en /mi-cuenta. Ahí queda Asistente ÓRBITA.
   const agenteSrc = fs.readFileSync(new URL("../src/components/AgenteAcreditacion.tsx", import.meta.url), "utf8");
   assert.match(agenteSrc, /agenteVisible\(pathname\)/);
   assert.match(header, /agenteBassam \?/);
@@ -409,17 +411,19 @@ test("el botón ¿Necesitas Flete? enlaza a WhatsApp y no usa la API de Meta", (
   }
   assert.match(centroPage, /CENTRO DE CONTROL INTELIGENTE/);
   assert.match(centroPage, /Viajes/);
-  assert.match(centroPage, /Docs BASSAM/);
+  assert.match(centroPage, /Documentos/);
+  assert.doesNotMatch(centroPage, /Docs BASSAM/);
   assert.match(centroPage, /Esperando datos reales/);
   assert.match(centroPage, /WhatsApp: --/);
   assert.doesNotMatch(centroPage, /Calama|Antofagasta|Copiapó|WA_ACCESS_TOKEN|from "fs"|api\/centro-control\/stats|"0"/);
   assert.match(centroPage, /estado="--"/);
   assert.doesNotMatch(centroPage, /2 ACTIVOS|Activo/);
-  assert.match(fs.readFileSync(new URL("../src/components/centro-control.module.css", import.meta.url), "utf8"), /#020a18/i);
+  assert.match(fs.readFileSync(new URL("../src/components/centro-control.module.css", import.meta.url), "utf8"), /#000/i);
   assert.match(centroAgente, /Consultar documentos/);
   assert.match(centroAgente, /Guía de acreditación/);
   assert.match(centroAgente, /Estado de la cuenta/);
-  assert.match(centroAgente, /Agente BASSAM 360/);
+  assert.match(centroAgente, /Agente de acreditación/);
+  assert.doesNotMatch(centroAgente, /BASSAM/);
   assert.doesNotMatch(centroPage + centroAgente, /WA_ACCESS_TOKEN|127|98\.4%/);
   assert.match(panel, /Aprobar/);
   assert.match(panel, /Rechazar/);

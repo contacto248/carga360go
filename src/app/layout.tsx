@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Sora, Space_Grotesk } from "next/font/google";
+import { Figtree, Inter, Sora } from "next/font/google";
 import { headers } from "next/headers";
 import Script from "next/script";
 import { AnalyticsRouteGuard } from "@/components/AnalyticsRouteGuard";
@@ -39,11 +39,11 @@ const bodyFont = Figtree({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const publicSans = Space_Grotesk({
+const publicSans = Inter({
   subsets: ["latin"],
   variable: "--font-public",
   display: "swap",
-  weight: ["300", "400", "500", "600"],
+  weight: ["300", "400"],
 });
 
 export const dynamic = "force-dynamic";

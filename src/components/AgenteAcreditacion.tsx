@@ -14,7 +14,7 @@ function rolDeQuery(value: string | null): TipoCliente | null {
 
 export function agenteVisible(pathname: string | null): boolean {
   if (!pathname) return false;
-  return pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/mi-cuenta" || pathname.startsWith("/mi-cuenta/");
+  return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
 export function AgenteAcreditacion() {
@@ -51,8 +51,8 @@ export function AgenteAcreditacion() {
     setBusy(false);
   }
 
-  // Decisión Gerencia 16-11: en páginas públicas el único botón flotante es Carga360.
-  // Este agente solo aparece en /admin/* y /mi-cuenta.
+  // En /mi-cuenta y en el sitio público queda un solo flotante: Asistente ÓRBITA.
+  // Este panel de documentos solo aparece en /admin.
   if (!agenteVisible(pathname)) return null;
 
   function send(event: FormEvent) {
@@ -113,7 +113,7 @@ export function AgenteAcreditacion() {
         </section>
       ) : null}
       <button type="button" className="help-fab help-exec" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-        Agente BASSAM 360
+        Agente de acreditación
       </button>
     </div>
   );

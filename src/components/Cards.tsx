@@ -8,7 +8,6 @@ import { MATCH_DISCLAIMER, MATCH_NAME } from "@/lib/match-copy";
 import { WhatsAppContactGate } from "@/components/WhatsAppContactGate";
 import { formatClp, formatDateCL } from "@/lib/format";
 import { roadKm } from "@/lib/geo";
-import { TruckArt } from "./TruckArt";
 import { REFERENCE_NOTICE } from "@/lib/costos/notice";
 import type { CostHint } from "@/lib/costos/hint";
 import { publicVerifiedSeal } from "@/lib/public-trust";
@@ -142,7 +141,7 @@ export function LoadCard({
     <article className="card">
       <div className="row" style={{ justifyContent: "space-between" }}>
         <span className="pill eqpill">
-          <TruckArt id={equipment.id} className="truck-mini" /> {equipment.label}
+          {equipment.label}
         </span>
         <span className="row">
           {load.isDemo ? <span className="pill demo">DEMO</span> : null}
@@ -267,7 +266,7 @@ export function TruckCard({ truck, canManage = false }: { truck: TruckListItem; 
     <article className="card">
       <div className="row" style={{ justifyContent: "space-between" }}>
         <span className="pill eqpill">
-          <TruckArt id={equipment.id} className="truck-mini" /> {equipment.label}
+          {equipment.label}
         </span>
         <span className="row">
           {truck.isDemo ? <span className="pill demo">DEMO</span> : null}

@@ -39,10 +39,8 @@ export function Footer() {
     <>
       <footer className="foot foot-short">
         <div className="wrap foot-row">
-          <Link href="/" className="orbita-wordmark" aria-label="Carga360go">
-            <span>
-              Carga<b>360go</b>
-            </span>
+          <Link href="/" className="orbita-wordmark" aria-label="ÓRBITA · Sistema Carga360go">
+            <span>ÓRBITA · Sistema Carga360go</span>
           </Link>
           <span>© {new Date().getFullYear()} Carga360go</span>
           <Link className="foot-legal" href="/legal">

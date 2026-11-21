@@ -27,7 +27,7 @@ function abrirAgente(event: { preventDefault(): void }) {
 
 function Marca() {
   return (
-    <Link href="/" className="logo" aria-label="Carga360go">
+    <Link href="/" className="orbita-wordmark" aria-label="ÓRBITA · Sistema Carga360go">
       <img
         className="logo-img"
         src="/brand/logo-wordmark.png"
@@ -36,6 +36,7 @@ function Marca() {
         width={159}
         height={36}
       />
+      <span>ÓRBITA · Sistema Carga360go</span>
     </Link>
   );
 }
@@ -44,8 +45,8 @@ export function Header({ user }: { user: PublicUser | null }) {
   const pathname = usePathname() || "/";
   const portada = pathname === "/";
   const router = useRouter();
-  // Decisión Gerencia 16-11: el Agente BASSAM 360 solo se abre desde /admin/* y /mi-cuenta.
-  const agenteBassam = Boolean(pathname && (pathname.startsWith("/admin") || pathname.startsWith("/mi-cuenta")));
+  // El asistente público es uno solo. El enlace de acreditación queda en /admin.
+  const agenteBassam = pathname.startsWith("/admin");
 
   async function salir() {
     await fetch("/api/auth/salir", { method: "POST" });
@@ -61,10 +62,8 @@ export function Header({ user }: { user: PublicUser | null }) {
         </a>
         <header className="portada-top">
           <div className="wrap">
-            <Link href="/" className="orbita-wordmark" aria-label="Carga360go">
-              <span>
-                Carga<b>360go</b>
-              </span>
+            <Link href="/" className="orbita-wordmark" aria-label="ÓRBITA · Sistema Carga360go">
+              <span>ÓRBITA · Sistema Carga360go</span>
             </Link>
             <nav className="portada-nav" aria-label="Portada">
               <a href="#soluciones">Soluciones</a>
@@ -107,16 +106,16 @@ export function Header({ user }: { user: PublicUser | null }) {
         })}
         {agenteBassam ? (
           <a href="#agente-bassam" onClick={abrirAgente}>
-            Agente BASSAM 360
+            Agente de acreditación
           </a>
         ) : null}
         {user?.role === "admin" ? (
           <>
             <Link href="/admin/bassam" className={activo(pathname, "/admin/bassam") ? "on" : undefined} aria-current={activo(pathname, "/admin/bassam") ? "page" : undefined}>
-              Panel BASSAM
+              Panel de control
             </Link>
             <Link href="/admin/bassam360" className={activo(pathname, "/admin/bassam360") ? "on" : undefined} aria-current={activo(pathname, "/admin/bassam360") ? "page" : undefined}>
-              BASSAM 360
+              Centro ÓRBITA
             </Link>
             <Link href="/admin" className={activo(pathname, "/admin") ? "on" : undefined} aria-current={activo(pathname, "/admin") ? "page" : undefined}>
               Administración
