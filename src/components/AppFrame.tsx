@@ -13,7 +13,7 @@ import type { PublicUser } from "@/lib/types";
 export function AppFrame({ user, children }: { user: PublicUser | null; children: React.ReactNode }) {
   const pathname = usePathname() || "/";
   const portada = pathname === "/";
-  const publico = !pathname.startsWith("/admin");
+  const publico = !pathname.startsWith("/admin") || pathname === "/admin";
 
   useEffect(() => {
     document.body.classList.toggle("portada-body", portada);

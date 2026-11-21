@@ -110,17 +110,9 @@ export function Header({ user }: { user: PublicUser | null }) {
           </a>
         ) : null}
         {user?.role === "admin" ? (
-          <>
-            <Link href="/admin/bassam" className={activo(pathname, "/admin/bassam") ? "on" : undefined} aria-current={activo(pathname, "/admin/bassam") ? "page" : undefined}>
-              Panel de control
-            </Link>
-            <Link href="/admin/bassam360" className={activo(pathname, "/admin/bassam360") ? "on" : undefined} aria-current={activo(pathname, "/admin/bassam360") ? "page" : undefined}>
-              Centro ÓRBITA
-            </Link>
-            <Link href="/admin" className={activo(pathname, "/admin") ? "on" : undefined} aria-current={activo(pathname, "/admin") ? "page" : undefined}>
-              Administración
-            </Link>
-          </>
+          <Link href="/admin" className={activo(pathname, "/admin") ? "on" : undefined} aria-current={activo(pathname, "/admin") ? "page" : undefined}>
+            Administración
+          </Link>
         ) : null}
       </>
     );
