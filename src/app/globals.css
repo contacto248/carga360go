@@ -7,6 +7,8 @@ a.card.cat{color:inherit}
 .page-title h1{letter-spacing:-.02em}
 .row-alert td{background:#fff8ec}
 .row-bad td{background:#fef2f2}
+body.public-theme .row-alert td{background:#2a2112;color:#fff}
+body.public-theme .row-bad td{background:#2a1212;color:#fff}
 .hero .cta .btn.wa{color:#053b1c}
 @media(max-width:560px){
   .hero{padding:36px 0 40px}

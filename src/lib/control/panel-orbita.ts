@@ -2,7 +2,8 @@ import { diditConfigured, kycEnabled } from "../kyc/config";
 import { lastDiesel } from "../costos/diesel";
 import { getDb } from "../db";
 import { emailChannelReady } from "../notify";
-import { paymentsEnabled } from "../pagos/config";
+import { isLoadListedPublicly } from "../listings";
+import { configStatus } from "../pagos/config";
 import { hubspotPortalId } from "../hubspot";
 import { canSend } from "../whatsapp/config";
 import { botGloballyEnabled } from "../whatsapp/store";
@@ -44,8 +45,18 @@ export function panelOrbita(user: PublicUser): PanelOrbita {
   if (user.role !== "admin") throw new Error("Solo administración.");
   const centro = vistaCentro();
   const metricas = adminMetrics();
-  const activas = contar(`SELECT COUNT(*) AS n FROM loads WHERE COALESCE(status, 'abierta') = 'abierta' AND COALESCE(is_demo, 0) = 0`);
-  const solicitudes = contar(`SELECT COUNT(*) AS n FROM offers WHERE status = 'pendiente'`);
+  const abiertas = getDb()
+    .prepare(
+      `SELECT COALESCE(status, 'abierta') AS status, offers_until AS offersUntil, pickup_date AS pickupDate
+       FROM loads WHERE COALESCE(is_demo, 0) = 0`,
+    )
+    .all() as { status: string; offersUntil: string | null; pickupDate: string }[];
+  const activas = abiertas.filter((load) => {
+    const status: "abierta" | "adjudicada" | "cerrada" =
+      load.status === "adjudicada" || load.status === "cerrada" ? load.status : "abierta";
+    return isLoadListedPublicly({ status, offersUntil: load.offersUntil, pickupDate: load.pickupDate });
+  }).length;
+  const solicitudes = contar(`SELECT COUNT(*) AS n FROM offers WHERE status = 'activa'`);
   const transportistas = contar(`SELECT COUNT(*) AS n FROM users WHERE role = 'transportista'`);
   const clientes = contar(`SELECT COUNT(*) AS n FROM users WHERE role = 'mandante'`);
   const enRuta = tabla("trip_gps_points")
@@ -64,20 +75,22 @@ export function panelOrbita(user: PublicUser): PanelOrbita {
     dieselTexto = "Sin datos de diésel.";
   }
   const peajes = tabla("cost_toll_plazas") ? contar(`SELECT COUNT(*) AS n FROM cost_toll_plazas`) : null;
+  const mercadoPago = configStatus();
+  const mercadoPagoEstado = !mercadoPago.enabled ? "Apagado" : mercadoPago.missing.length === 0 ? "Configurado" : "Sin configurar";
   const didit = diditConfigured();
   const diditListo = didit.apiKey && didit.workflow && didit.webhookSecret;
 
   return {
     kpis: [
       { etiqueta: "Cargas activas", valor: marca(activas), nota: `Centro: ${centro.viajes}. Métrica de cargas: ${metricas.loads}.` },
-      { etiqueta: "Solicitudes", valor: marca(solicitudes), nota: "Ofertas en estado pendiente." },
+      { etiqueta: "Solicitudes", valor: marca(solicitudes), nota: "Ofertas activas, todavía sin decisión." },
       { etiqueta: "Transportistas", valor: marca(transportistas), nota: "Cuentas con rol transportista." },
       { etiqueta: "Clientes", valor: marca(clientes), nota: `Mandantes. Centro de clientes: ${centro.clientes}.` },
       { etiqueta: "En ruta con GPS", valor: marca(enRuta), nota: "Viajes en ruta que ya tienen un punto guardado. Sin puntos: sin datos." },
       { etiqueta: "Entregas", valor: marca(entregas), nota: "Viajes con estado entregado. No incluye demostraciones." },
     ],
     flujo: [
-      { id: "solicitud", titulo: "Solicitud", valor: marca(activas), nota: "Cargas abiertas." },
+      { id: "solicitud", titulo: "Solicitud", valor: marca(activas), nota: "Cargas abiertas, con plazo vigente y retiro no vencido." },
       { id: "validacion", titulo: "Validación", valor: marca(validacion), nota: "Cuentas pendientes de revisión. Autorizar o rechazar está en esta misma página." },
       { id: "asignacion", titulo: "Asignación", valor: marca(asignadas), nota: "Cargas adjudicadas en estado asignado." },
       { id: "ruta", titulo: "En ruta", valor: marca(ruta), nota: "En camino, retirado o en tránsito." },
@@ -90,7 +103,7 @@ export function panelOrbita(user: PublicUser): PanelOrbita {
       { nombre: "WhatsApp", estado: canSend() && botGloballyEnabled() ? "Configurado" : "Sin configurar", nota: "Credenciales y flujo son configuración. No hay prueba de recepción en este panel." },
       { nombre: "Didit", estado: diditListo && kycEnabled() ? "Configurado" : "Sin configurar", nota: kycEnabled() ? "Identidad encendida." : "El flag de identidad está apagado." },
       { nombre: "HubSpot", estado: /^\d+$/.test(hubspotPortalId()) ? "Configurado" : "Sin configurar", nota: "El portal está definido. Este panel no comprueba una visita." },
-      { nombre: "Mercado Pago", estado: paymentsEnabled() ? "Configurado" : "Apagado", nota: "Solo el estado del cobro. El pago entre las partes no pasa por aquí mientras esté apagado." },
+      { nombre: "Mercado Pago", estado: mercadoPagoEstado, nota: mercadoPago.missing.length ? "El cobro está marcado, pero faltan credenciales. No se muestran los valores." : "Solo el estado del cobro. El pago entre las partes no pasa por aquí mientras esté apagado." },
       { nombre: "GPS", estado: "Probada en test", nota: "Hay API para un viaje autorizado. No está operativa en terreno." },
       { nombre: "OCR", estado: "No disponible", nota: "No hay lectura automática de documentos en producción." },
     ],
