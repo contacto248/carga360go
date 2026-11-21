@@ -43,7 +43,7 @@ const GUIDES = [
   {
     href: "/tecnologia",
     title: "Tecnología y trazabilidad",
-    text: "Motor de costos, Carga360 Match, eventos de viaje y controles reales de la plataforma.",
+    text: "Motor de costos, Match ÓRBITA, eventos de viaje y controles reales de la plataforma.",
   },
   {
     href: "/contacto",

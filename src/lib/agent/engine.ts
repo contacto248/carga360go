@@ -279,7 +279,7 @@ async function finishQuote(conv: AgentConversation, state: AgentState, user: Pub
   });
   if (match && match.count > 0) {
     parts.push(
-      `Según Carga360 Match, hay ${match.count} camión(es) publicados potencialmente compatibles por equipo y capacidad` +
+      `Según Match ÓRBITA, hay ${match.count} camión(es) publicados potencialmente compatibles por equipo y capacidad` +
         (match.bestScore !== null ? ` (mejor compatibilidad calculada por el sistema: ${match.bestScore}%)` : "") +
         ". Esto no confirma disponibilidad.",
     );

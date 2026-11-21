@@ -81,7 +81,7 @@ test("T-064 + avatar: zona dentro del panel FAB, un solo flotante Carga360", () 
   assert.match(agent, /micDenied/);
   assert.match(agent, /Sin permiso de micrófono/);
   assert.match(agent, /Micrófono activo/);
-  assert.match(agent, />AI\.CARGA360</);
+  assert.match(agent, />Asistente ÓRBITA</);
   assert.match(agent, /Carga360go/);
   assert.doesNotMatch(agent, /help-wa|btn wa fab|help-stack/);
   assert.doesNotMatch(agent, /HeyGen|D-ID|DID_API|HEYGEN_API/);
@@ -90,7 +90,7 @@ test("T-064 + avatar: zona dentro del panel FAB, un solo flotante Carga360", () 
   assert.match(stage, /agent-avatar-stage/);
   assert.match(stage, /HumanFaceSvg|agent-human-face/);
   assert.match(stage, /Escuchando|Hablando|micrófono/i);
-  assert.match(stage, /Carga360go/);
+  assert.match(stage, /Asistente ÓRBITA/);
 
   const lib = read("src/lib/agent/avatar.ts");
   assert.match(lib, /NEXT_PUBLIC_AVATAR_PROVIDER/);

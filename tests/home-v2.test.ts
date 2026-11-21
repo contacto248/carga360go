@@ -28,7 +28,9 @@ test("T-049/T-065 home: panel del producto sin precios ni comisiones", () => {
   const page = read("src/app/page.tsx");
   const hero = read("src/components/PortadaInicio.tsx");
   assert.match(hero, /brand-hero/);
-  assert.match(hero, /Plataforma ÓRBITA · Sistema Carga360go/);
+  assert.match(hero, />ÓRBITA</);
+  assert.match(hero, /Plataforma <span>ÓRBITA<\/span> · Sistema <span>Carga360go<\/span>/);
+  assert.match(hero, /FondoOrbita/);
   assert.match(hero, /Tu carga, en el centro\./);
   assert.match(hero, /Plataforma tecnológica de carga y retorno en Chile\. Conectamos carga y camiones en un solo panel, claro y verificado\./);
   assert.match(hero, /Menos ruido\. Más claridad\./);
@@ -77,8 +79,8 @@ test("T-064 FAB único Carga360 en el pie (sin WhatsApp/Asistente flotantes)", (
   assert.match(footer, /VoiceAgent/);
   assert.doesNotMatch(footer, /ChatWidget|HelpLauncher|webChatEnabled/);
   const agent = read("src/components/VoiceAgent.tsx");
-  assert.match(agent, />AI\.CARGA360</);
-  assert.match(agent, /id=\{titleId\}>AI\.CARGA360</);
+  assert.match(agent, />Asistente ÓRBITA</);
+  assert.match(agent, /id=\{titleId\}>Asistente ÓRBITA</);
   assert.match(agent, /\/agente-360go/);
   assert.match(agent, /Carga360go/);
   assert.match(agent, /Continuar por WhatsApp/);
@@ -286,7 +288,9 @@ test("portada visual: cookie compacta y un solo CTA primario naranja en el hero"
   assert.equal((hero.match(/className=\{styles\.cta\}/g) || []).length, 1);
   assert.match(hero, /className=\{styles\.secondary\}/);
   assert.doesNotMatch(hero, /Abrir el cotizador/);
-  assert.match(hero, /Plataforma ÓRBITA · Sistema Carga360go/);
+  assert.match(hero, />ÓRBITA</);
+  assert.match(hero, /Plataforma <span>ÓRBITA<\/span> · Sistema <span>Carga360go<\/span>/);
+  assert.match(hero, /FondoOrbita/);
   const footer = read("src/components/Footer.tsx");
   assert.match(footer, /Legal y privacidad/);
   assert.match(footer, /href="\/legal"/);

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AutomationBoardDemo, TraceAutomationDemo } from "@/components/TraceAutomationDemo";
+import { TraceAutomationDemo } from "@/components/TraceAutomationDemo";
 import { TruckArt } from "@/components/TruckArt";
 import { BRAND, EQUIPMENT } from "@/lib/catalog";
 import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
@@ -14,27 +14,27 @@ export const metadata: Metadata = {
 const SECURITY = [
   {
     title: "HTTPS y cookies seguras",
-    text: "El sitio público corre por HTTPS. En producción, COOKIE_SECURE marca las cookies de sesión solo para conexiones seguras.",
+    text: "El sitio público se sirve por HTTPS. En producción, COOKIE_SECURE marca la cookie de sesión como Secure: el navegador no la envía por una conexión sin cifrar.",
   },
   {
     title: "Política de seguridad de contenidos (CSP)",
-    text: "Next.js declara Content-Security-Policy: scripts y recursos acotados al propio origen y a analítica autorizada.",
+    text: "Next.js declara Content-Security-Policy. Scripts y recursos quedan limitados al propio origen y a la analítica autorizada.",
   },
   {
     title: "Roles y acceso",
-    text: "Cuentas de mandante, transportista y administrador. El panel y las acciones sensibles respetan el rol de la sesión.",
+    text: "La cuenta es de mandante, de transportista o de administrador. El panel y las escrituras comprueban el rol de la sesión.",
   },
   {
     title: "Verificación de documentos",
-    text: "Un administrador revisa contacto y, en transportistas, documentos vigentes. Ver /como-verificamos. No es sello ISO ni SOC 2.",
+    text: "Un administrador revisa el contacto y, en transportistas, los documentos vigentes. El procedimiento está en /como-verificamos. No es sello ISO ni SOC 2.",
   },
   {
     title: "Protección de datos de contacto",
-    text: "WhatsApp, correo y teléfono no se muestran en el listado hasta adjudicar una oferta; entonces solo entre las dos partes.",
+    text: "WhatsApp, correo y teléfono no salen en el listado público. Se comparten solo entre las dos partes cuando una oferta queda adjudicada.",
   },
   {
     title: "Aceptación de privacidad y términos",
-    text: "Las cuentas con sesión deben aceptar las versiones vigentes antes de seguir usando la plataforma.",
+    text: "Quien tiene sesión debe aceptar la versión vigente de la política de privacidad y de los términos antes de continuar.",
   },
 ];
 
@@ -44,7 +44,7 @@ export default function TecnologiaPage() {
       <section className="hero hero2 hero-v2 tech-hero">
         <div className="wrap hero-grid">
           <div className="hero-copy">
-            <p className="brand-hero">Carga360go</p>
+            <p className="brand-hero">Plataforma ÓRBITA · Sistema Carga360go</p>
             <h1>Tecnología para trazabilidad y automatización</h1>
             <p>
               Una torre de control propia: publicar, calzar, seguir y comprobar. {BRAND.company} · RUT {BRAND.rut}.
@@ -73,7 +73,7 @@ export default function TecnologiaPage() {
               <li>
                 <span className="tower-n">02</span>
                 <div>
-                  <strong>Carga360 Match</strong>
+                  <strong>Match ÓRBITA</strong>
                   <p>Calce técnico por equipo, capacidad, medidas, ruta y fechas.</p>
                 </div>
               </li>
@@ -87,7 +87,7 @@ export default function TecnologiaPage() {
               <li>
                 <span className="tower-n">04</span>
                 <div>
-                  <strong>AI.CARGA360</strong>
+                  <strong>Asistente ÓRBITA</strong>
                   <p>Voz y texto en el navegador (Web Speech API), sin claves de pago.</p>
                 </div>
               </li>
@@ -98,28 +98,17 @@ export default function TecnologiaPage() {
 
       <section className="block">
         <div className="wrap">
-          <h2>Demo de trazabilidad</h2>
-          <p className="lead">
-            Recorre un flujo de ejemplo. Todo lo que ves abajo está marcado como <strong>Demostración</strong>.
-          </p>
+          <h2>Registro del sistema</h2>
+          <p className="lead">Cinco pasos que el código ejecuta hoy. Sin GPS en vivo y sin cifras de ejemplo.</p>
           <TraceAutomationDemo />
         </div>
       </section>
 
       <section className="block alt">
         <div className="wrap">
-          <h2>Demo de automatización</h2>
-          <p className="lead">El mismo eje operativo de la home, en cuatro pasos ilustrativos.</p>
-          <AutomationBoardDemo />
-        </div>
-      </section>
-
-      <section className="block">
-        <div className="wrap">
           <h2>Seguridad: controles reales</h2>
           <p className="lead">
-            Solo listamos mecanismos que existen en el código de Carga360go. No mostramos sellos ISO, SOC 2 ni logos de
-            terceros. Algunas certificaciones externas pueden estar <em>en proceso</em> sin comprometer un resultado.
+            Mecanismos presentes en el código de ÓRBITA · Sistema Carga360go. No hay sello ISO, SOC 2 ni logo de un tercero.
           </p>
           <div className="sec-grid">
             {SECURITY.map((item) => (
@@ -129,9 +118,8 @@ export default function TecnologiaPage() {
               </article>
             ))}
           </div>
-          <p className="notice" style={{ marginTop: 16 }}>
-            <strong>En proceso (opcional):</strong> evaluaciones o certificaciones externas adicionales. Mientras no
-            estén cerradas, no se exhiben logos ni se afirman como vigentes.
+          <p className="sec-note">
+            Una evaluación externa, si existiera, no se muestra ni se da por cerrada hasta que lo esté.
           </p>
         </div>
       </section>
@@ -185,7 +173,7 @@ export default function TecnologiaPage() {
         <div className="wrap">
           <div className="cta-band">
             <h2>Ver la plataforma en acción</h2>
-            <p>Publica una carga o un camión, o habla con AI.CARGA360 desde cualquier página pública.</p>
+            <p>Publica una carga o un camión, o habla con Asistente ÓRBITA desde cualquier página pública.</p>
             <div className="cta">
               <Link className="btn" href="/registro">
                 Crear cuenta

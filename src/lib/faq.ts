@@ -17,7 +17,7 @@ export const FAQ = [
     a: "Carga general, paletizada, refrigerada, a granel, líquida, contenedores, vehículos y carga sobredimensionada, de comercio, construcción, agro, retail, industria, distribución y minería. El foco de diferenciación está en minería, cama baja y retornos.",
   },
   {
-    q: "¿Qué es Carga360 Match?",
+    q: "¿Qué es Match ÓRBITA?",
     a: "Una recomendación automática que compara equipo, capacidad, medidas, ruta y fechas, y muestra un porcentaje de calce con las razones y lo que falta confirmar. No garantiza contratación ni aptitud del viaje.",
   },
   {

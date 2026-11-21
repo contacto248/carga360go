@@ -172,8 +172,8 @@ test("avisos cercanos solo aparecen si existen de verdad y no inventan resultado
   assert.match(nearbyTruck[0].why, /región|equipo/i);
 });
 
-test("Carga360 Match se nombra junto al porcentaje, sin rehacer el motor", () => {
-  assert.equal(MATCH_NAME, "Carga360 Match");
+test("Match ÓRBITA se nombra junto al porcentaje, sin rehacer el motor", () => {
+  assert.equal(MATCH_NAME, "Match ÓRBITA");
   assert.match(MATCH_DISCLAIMER, /No es una garantía de contratación/);
   const cards = read("src/components/Cards.tsx");
   assert.match(cards, /MATCH_DISCLAIMER/);

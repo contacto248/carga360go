@@ -24,8 +24,8 @@ export function AgentAvatar({ state = "idle", size = 56, className, label = "Car
       <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
         <defs>
           <linearGradient id="c360-av-bg" x1="12" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#0B1633" />
-            <stop offset="1" stopColor="#002451" />
+            <stop stopColor="#111111" />
+            <stop offset="1" stopColor="#000000" />
           </linearGradient>
           <linearGradient id="c360-av-ring" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
             <stop stopColor="#FF5001" />

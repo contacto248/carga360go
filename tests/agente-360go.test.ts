@@ -93,8 +93,8 @@ test("manifiesto, iconos y service worker del Agente 360go", () => {
     lang: string;
     icons: { src: string; sizes: string; purpose?: string }[];
   };
-  assert.equal(manifest.name, "AI.CARGA360");
-  assert.equal(manifest.short_name, "AI.CARGA360");
+  assert.equal(manifest.name, "Asistente ÓRBITA");
+  assert.equal(manifest.short_name, "Asistente ÓRBITA");
   assert.equal(manifest.start_url, "/agente-360go");
   assert.equal(manifest.scope, "/agente-360go");
   assert.equal(manifest.display, "standalone");
@@ -112,7 +112,7 @@ test("manifiesto, iconos y service worker del Agente 360go", () => {
 
   const app = read("src/app/agente-360go/Agente360goApp.tsx");
   const css = read("src/app/agente-360go/agente-360go.module.css");
-  assert.match(app, /AI\.CARGA360/);
+  assert.match(app, /Asistente ÓRBITA/);
   assert.match(app, /AI_CARGA360_NAME/);
   assert.match(app, /Carga360go/);
   assert.match(app, /c360\.agente360\.historial/);
@@ -127,7 +127,7 @@ test("manifiesto, iconos y service worker del Agente 360go", () => {
   const layout = read("src/app/agente-360go/layout.tsx");
   assert.match(layout, /manifest: "\/agente-360go\/manifest.webmanifest"/);
   assert.match(layout, /viewportFit: "cover"/);
-  assert.match(layout, /title: "AI\.CARGA360"/);
+  assert.match(layout, /title: "Asistente ÓRBITA"/);
 
   const readme = read("docs/agente-360go/README.md");
   assert.match(readme, /iPhone 14 Pro/);
@@ -142,7 +142,7 @@ test("manifiesto, iconos y service worker del Agente 360go", () => {
   assert.match(site, /start_url: "\/"/);
   assert.equal(manifestFor("/").short_name, "Carga360go");
   assert.equal(manifestFor("/").start_url, "/");
-  assert.equal(manifestFor("/agente-360go").name, "AI.CARGA360");
+  assert.equal(manifestFor("/agente-360go").name, "Asistente ÓRBITA");
   assert.equal(manifestFor("/agente-360go").start_url, "/agente-360go");
   assert.equal(manifestFor("/agente-360go").display, "standalone");
   const publico = read("src/app/api/agente/route.ts");
@@ -150,19 +150,19 @@ test("manifiesto, iconos y service worker del Agente 360go", () => {
   assert.match(read("src/components/VoiceAgent.tsx"), /\/api\/agente/);
 });
 
-test("un solo nombre visible AI.CARGA360", () => {
+test("un solo nombre visible Asistente ÓRBITA", () => {
   const agent = read("src/components/VoiceAgent.tsx");
   const app = read("src/app/agente-360go/Agente360goApp.tsx");
   const http = read("src/lib/agente360/http.ts");
   const route = read("src/app/api/agente-360go/route.ts");
   const client = http + read("src/lib/agente360/grok.ts") + read("src/lib/agente360/config.ts");
-  assert.match(agent, />AI\.CARGA360</);
+  assert.match(agent, />Asistente ÓRBITA</);
   assert.match(agent, /\/agente-360go/);
   assert.equal((agent.match(/className="help-fab agent-fab"/g) || []).length, 1);
   assert.doesNotMatch(agent, />Carga360</);
   assert.doesNotMatch(agent, /Asistente IA ejecutivo/);
   assert.doesNotMatch(agent, /Agente 360go/);
-  assert.match(app, /Soy AI\.CARGA360/);
+  assert.match(app, /Soy Asistente ÓRBITA/);
   assert.doesNotMatch(app, /Agente 360go|NO CONECTADA|status\.state/);
   assert.match(http, /status === 429 \|\| status >= 500/);
   assert.match(route, /rateLimit\(`ai-carga360:/);

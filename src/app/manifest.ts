@@ -8,8 +8,8 @@ const sitio: MetadataRoute.Manifest = {
   start_url: "/",
   scope: "/",
   display: "standalone",
-  background_color: "#0B1633",
-  theme_color: "#0B1633",
+  background_color: "#000000",
+  theme_color: "#000000",
   lang: "es-CL",
   icons: [
     { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
@@ -19,14 +19,14 @@ const sitio: MetadataRoute.Manifest = {
 
 const agente: MetadataRoute.Manifest = {
   id: "/agente-360go",
-  name: "AI.CARGA360",
-  short_name: "AI.CARGA360",
-  description: "Cliente de Carga360go para operar cargas, camiones, retornos y la torre de control, de Arica a Punta Arenas.",
+  name: "Asistente ÓRBITA",
+  short_name: "Asistente ÓRBITA",
+  description: "Asistente de ÓRBITA · Sistema Carga360go para operar cargas, camiones, retornos y la torre de control, de Arica a Punta Arenas.",
   start_url: "/agente-360go",
   scope: "/agente-360go",
   display: "standalone",
-  background_color: "#0B1633",
-  theme_color: "#0B1633",
+  background_color: "#000000",
+  theme_color: "#000000",
   lang: "es-CL",
   icons: [
     { src: "/agente-360go/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

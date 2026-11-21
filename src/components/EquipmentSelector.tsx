@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import { EQUIPMENT } from "@/lib/catalog";
 import { EQUIPMENT_CAPACITY } from "@/lib/equipment-capacity";
-import { TruckArt } from "./TruckArt";
 
 
 type Single = { mode: "single"; value: string; onChange: (id: string) => void };
@@ -70,7 +69,6 @@ export function EquipmentSelector(props: Props) {
               <span className="eqcheck" aria-hidden="true">
                 ✓
               </span>
-              <TruckArt id={item.id} />
               <span className="eqname">{item.label}</span>
               <span className="eqcap">{EQUIPMENT_CAPACITY[item.id]}</span>
             </button>

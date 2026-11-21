@@ -6,7 +6,7 @@
  */
 
 /** Nombre único visible del agente en la web. */
-export const AI_CARGA360_NAME = "AI.CARGA360";
+export const AI_CARGA360_NAME = "Asistente ÓRBITA";
 
 const XAI_BASE = "https://api.x.ai/v1";
 export const XAI_MODEL = "grok-4.7";

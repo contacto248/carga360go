@@ -9,7 +9,7 @@ import styles from "./agente-360go.module.css";
 
 const STORAGE_KEY = "c360.agente360.historial";
 const GREETING =
-  "Soy AI.CARGA360. Ayudo a operar cargas, camiones, retornos y la torre de control, de Arica a Punta Arenas. La conversación queda en este dispositivo.";
+  "Soy Asistente ÓRBITA. Ayudo a operar cargas, camiones, retornos y la torre de control, de Arica a Punta Arenas. La conversación queda en este dispositivo.";
 
 const ACCIONES = ["Cotizar flete", "Publicar carga", "Registro transportista", "Seguimiento de carga", "Hablar con soporte"] as const;
 

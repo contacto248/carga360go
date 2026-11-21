@@ -35,13 +35,13 @@ test("el directorio público muestra las 25 empresas en acreditación, sin conta
   assert.doesNotMatch(page, /precio|tarifa|CLP|\$/i);
 });
 
-test("el Agente BASSAM 360 solo se muestra en /admin/* y /mi-cuenta", () => {
+test("el agente de acreditación solo se muestra en /admin", () => {
   assert.equal(agenteVisible("/"), false);
   assert.equal(agenteVisible("/empresas"), false);
   assert.equal(agenteVisible("/faq"), false);
   assert.equal(agenteVisible(null), false);
   assert.equal(agenteVisible("/administracion"), false);
+  assert.equal(agenteVisible("/mi-cuenta"), false);
   assert.equal(agenteVisible("/admin"), true);
   assert.equal(agenteVisible("/admin/bassam"), true);
-  assert.equal(agenteVisible("/mi-cuenta"), true);
 });

@@ -2,8 +2,8 @@
   display: grid;
   grid-template-columns: 220px 1fr 260px;
   gap: 16px;
-  background: #020a18;
-  color: #e8eef8;
+  background: #000;
+  color: #fff;
   border-radius: 12px;
   padding: 16px;
   margin: 8px 0 32px;

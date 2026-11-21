@@ -22,7 +22,7 @@ export function AgentAvatarStage({
   status,
   micDenied = false,
   listeningHint = "",
-  label = "Carga360go",
+  label = "Asistente ÓRBITA",
 }: Props) {
   const media = status.mode === "live" && status.streamUrl
     ? status.streamUrl
@@ -94,8 +94,8 @@ function HumanFaceSvg({ state }: { state: AgentAvatarState }) {
     <svg className={`agent-human-face is-${state}`} viewBox="0 0 160 160" width="160" height="160" aria-hidden="true">
       <defs>
         <linearGradient id="c360-face-bg" x1="20" y1="8" x2="140" y2="150" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#0B1633" />
-          <stop offset="1" stopColor="#002451" />
+          <stop stopColor="#111111" />
+          <stop offset="1" stopColor="#000000" />
         </linearGradient>
         <linearGradient id="c360-face-skin" x1="50" y1="30" x2="110" y2="130" gradientUnits="userSpaceOnUse">
           <stop stopColor="#f3c9a8" />
@@ -110,7 +110,7 @@ function HumanFaceSvg({ state }: { state: AgentAvatarState }) {
       <g clipPath="url(#c360-face-clip)">
         {/* Hombros / ropa */}
         <ellipse cx="80" cy="148" rx="54" ry="28" fill="#C84300" />
-        <ellipse cx="80" cy="148" rx="54" ry="28" fill="#002451" opacity="0.35" />
+        <ellipse cx="80" cy="148" rx="54" ry="28" fill="#111111" opacity="0.35" />
         {/* Cabeza */}
         <ellipse className="agent-human-head" cx="80" cy="72" rx="38" ry="44" fill="url(#c360-face-skin)" />
         {/* Cabello */}
@@ -126,8 +126,8 @@ function HumanFaceSvg({ state }: { state: AgentAvatarState }) {
         {/* Ojos */}
         <ellipse cx="68" cy="72" rx="5.5" ry="6" fill="#fff" />
         <ellipse cx="92" cy="72" rx="5.5" ry="6" fill="#fff" />
-        <circle cx="68" cy="73" r="2.8" fill="#0B1633" />
-        <circle cx="92" cy="73" r="2.8" fill="#0B1633" />
+        <circle cx="68" cy="73" r="2.8" fill="#111111" />
+        <circle cx="92" cy="73" r="2.8" fill="#111111" />
         <circle cx="69.2" cy="71.5" r="0.9" fill="#fff" />
         <circle cx="93.2" cy="71.5" r="0.9" fill="#fff" />
         {/* Nariz */}
@@ -140,7 +140,7 @@ function HumanFaceSvg({ state }: { state: AgentAvatarState }) {
         </g>
         {/* Badge 360 */}
         <g transform="translate(112 118)">
-          <circle r="14" fill="#0B1633" stroke="#FF5001" strokeWidth="2" />
+          <circle r="14" fill="#111111" stroke="#FF5001" strokeWidth="2" />
           <text x="0" y="4" textAnchor="middle" fill="#fff" fontSize="9" fontWeight="800" fontFamily="ui-sans-serif,system-ui,sans-serif">
             360
           </text>
