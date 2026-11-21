@@ -27,7 +27,7 @@ function abrirAgente(event: { preventDefault(): void }) {
 
 function Marca() {
   return (
-    <Link href="/" className="logo" aria-label="Carga360go">
+    <Link href="/" className="orbita-wordmark" aria-label="ÓRBITA · Sistema Carga360go">
       <img
         className="logo-img"
         src="/brand/logo-wordmark.png"
@@ -36,6 +36,7 @@ function Marca() {
         width={159}
         height={36}
       />
+      <span>ÓRBITA · Sistema Carga360go</span>
     </Link>
   );
 }

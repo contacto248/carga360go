@@ -508,3 +508,7 @@ body.public-theme :is(header, footer, .shell-content) {
 body.public-theme header {
   z-index: 30;
 }
+
+body.public-theme .logo-img {
+  display: none;
+}
