@@ -184,6 +184,25 @@
   }
 }
 
+@media (max-width: 700px) {
+  .marca {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .isotipo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .separador {
+    width: 28px;
+    height: 1px;
+    align-self: auto;
+  }
+}
+
 .tagline {
   margin: 0 0 10px;
   color: #ff5001;
