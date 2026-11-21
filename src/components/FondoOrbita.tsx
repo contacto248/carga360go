@@ -15,9 +15,9 @@ const ENTRADA_MS = 1800;
 type Punto = { x: number; y: number };
 
 const RUTA: Punto[] = [
-  { x: 0.16, y: 0.74 },
-  { x: 0.48, y: 0.6 },
-  { x: 0.84, y: 0.72 },
+  { x: 0.12, y: 0.88 },
+  { x: 0.5, y: 0.78 },
+  { x: 0.88, y: 0.86 },
 ];
 const NOMBRES = ["Carga", "Camión", "Destino"];
 
@@ -77,13 +77,13 @@ function dibujar(ctx: CanvasRenderingContext2D, ancho: number, alto: number, aho
     ctx.beginPath();
     ctx.arc(nodo.x * ancho, nodo.y * alto, 2.4, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = "rgba(255,255,255,0.7)";
-    ctx.font = "400 11px sans-serif";
-    ctx.fillText(NOMBRES[indice], nodo.x * ancho + 8, nodo.y * alto - 8);
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.font = "300 11px sans-serif";
+    ctx.fillText(NOMBRES[indice], nodo.x * ancho - 18, nodo.y * alto + 16);
   });
 
-  const cx = ancho * 0.72;
-  const cy = alto * 0.28;
+  const cx = ancho * 0.82;
+  const cy = alto * 0.22;
   const radio = Math.min(ancho, alto) * 0.2;
   ctx.save();
   ctx.translate(cx, cy);
